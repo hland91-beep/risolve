@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Next Life PRO - 프로페셔널 통합 자산관리 시스템 V19</title>
+    <!-- 인터넷 연결이 끊긴 오프라인 태블릿 환경에서도 100% 작동하도록 순수 로컬 자바스크립트 연산 엔진 설계 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* 태블릿 환경에서 가독성이 극대화되도록 전반적인 글자 크기, 여백, 터치 영역을 대폭 상향 조정 */
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; color: #0f172a; min-height: 100vh; font-size: 16px; }
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item { border-left: 6px solid transparent; transition: all 0.2s; cursor: pointer; color: #94a3b8; font-weight: 700; font-size: 15px; }
+        .nav-item.active { background-color: #1e293b; border-left: 6px solid #3b82f6; color: #ffffff; font-size: 16px; }
+        .nav-item:hover:not(.active) { background-color: #334155; color: #f1f5f9; }
+        .input-box { width: 100%; padding: 14px 16px; border: 2.5px solid #cbd5e1; border-radius: 12px; font-weight: 800; font-size: 18px; text-align: right; background-color: #ffffff; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .input-box:focus { border-color: #2563eb; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2); outline: none; }
+        .slider-custom { -webkit-appearance: none; width: 100%; height: 10px; background: #e2e8f0; border-radius: 8px; outline: none; }
+        .slider-custom::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #2563eb; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.3); border: 3px solid #ffffff; }
+        .tooltip-box { background-color: #f8fafc; border-left: 5px solid #475569; padding: 12px 16px; margin-top: 10px; border-radius: 0 10px 10px 0; font-size: 14px; color: #334155; font-weight: 600; line-height: 1.6; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .card-premium { background: white; border-radius: 24px; border: 1px solid #e2e8f0; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        .badge-premium { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; text-transform: uppercase; }
+        
+        /* ===== 모바일/태블릿 반응형 ===== */
+        @media (max-width: 768px) {
+            aside {
+                position: fixed !important;
+                left: -320px;
+                top: 0;
+                bottom: 0;
+                width: 280px !important;
+                z-index: 200;
+                transition: left .25s ease;
+            }
+            aside.sidebar-open { left: 0 !important; }
+            #sidebar-dim {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.5);
+                z-index: 199;
+            }
+            #sidebar-dim.show { display: block; }
+            main { padding: 52px 10px 68px !important; }
+            .card-premium { padding: 14px !important; border-radius: 14px !important; }
+            .input-box { padding: 10px 12px !important; font-size: 16px !important; }
+            #upgrade-banner-sidebar { display: none !important; }
+            #sidebar-close-btn { display: flex !important; }
+        }
+        @media (min-width: 769px) and (max-width: 1023px) {
+            aside { width: 220px !important; }
+            .nav-item { font-size: 13px !important; padding: 12px 14px !important; }
+        }
+        #sidebar-close-btn { display: none; }
+        #mobile-header { display: none; }
+        #mobile-step-bar { display: none; }
+
+        @media print {
+            aside, .print-hide { display: none !important; }
+            main { padding: 0 !important; background: white !important; }
+            .step-content { display: block !important; page-break-after: always; box-shadow: none !important; border: none !important; }
+            .step-content:last-child { page-break-after: auto; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- 사이드바 네비게이션 영역 -->
+    <aside class="w-80 bg-slate-950 text-slate-300 flex flex-col shadow-2xl z-20 shrink-0 print-hide overflow-y-auto">
+        <div class="p-6 border-b border-slate-900 flex justify-between items-center bg-slate-950 sticky top-0 z-30">
+            <div>
+                <h1 class="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
+                    NEXT LIFE <span class="bg-blue-600 text-white text-[11px] px-2 py-0.5 rounded-full font-black">PRO</span>
+                </h1>
+                <p class="text-[12px] text-slate-500 mt-1 font-bold">VIP 거시 자산관리 시스템 V19</p>
+            </div>
+            <!-- 요청사항 8: 새로운 고객 상담을 위한 전면 입력현황 초기화 버튼 배치 -->
+            <div class="flex gap-2 items-center">
+                <button onclick="resetConsultingV19()" class="bg-rose-500/20 text-rose-400 hover:bg-rose-600 hover:text-white transition-all p-2.5 rounded-xl text-[11px] font-black border border-rose-500/30 flex flex-col items-center justify-center gap-0.5 shadow-sm">
+                    <span class="text-base leading-none">🔄</span>신규상담
+                </button>
+                <!-- 모바일 전용 닫기 버튼 -->
+                <button id="sidebar-close-btn" onclick="closeSidebar()" style="color:#94a3b8;font-size:20px;background:none;border:none;cursor:pointer;align-items:center;justify-content:center;padding:6px">✕</button>
+            </div>
+        </div>
+        
+        <!-- 고객 데이터 LocalStorage 영구 격리보존 관리 모듈 -->
+        <div class="p-5 border-b border-slate-900 bg-slate-900/40 space-y-3">
+            <div class="flex justify-between items-center text-sm font-bold">
+                <span class="text-slate-400">지정 상담 대상</span>
+                <span id="sb_customerName" class="bg-blue-500/20 border border-blue-500/30 text-blue-300 px-3 py-1 rounded-md font-black">신규 고객 님</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+                <button onclick="saveDataV19()" class="bg-blue-600 text-white text-xs py-3 rounded-xl font-black hover:bg-blue-700 transition shadow">💾 상담 저장</button>
+                <button onclick="toggleLoadModalV19(true)" class="bg-slate-700 text-slate-200 text-xs py-3 rounded-xl font-black hover:bg-slate-600 transition shadow">📂 선택 불러오기</button>
+            </div>
+        </div>
+
+        <!-- 8단계 대메뉴 구성 -->
+        <nav class="flex-1 py-4">
+            <ul class="space-y-1">
+                <li class="nav-item active px-6 py-4.5 flex items-center" onclick="showStep(1)">1. 기본 정보 및 자산 현황</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(2)">2. 은퇴 시기 & 연금 개시 플래닝</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(3)">3. 현금흐름 GAP & 다차원 대안</li>
+                <!-- 요청사항 6: 명칭 정밀 수정 완료 -->
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(4)">4. 공적, 사적연금 세부분석</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(5)">5. 절세계좌 & ISA 시뮬레이션</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(6)">6. 솔루션 개선 효과 비교</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(7)">7. 상속/증여 세무 통합 솔루션</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(8)">8. 종합 결과 보고서</li>
+            </ul>
+        </nav>
+
+        <!-- ★ 유료 정식판 업그레이드 유도 배너 -->
+        <div class="p-4 border-t border-slate-800 print-hide" style="background:linear-gradient(135deg,rgba(120,53,15,.5),rgba(30,27,75,.6))">
+            <div class="text-center space-y-2.5">
+                <p class="text-amber-400 text-[10px] font-black tracking-widest uppercase">⭐ PREMIUM VERSION</p>
+                <p class="text-white font-black text-sm leading-tight">은퇴준비자금 계산기 <span class="text-amber-300">정식판</span></p>
+                <p class="text-slate-400 text-[11px] font-semibold leading-snug">국민연금·공무원연금 정밀계산<br>절세계좌·현금흐름·상속증여 완전판</p>
+                <button onclick="openPremiumApp()" class="w-full font-black text-xs py-3 rounded-xl transition shadow-lg" style="background:#f59e0b;color:#1c1917;margin-top:4px">
+                    🔓 정식판 보러가기 (₩49,900)
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 딤 배경 (모바일 사이드바 오버레이용) -->
+    <div id="sidebar-dim" onclick="closeSidebar()"></div>
+
+    <!-- 모바일 전용 상단 헤더 -->
+    <div id="mobile-header" style="position:fixed;top:0;left:0;right:0;height:50px;background:#0f172a;z-index:100;align-items:center;padding:0 14px;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.4)">
+        <button onclick="toggleSidebar()" style="color:white;font-size:22px;background:none;border:none;cursor:pointer;line-height:1">☰</button>
+        <span id="mobile-step-title" style="color:white;font-weight:800;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">1. 기본 정보 및 자산 현황</span>
+        <span style="color:#3b82f6;font-size:11px;font-weight:700;white-space:nowrap">일반용</span>
+    </div>
+
+    <!-- 메인 대화형 시뮬레이션 디스플레이 컨텐츠 -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-100">
+        <div class="max-w-5xl mx-auto space-y-8">
+            
+            <!-- Step 1: 기본 정보 및 자산 현황 -->
+            <section id="step1" class="step-content active card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">1</span>
+                    <h2 class="text-2xl font-black text-slate-800">기본 프로필 및 10대 종합 자산 현황 입력</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">고객 성명</label>
+                        <input type="text" id="v_name" placeholder="예: 홍길동" class="input-box text-left" oninput="calcAll()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">생년월일 (8자리)</label>
+                        <input type="number" id="v_birth" placeholder="예: 19680512" class="input-box text-left" oninput="autoCalculateAgeV19()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">현재 연령 (만)</label>
+                        <input type="number" id="v_age" value="58" class="input-box text-left bg-white" oninput="calcAll()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">공적연금 가입 직역</label>
+                        <select id="v_pensionType" class="input-box text-left h-[55px] font-extrabold" onchange="autoCalculateAgeV19()">
+                            <option value="NPS">국민연금 가입자</option>
+                            <option value="GOV">직역연금 (공무원/사학/군인)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 요청사항 1: 선택 직역별 연금수령개시 법정연령 가이드 자동 연동 및 화면 배치 -->
+                <div class="p-5 bg-blue-50/60 border-2 border-blue-200 rounded-2xl flex items-center justify-between">
+                    <div class="space-y-1">
+                        <h4 class="font-black text-blue-900 text-sm flex items-center gap-1.5">⚖️ 공적연금 법정 수령개시 시점 추적기</h4>
+                        <p id="o_legalAgeDesc" class="text-xs font-semibold text-blue-700 leading-relaxed">생년월일 입력 시 출생구간별 법정 개시 연령이 자동으로 도출됩니다.</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="text-[11px] font-bold text-slate-400 block mb-1">법정 수급개시 연령</span>
+                        <span class="text-2xl font-black text-blue-700"><span id="o_legalAgeNum">65</span>세</span>
+                    </div>
+                </div>
+
+                <!-- 자산 대시보드 스탯 윙 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-inner border border-slate-800 flex flex-col justify-center items-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">총 가치평가 자산</span>
+                        <p id="hd_grossAsset" class="text-2xl font-black text-blue-400">0원</p>
+                    </div>
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-inner border border-slate-800 flex flex-col justify-center items-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">총 부채 규모</span>
+                        <p id="hd_totalDebt" class="text-2xl font-black text-rose-400">0원</p>
+                    </div>
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-inner border border-slate-800 flex flex-col justify-center items-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">순자산가치</span>
+                        <p id="hd_netAsset" class="text-2xl font-black text-emerald-400">0원</p>
+                    </div>
+                </div>
+
+                <!-- V8의 원형 10대 상세 자산 입력 세트 구성 -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <div class="lg:col-span-3 space-y-5">
+                        <!-- 부동산 자산군 4종 -->
+                        <div class="border-2 border-emerald-100 rounded-2xl p-5 bg-emerald-50/20">
+                            <h3 class="text-xs font-black text-emerald-800 mb-3 flex items-center gap-1.5">🏠 부동산 자산 항목 (단위: 천만원)</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">거주 주택 / 아파트 가액</label><input type="number" id="v_res_home" value="90" class="input-box border-emerald-200 text-emerald-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">투자용 아파트 / 오피스텔</label><input type="number" id="v_res_inv" value="0" class="input-box border-emerald-200 text-emerald-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">상가 빌딩 / 꼬마빌딩 지분</label><input type="number" id="v_res_bld" value="0" class="input-box border-emerald-200 text-emerald-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">토지 / 임야 / 해외 부동산</label><input type="number" id="v_res_land" value="0" class="input-box border-emerald-200 text-emerald-900" oninput="calcAll()"></div>
+                            </div>
+                        </div>
+
+                        <!-- 금융 자산군 4종 -->
+                        <div class="border-2 border-blue-100 rounded-2xl p-5 bg-blue-50/20">
+                            <h3 class="text-xs font-black text-blue-800 mb-3 flex items-center gap-1.5">💰 금융 자산 항목 (단위: 천만원)</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">현금 / 예적금 / CMA 잔고</label><input type="number" id="v_fin_cash" value="30" class="input-box border-blue-200 text-blue-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">국내외 일반 주식 / ETF / 펀드</label><input type="number" id="v_fin_stock" value="0" class="input-box border-blue-200 text-blue-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">연금저축 / IRP 구좌 적립액</label><input type="number" id="v_fin_pension" value="20" class="input-box border-blue-200 text-blue-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">퇴직연금(DC) / 저축성 보장보험</label><input type="number" id="v_fin_ins" value="10" class="input-box border-blue-200 text-blue-900" oninput="calcAll()"></div>
+                            </div>
+                        </div>
+
+                        <!-- 부채 항목 2종 -->
+                        <div class="border-2 border-rose-100 rounded-2xl p-5 bg-rose-50/20">
+                            <h3 class="text-xs font-black text-rose-800 mb-3 flex items-center gap-1.5">💳 대출 부채 항목 (단위: 천만원)</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">주택담보 / 전세자금 대출</label><input type="number" id="v_debt_mort" value="0" class="input-box border-rose-200 text-rose-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] font-bold text-slate-600 mb-1 block">신용대출 / 마통 / 전세보증금부채</label><input type="number" id="v_debt_cred" value="0" class="input-box border-rose-200 text-rose-900" oninput="calcAll()"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 실시간 통계 분석 차트 보드 -->
+                    <div class="lg:col-span-2 flex flex-col bg-slate-50 p-5 rounded-2xl border border-slate-200 justify-between">
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-black text-slate-600 text-center uppercase tracking-wider">포트폴리오 자산 편중 지수</h4>
+                            <div class="w-full max-w-[200px] aspect-square mx-auto">
+                                <canvas id="chartAsset"></canvas>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                                <div class="bg-white p-3 rounded-xl border text-center"><span class="text-emerald-600 block mb-0.5">부동산 비중</span><p id="o_rateRe" class="text-base font-black">0.0%</p></div>
+                                <div class="bg-white p-3 rounded-xl border text-center"><span class="text-blue-600 block mb-0.5">금융자산 비중</span><p id="o_rateFin" class="text-base font-black">0.0%</p></div>
+                            </div>
+                        </div>
+                        <div id="diagBox" class="p-4 rounded-xl border flex gap-3 items-start mt-4 bg-slate-100">
+                            <span id="diagIcon" class="text-xl">ℹ️</span>
+                            <div>
+                                <h5 id="diagTitle" class="text-xs font-black text-slate-800 mb-0.5">진단 대기 중</h5>
+                                <p id="diagDesc" class="text-[11px] font-medium text-slate-600 leading-normal">데이터 입력 시 자산 분산 피드백이 도출됩니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 print-hide">
+                    <button onclick="showStep(2)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 2단계 플래닝 설정 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 2: 은퇴 시기 & 연금 개시 플래닝 -->
+            <section id="step2" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">2</span>
+                    <h2 class="text-2xl font-black text-slate-800">은퇴 타이밍 독립 설계 및 연금개시 전략 조율</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <div class="lg:col-span-3 space-y-6">
+                        <!-- 요청사항 2: 은퇴시기 지연연장 계산 슬라이더에 조기/정상/연기수령 등 다차원 조절 선택지 결합 -->
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-black text-slate-700">🏢 실질 주 소득원 은퇴 목표 연령</span>
+                                <span class="text-xl font-black text-rose-600"><span id="o_retAge">60</span>세</span>
+                            </div>
+                            <input type="range" id="v_retAge" min="50" max="75" value="60" class="slider-custom" oninput="calcAll()">
+                            <div class="grid grid-cols-3 gap-2 pt-1">
+                                <button onclick="setRetireAgeV19(55)" class="bg-white border-2 border-slate-200 py-2 rounded-xl text-xs font-bold text-slate-600 hover:border-slate-400">조기은퇴형 (55세)</button>
+                                <button onclick="setRetireAgeV19(60)" class="bg-white border-2 border-slate-200 py-2 rounded-xl text-xs font-bold text-slate-600 hover:border-slate-400">표준정년형 (60세)</button>
+                                <button onclick="setRetireAgeV19(65)" class="bg-white border-2 border-slate-200 py-2 rounded-xl text-xs font-bold text-slate-600 hover:border-slate-400">지연연장형 (65세)</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-xs font-black text-slate-700">🏛️ 공적연금 개시 연령 타겟팅</span>
+                                    <p id="o_npsLegalSub" class="text-[10px] text-blue-600 font-bold mt-0.5">정상 개시 연령: 65세 기준</p>
+                                </div>
+                                <span class="text-xl font-black text-blue-600"><span id="o_npsAge">65</span>세</span>
+                            </div>
+                            <input type="range" id="v_npsAge" min="60" max="70" value="65" class="slider-custom" oninput="calcAll()">
+                            <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex justify-between items-center text-xs font-bold">
+                                <span class="text-blue-800">보정 계수 및 페널티 진단:</span>
+                                <span id="o_npsStrategyFeedback" class="badge-premium bg-white border border-blue-300 text-blue-700 font-black">정상 개시 (100% 수령)</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-black text-slate-700">💼 사적연금 (연금저축/IRP) 수령 시작 연령</span>
+                                <span class="text-xl font-black text-emerald-600"><span id="o_privAge">60</span>세</span>
+                            </div>
+                            <input type="range" id="v_privAge" min="55" max="75" value="60" class="slider-custom" oninput="calcAll()">
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <div class="bg-slate-950 p-6 rounded-2xl text-white h-full flex flex-col justify-center relative overflow-hidden border border-slate-800 shadow-xl">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider text-center mb-4 pb-2 border-b border-slate-800">소득 크레바스 (공백기) 리스크</h4>
+                            <div class="text-center mb-6">
+                                <p class="text-[11px] text-slate-400 font-medium">은퇴 시점부터 연금 지급 전까지 단절되는 년수</p>
+                                <p class="text-5xl font-black text-rose-400 mt-2"><span id="o_bridgeYears">5</span>년</p>
+                            </div>
+                            <div id="bridge_alert" class="p-4 bg-rose-500/10 border border-rose-500/40 rounded-xl text-xs text-rose-200 font-semibold leading-relaxed text-center">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(1)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(3)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 3단계 현금흐름 진단 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 3: 현금흐름 GAP & 다차원 대안 솔루션 -->
+            <section id="step3" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">3</span>
+                    <h2 class="text-2xl font-black text-slate-800">생애주기 소득대체율 추정 및 다차원 대안 분석</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <!-- 요청사항 1 확장: 가입기간 및 '2026년 정밀 A값 연계감액 기초연금' 산출 인터페이스 결합 -->
+                        <div class="bg-slate-50 p-5 rounded-2xl border-2 border-blue-100 shadow-sm space-y-4 relative">
+                            <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+                            <div>
+                                <label class="block text-xs font-black text-slate-700 mb-1.5">예상 공적연금 수령액 (만원/월, 현재기준가치)</label>
+                                <input type="number" id="v_npsAmt" value="180" class="input-box text-xl text-blue-700 font-black" oninput="calcAll()">
+                                <p id="nps_penalty_txt" class="text-xs font-bold text-blue-600 mt-2 bg-blue-50 p-2 rounded inline-block border">보정 상산 반영 대기 중</p>
+                            </div>
+                            
+                            <div class="border-t border-slate-200 pt-3 space-y-3">
+                                <span class="block text-xs font-black text-slate-600">🏛️ 2026년 법정 A값 연계 기초노령연금 모의 계산기</span>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 최초 가입 연령</label><input type="number" id="v_npsStart" value="28" class="input-box text-sm font-bold" oninput="calcAll()"></div>
+                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 납입 종료 연령</label><input type="number" id="v_npsEnd" value="60" class="input-box text-sm font-bold" oninput="calcAll()"></div>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 mb-1 block">본인 평균소득월액 (B, 만원/월) — A값=300 기준 본인 평균소득</label>
+                                    <input type="number" id="v_npsB" value="300" class="input-box text-sm font-bold" oninput="calcAll()">
+                                </div>
+                                <div class="bg-amber-50 border-2 border-amber-200 p-4 rounded-xl space-y-1.5">
+                                    <div class="flex justify-between items-center text-xs font-bold text-amber-900">
+                                        <span>최종 판정 기초연금액 (월)</span>
+                                        <span id="o_basicPensionMonth" class="text-sm font-black text-amber-700">0 만원</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs font-bold text-amber-900 border-t border-amber-200/50 pt-1.5 mt-1">
+                                        <span>연간 총 합산 수령 가치</span>
+                                        <span id="o_basicPensionYear" class="text-sm font-black text-amber-800">0 만원</span>
+                                    </div>
+                                    <p class="text-[10px] font-medium text-amber-700 leading-normal pt-1">
+                                        ※ 법정 정밀 산식 적용 완료: 2026년 고정 A값(300만원), 기준액(34만원) 기준 소득비례부분 연계감액 모듈 작동 중. (하한선 50% 보장 한도 적용)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <label class="block text-xs font-black text-slate-700 mb-1.5">가구 은퇴 생활 요구 자금 (만원/월)</label>
+                            <input type="number" id="v_targetInc" value="500" class="input-box text-xl" oninput="calcAll()">
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <label class="block text-xs font-black text-slate-700 mb-1.5">개인 구좌 사적연금 월 가동액 (만원/월)</label>
+                            <input type="number" id="v_privAmt" value="50" class="input-box text-xl text-emerald-700" oninput="calcAll()">
+                        </div>
+                    </div>
+
+                    <!-- 요청사항 2: 우측 상단 현금 과부족(GAP) 진단 창을 이원화(Phase 1 가교 근로기 vs Phase 2 순수 연금기)하여 시뮬레이션 판독 표시 -->
+                    <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl border-4 border-slate-800 flex flex-col justify-center">
+                        <h3 class="text-sm font-black text-slate-400 text-center uppercase tracking-wider mb-4 pb-2 border-b border-slate-800">생애주기 다차원 현금 과부족 (GAP) 진단 리포트</h3>
+                        
+                        <!-- Phase 1: 가교 근로 유지기 -->
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 mb-4 space-y-2">
+                            <div class="flex justify-between items-center border-b border-slate-700 pb-1">
+                                <span class="text-xs font-black text-indigo-400 flex items-center gap-1">■ [Phase 1] 제2커리어 가교 근로 활동기</span>
+                                <span id="o_phase1_period" class="text-[11px] bg-indigo-600/40 text-indigo-200 px-2 py-0.5 rounded font-bold">60~65세</span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <span class="text-[11px] text-slate-400 font-semibold">재취업 급여가 융합된 보완 수지:</span>
+                                <span id="o_gapAmt_phase1" class="text-xl font-black text-emerald-400">0원</span>
+                            </div>
+                            <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                                <div id="o_gapBar_phase1" class="bg-indigo-500 h-full transition-all" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-400 font-bold">
+                                <span>가동 소득 (근로+연금): <span id="o_inc_phase1" class="text-white">0만</span></span>
+                                <span>목표달성지수: <span id="o_irrRate_phase1" class="text-indigo-300">0%</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Phase 2: 완전 근로 종료 이후 순수 연금기 -->
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 space-y-2">
+                            <div class="flex justify-between items-center border-b border-slate-700 pb-1">
+                                <span class="text-xs font-black text-rose-400 flex items-center gap-1">■ [Phase 2] 근로 완전 종료 / 순수 연금 의존기</span>
+                                <span id="o_phase2_period" class="text-[11px] bg-rose-600/40 text-rose-200 px-2 py-0.5 rounded font-bold">65세 이후</span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <span class="text-[11px] text-slate-400 font-semibold">근로 단절에 따른 실질 가용 과부족:</span>
+                                <span id="o_gapAmt_phase2" class="text-xl font-black text-rose-400">0원</span>
+                            </div>
+                            <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                                <div id="o_gapBar_phase2" class="bg-rose-500 h-full transition-all" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-400 font-bold">
+                                <span>물가보정 요구액: <span id="o_targInc" class="text-white">0만</span></span>
+                                <span>최종 연금 소득 대체율: <span id="o_irrRate_phase2" class="text-rose-300">0%</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 요청사항 3: 재취업 타임라인 세분화 입력 폼 구조화 -->
+                <div class="border-t border-slate-200 pt-5 space-y-5">
+                    <h3 class="font-black text-lg text-slate-800 flex items-center gap-2">💡 다차원 현금흐름 격차 보완 대안 엔진</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-indigo-50/70 border-2 border-indigo-200 p-5 rounded-2xl space-y-4">
+                            <h4 class="font-black text-indigo-900 text-xs flex justify-between border-b pb-2 border-indigo-200">
+                                <span>🛠️ 제2커리어 (가교 근로) 재취업 연동 조건</span>
+                                <span id="o_extraTotal" class="text-indigo-600 font-black">활동기간: 5년</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-indigo-600 mb-1">재취업 활동 개시 연령</label><input type="number" id="v_extraStart" value="60" class="input-box border-indigo-300 text-indigo-900" oninput="calcAll()"></div>
+                                <div><label class="block text-xs font-bold text-indigo-600 mb-1">재취업 완전 은퇴(종료) 연령</label><input type="number" id="v_extraEnd" value="65" class="input-box border-indigo-300 text-indigo-900" oninput="calcAll()"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-indigo-600 mb-1">활동 가교 기간 중 월 예상 보수액 (만원/월)</label>
+                                <input type="number" id="v_extraSalary" value="150" class="input-box border-indigo-300 text-indigo-900 text-lg font-black" oninput="calcAll()">
+                            </div>
+                        </div>
+
+                        <!-- 요청사항 4: 거치형 자산 유동화 세부 내용 주석/설명 요소 결합 강화 -->
+                        <div class="bg-emerald-50/70 border-2 border-emerald-200 p-5 rounded-2xl flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <h4 class="font-black text-emerald-900 text-xs border-b border-emerald-200 pb-2">🏠 전통 소유형 거치 자산 유동화 시뮬레이션</h4>
+                                <div class="bg-white p-4 rounded-xl border border-emerald-200 font-bold text-sm space-y-3 shadow-inner">
+                                    <div class="flex justify-between items-center"><span>비거주 부동산 자산 배당 가설 전환 수익 (<span id="lbl_ret" class="text-emerald-600">4.5%</span>)</span><span class="text-emerald-700 font-black text-base">+ <span id="o_solA">0</span> 만원/월</span></div>
+                                    <div class="flex justify-between items-center border-t pt-2"><span>거주용 보유 주택 한국주택금융공사 연계 주택연금</span><span class="text-blue-700 font-black text-base">+ <span id="o_solB">0</span> 만원/월</span></div>
+                                </div>
+                            </div>
+                            <!-- 주석 가이드 윙 -->
+                            <div class="p-3 bg-white/80 border border-emerald-200 rounded-xl text-xs text-emerald-800 leading-relaxed font-semibold mt-3">
+                                ℹ️ <strong>유동화 변환 원리:</strong> 비거주 부동산은 연 가상 기대수익률을 적용해 1/12 월 소득으로 전환하며, 주택연금은 소유한 거주 주택 자산가치를 담보로 종신 정기 소득을 가설 매핑한 고정 수치입니다. 자산 편중 문제를 흐름으로 상쇄합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 요청사항 5: 공적연금 법령 검토 요소를 대안 솔루션 하단 배치하여 가시성 동기화 -->
+                <div class="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-xs font-bold text-amber-800 leading-relaxed space-y-1">
+                    <h4 class="text-sm font-black text-amber-900 mb-1 flex items-center gap-1.5">⚖️ 공적연금 수급구조 연계 법령 최종 행정 통보문</h4>
+                    <p id="o_basicPensionLaw">• 국민연금법 및 기초연금법 연계 조항에 따라, 국민연금 수령액 규모가 기준 기초연금액의 150%를 초과하므로 기초연금 소득비례 감액 조항이 활성화되어 계산에 반영됩니다.</p>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(2)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(4)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 4단계 심층 과세 분석 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 4: 공적, 사적연금 세부분석 (요청사항 6, 6-1 전면 탑재 개편) -->
+            <section id="step4" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">4</span>
+                    <h2 class="text-2xl font-black text-slate-800">4. 공적, 사적연금 세부분석 및 피부양자 과세 체계</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- 공적연금 파트 -->
+                    <div class="space-y-5">
+                        <div class="border-2 border-indigo-100 bg-indigo-50/20 rounded-2xl p-5 space-y-3.5">
+                            <h3 class="font-black text-indigo-900 text-sm border-b pb-2">🏛️ 연금수령 조율에 따른 보정 결과 추적 과정</h3>
+                            <div class="space-y-3 text-sm font-bold text-slate-700">
+                                <div class="flex justify-between bg-white p-3 rounded-xl border"><span>법정 지정 정상 기준 연령:</span><span id="s4_legalAge" class="text-indigo-800">65세</span></div>
+                                <div class="flex justify-between bg-white p-3 rounded-xl border"><span>고객 설정 실제 개시 연령:</span><span id="s4_selectAge" class="text-indigo-800">65세</span></div>
+                                <div class="flex justify-between bg-white p-3 rounded-xl border"><span>조기 / 연기 가감산 반영 요율:</span><span id="s4_modifier" class="text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">100% (정상 기준율)</span></div>
+                                <div class="flex justify-between bg-indigo-900 text-white p-4 rounded-xl items-center mt-2 shadow-md">
+                                    <span class="text-xs font-black">최종 산출 보정 공적연금 수령액</span>
+                                    <span id="s4_finalNps" class="text-xl font-black text-emerald-400">0원</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 건보료 피부양자 분석 가이드 -->
+                        <div class="border-2 border-rose-100 bg-rose-50/20 rounded-2xl p-5 space-y-3.5">
+                            <h3 class="font-black text-rose-900 text-sm border-b pb-2">🏥 은퇴 소득 연계 국민건강보험 피부양자 탈락 예측 모형</h3>
+                            <div class="bg-white p-4 rounded-xl border border-rose-200 font-bold text-xs space-y-2">
+                                <div class="flex justify-between"><span>공적연금 연간 총소득 평가금액:</span><span id="s4_annualNps">0원</span></div>
+                                <div class="flex justify-between"><span>기타 종합 소득 (재취업 및 유동화 배당 등):</span><span id="s4_annualOther">0원</span></div>
+                                <div class="flex justify-between border-t pt-2 text-rose-700 text-sm"><span>건보공단 심사 기준 종합 합산 소득액:</span><span id="s4_annualTotal" class="font-black">0원</span></div>
+                            </div>
+                            <div id="s4_healthAlert">
+                                <!-- 자바스크립트 자동 피드백 경고 창 주입 -->
+                            </div>
+                            <p class="text-[11px] font-semibold text-rose-800 leading-normal bg-white p-3 border border-rose-100 rounded-xl">
+                                ※ <strong>피부양자 조항 고지:</strong> 현행 건강보험법령상 공적연금을 포함한 연간 합산 종합소득 금액이 <strong>연 2,000만 원</strong>을 초과하게 되면 피부양자 자격이 원천 상실되며, 전액 지역가입자로 강제 전환되어 건보료 부담이 급증할 위험성이 있습니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 사적연금 1,500만 한도 과세 최적화 시뮬레이터 (요청사항 6-1 완벽 구현) -->
+                    <div class="border-2 border-emerald-100 bg-emerald-50/20 rounded-2xl p-5 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <h3 class="font-black text-emerald-900 text-sm border-b pb-2">💰 사적연금 인출 재원 한도 분리과세 절세 진단기</h3>
+                            <div class="grid grid-cols-2 gap-3 text-center font-bold text-sm">
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200"><span class="text-slate-500 block text-xs mb-1">지정 사적연금 인출액 (월)</span><p class="text-emerald-800 text-lg font-black"><span id="s4_privAmtMonth">0</span> 만원</p></div>
+                                <div class="bg-emerald-800 text-white p-3 rounded-xl shadow-inner"><span class="text-emerald-200 block text-xs mb-1">연간 누적 인출 총액</span><p class="text-xl font-black"><span id="s4_privAmtYear">0</span> 만원</p></div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border-2 border-emerald-300 relative space-y-3">
+                                <span class="absolute top-0 right-0 bg-emerald-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-bl-lg">법령 세무 시뮬레이션</span>
+                                <h4 class="text-xs font-black text-slate-500">인출 마진 스케줄 검토 결과 피드백</h4>
+                                
+                                <div id="s4_privTaxSafe" class="hidden bg-blue-50 border border-blue-200 p-3.5 rounded-lg text-xs font-bold text-blue-800 leading-relaxed">
+                                    ✅연간 수령액이 <strong>1,500만 원 이하 한도 내</strong>로 안전하게 방어 제어되고 있습니다. 종합소득세 합산 없이 저율 연금소득세(3.3%~5.5%) 원천징수로 세무 의무가 종결되므로 가장 정석적이고 유리한 절세 수급 형태가 안착됩니다.
+                                </div>
+
+                                <div id="s4_privTaxDanger" class="hidden space-y-3">
+                                    <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-lg text-xs font-bold text-rose-800 leading-relaxed">
+                                        ⚠️ 위험: 사적연금 수령 연간 총액이 <strong>1,500만 원 기준 한도를 상회 초과</strong>했습니다. 세법 조항에 따라 다음 중 고객 유리 조건에 근거하여 과세 형태를 반드시 양자택일 구조로 선택 상담해야 합니다.
+                                    </div>
+                                    <div class="bg-slate-50 border p-3 rounded-lg text-xs space-y-1">
+                                        <p class="font-black text-indigo-700 flex justify-between"><span>대안 A: 16.5% 분리과세 세율 선택 종결</span><span class="bg-indigo-100 px-1 rounded text-[10px]">타소득 과다자 추천</span></p>
+                                        <p class="text-[11px] font-medium text-slate-600 leading-normal">현재 종합소득 과세표준 구간 타 소득(상가 임대, 근로 등)이 많아 타 소득 최고세율이 15% 또는 24% 이상일 경우 무조건 16.5% 지방세 포함 분리과세를 신청하는 것이 세금 유출을 방어하는 정답입니다.</p>
+                                    </div>
+                                    <div class="bg-slate-50 border p-3 rounded-lg text-xs space-y-1">
+                                        <p class="font-black text-emerald-700 flex justify-between"><span>대안 B: 종합과세 누진세율 합산 과세</span><span class="bg-emerald-100 px-1 rounded text-[10px]">은퇴 후 무소득자 추천</span></p>
+                                        <p class="text-[11px] font-medium text-slate-600 leading-normal">은퇴 이후 타 소득이 완전 전무하여 기본 소득 공제 후 종합 소득세 최저 세율 구간인 6%(과표 1,400만 원 이하)를 적용받을 수 있는 특별 시나리오의 경우 분리과세보다 합산 세무가 유리할 수 있습니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium text-center">※ 2026년 현행 세법 개정 반영 (연금소득 분리과세 기준액 1,500만원 기준 적용 완료)</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(3)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(5)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 5단계 절세 구좌 솔루션 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 5: 절세계좌 & ISA 시뮬레이션 -->
+            <section id="step5" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">5</span>
+                    <h2 class="text-2xl font-black text-slate-800">소득세 감면 연말정산 공제 및 ISA 연금계좌 이전 시뮬레이션</h2>
+                </div>
+                
+                <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
+                    <label class="block text-xs font-black text-indigo-900 mb-2">👤 고객 근로소득 종합과세 과세표준 소득세율 구간 지정 선택</label>
+                    <select id="v_tax_rate" class="input-box text-left border-indigo-300 text-indigo-900" onchange="calcAll()">
+                        <option value="0.165">총급여액 5,500만 원 (종합소득금액 4,500만 원) 이하 구간 ➔ 16.5% 지방세 환급율 매핑</option>
+                        <option value="0.132">총급여액 5,500만 원 (종합소득금액 4,500만 원) 초과 구간 ➔ 13.2% 기본 환급율 매핑</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border space-y-1">
+                            <label class="block text-xs font-bold text-slate-600">연금저축 구좌 연간 납입 자금 (만원)</label>
+                            <input type="number" id="v_taxSave" value="600" class="input-box text-blue-700 font-black" oninput="calcAll()">
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border space-y-1">
+                            <label class="block text-xs font-bold text-slate-600">개인형 퇴직연금 (IRP) 연간 불입 자금 (만원)</label>
+                            <input type="number" id="v_taxIrp" value="300" class="input-box text-blue-700 font-black" oninput="calcAll()">
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border space-y-1">
+                            <label class="block text-xs font-bold text-slate-600">만기 만료 ISA 계좌 자금 연금 구좌 구속 전환액 (만원)</label>
+                            <input type="number" id="v_isaRoll" value="3000" class="input-box text-indigo-700 font-black" oninput="calcAll()">
+                        </div>
+                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3">
+                            <h4 class="font-black text-amber-900 text-xs border-b pb-1">🌟 일반 ISA 자체 구좌 내부 포트폴리오 운용 절세</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-amber-800 mb-1">계약 가입 유형</label>
+                                    <select id="v_isaType" class="input-box border-amber-300 text-amber-900 text-sm h-[48px]" style="text-align:left;padding:8px 30px 8px 12px;font-size:13px;font-weight:700" onchange="calcAll()">
+                                        <option value="200">일반형 (비과세 200만)</option>
+                                        <option value="400">서민형 (비과세 400만)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-amber-800 mb-1">계좌 내 운용 순수익</label>
+                                    <input type="number" id="v_isaProfit" value="500" class="input-box border-amber-300 text-amber-900" oninput="calcAll()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="border-2 border-indigo-600 rounded-2xl overflow-hidden shadow-md">
+                            <div class="bg-indigo-600 p-3 text-white text-center">
+                                <h4 class="font-black text-sm">연말정산 연간 소득세 환급 리포트</h4>
+                                <p id="o_tax_rate_label" class="text-[11px] opacity-80 mt-0.5"></p>
+                            </div>
+                            <div class="p-5 bg-white font-bold text-xs space-y-3">
+                                <div class="flex justify-between border-b pb-1.5"><span>기본 연금 세액공제 환급금</span><span id="o_taxBaseCredit">0 만원</span></div>
+                                <div class="flex justify-between border-b pb-1.5 text-indigo-600"><span>ISA 전환 연계 특별 가산 환급금</span><span id="o_isaExtraCredit">+ 0 만원</span></div>
+                                <div class="flex justify-between text-indigo-900 text-sm pt-1"><span>환급 세액 총계 이익</span><span id="o_totalTaxReturn" class="text-xl font-black text-indigo-600">0 만원</span></div>
+                            </div>
+                        </div>
+
+                        <div class="border-2 border-amber-400 rounded-2xl overflow-hidden shadow-md">
+                            <div class="bg-gradient-to-r from-amber-500 to-amber-600 p-3 text-white text-center">
+                                <h4 class="font-black text-sm">ISA 자체 계정 내부 비과세 세무 결과</h4>
+                            </div>
+                            <div class="p-5 bg-white font-bold text-xs space-y-3">
+                                <div class="flex justify-between border-b pb-1.5"><span>비과세 특례 한도 차감액</span><span id="o_isaFreeAmt" class="text-emerald-600 font-black">0 만원</span></div>
+                                <div class="flex justify-between border-b pb-1.5"><span>초과 수익분 9.9% 분리과세 세액</span><span id="o_isaTaxAmt" class="text-rose-600 font-black">0 만원</span></div>
+                                <div class="flex justify-between text-amber-900 bg-amber-50 p-2 rounded-lg items-center"><span>일반 과세 계좌 대비 순수 획득 절세액</span><span id="o_isaSaveAmt" class="text-lg font-black text-amber-600">0 만원</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(4)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(6)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 6단계 효과 검증 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 6: 솔루션 개선 효과 비교 -->
+            <section id="step6" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">6</span>
+                    <h2 class="text-2xl font-black text-slate-800">6. 솔루션 개선 효과 비교</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-5 rounded-xl border font-bold text-xs space-y-3 shadow-inner">
+                        <h4 class="text-center font-black text-slate-400 text-sm border-b pb-1">기존 원형 상태 (Before Layout)</h4>
+                        <div class="flex justify-between"><span>기본 고정 연금소득 흐름:</span><span id="o_bfInc">0 만원</span></div>
+                        <div class="flex justify-between text-rose-600"><span>초기 자산 마찰 과부족 격차 (GAP):</span><span id="o_bfGap" class="font-black">0 만원</span></div>
+                        <div class="flex justify-between text-slate-500 font-normal"><span>소득 크레바스 공백 노출기:</span><span id="o_bfBridge">0년</span></div>
+                    </div>
+
+                    <div class="bg-blue-50/40 p-5 rounded-xl border-2 border-blue-400 font-bold text-xs space-y-3 shadow-md">
+                        <h4 class="text-center font-black text-blue-700 text-sm border-b pb-1">솔루션 통합 보완 상태 (After Layout)</h4>
+                        <div class="flex justify-between"><span>재조정 완료 총 소득 수지:</span><span id="o_afInc" class="text-blue-800">0 만원</span></div>
+                        <div class="flex justify-between text-blue-700"><span>최종 단계별 과부족 격차 수치:</span><span id="o_afGap" class="font-black">격차 완화 해소 안착</span></div>
+                        <div class="flex justify-between text-indigo-700"><span>연간 확보 복합 절세 환급 마진액:</span><span id="o_afTaxRet" class="font-black">0 만원</span></div>
+                    </div>
+                </div>
+
+                <!-- 세부 매핑 구조화 연동 테이블 표 -->
+                <div class="mt-4 border-t pt-4">
+                    <h4 class="font-black text-xs text-slate-800 uppercase mb-3">📋 조정 대안 포지션별 재무 기여 성과 세부 명세표</h4>
+                    <div class="overflow-x-auto rounded-xl border shadow-sm">
+                        <table class="w-full text-xs text-left font-semibold">
+                            <thead class="bg-slate-800 text-white font-bold">
+                                <tr>
+                                    <th class="p-3">실행 카테고리</th>
+                                    <th class="p-3">구체적 솔루션 조치 내역</th>
+                                    <th class="p-3 text-right">월 현금수지 보완액</th>
+                                    <th class="p-3 text-right">연간 종합 세제 감면액</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y bg-white text-slate-600 font-bold">
+                                <tr><td class="p-3 text-indigo-700">전략 지연</td><td class="p-3">은퇴 시점 및 수급 개시 연도 지연 연장 융합 보정 효과</td><td class="p-3 text-right text-indigo-600" id="tbl_extAgeInc">-</td><td class="p-3 text-right text-slate-400">-</td></tr>
+                                <tr><td class="p-3 text-indigo-700">가교 근로</td><td class="p-3">제2커리어 가교 소득 활동 기반 정기 추가 보수 확보액</td><td class="p-3 text-right text-indigo-600" id="tbl_extraSalAmt">0 만원</td><td class="p-3 text-right text-slate-400">-</td></tr>
+                                <tr><td class="p-3 text-emerald-700">자산 유동화</td><td class="p-3">임대 / 상가 비거주형 고정 자산의 배당화 기대 포지션 가동</td><td class="p-3 text-right text-emerald-600" id="tbl_solAAmt">0 만원</td><td class="p-3 text-right text-slate-400">-</td></tr>
+                                <tr><td class="p-3 text-blue-700">자산 유동화</td><td class="p-3">거주용 주택 담보 주택금융공사 종신 주택연금 가설 결합</td><td class="p-3 text-right text-blue-600" id="tbl_solBAmt">0 만원</td><td class="p-3 text-right text-slate-400">-</td></tr>
+                                <tr><td class="p-3 text-purple-700">세제 최적화</td><td class="p-3">연금저축 및 개인형 IRP 불입 기준 연말정산 환급</td><td class="p-3 text-right text-slate-400">-</td><td class="p-3 text-right text-purple-600" id="tbl_baseTaxAmt">0 만원</td></tr>
+                                <tr class="bg-amber-50/40"><td class="p-3 text-amber-800">세제 결합</td><td class="p-3">ISA 만기 연금 이전에 의거한 조특법 10% 추가 세액 환급액</td><td class="p-3 text-right text-slate-400">-</td><td class="p-3 text-right text-amber-700" id="tbl_isaRollAmt">0 만원</td></tr>
+                                <tr class="bg-amber-50/40"><td class="p-3 text-amber-800">자체 비과세</td><td class="p-3">ISA 계정 활용 내부 투자 순익 비과세/저율 분리과세 마진</td><td class="p-3 text-right text-slate-400">-</td><td class="p-3 text-right text-amber-700" id="tbl_isaSaveAmt">0 만원</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(5)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(7)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 7단계 세무 연동 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 7: 상속/증여 세무 통합 솔루션 -->
+            <section id="step7" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">7</span>
+                    <h2 class="text-2xl font-black text-slate-800">추정 상속과표 조율 및 사전 증여 분산 절세 모듈</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4 p-5 border rounded-xl bg-slate-50/40 font-bold text-xs shadow-inner">
+                        <h4 class="text-sm font-black text-rose-800 border-b pb-1">📊 현 소유 자산 규모 상속세 유출액 추정</h4>
+                        <table class="w-full text-slate-700">
+                            <tbody>
+                                <tr class="border-b pb-1"><td class="py-2">순 가치평가 총자산</td><td id="o_taxNetAsset" class="text-right text-blue-600 font-black">0원</td></tr>
+                                <tr class="border-b pb-1"><td class="py-2">(-) 법정 일괄 상속 공제액</td><td><input type="number" id="v_taxBasic" value="50" class="input-box w-28 h-9" oninput="calcAll()"></td></tr>
+                                <tr class="border-b pb-1"><td class="py-2">(-) 배우자 배정 공제액</td><td><input type="number" id="v_taxSpouse" value="0" class="input-box w-28 h-9" oninput="calcAll()"></td></tr>
+                                <tr class="pt-2"><td class="py-2">산출 과세 표준</td><td id="o_taxBase" class="text-right text-rose-600 font-black">0원</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex justify-between items-center text-rose-900 mt-2">
+                            <span>예상 가설 상속세액 (3% 공제)</span>
+                            <span id="o_taxFinal" class="text-xl font-black text-rose-600">0원</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 p-5 border border-indigo-200 rounded-xl bg-indigo-50/20 font-bold text-xs flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-black text-indigo-800 border-b pb-1">🎁 사전 증여 분산 절세 최적화 시뮬레이터</h4>
+                            <div class="space-y-3 pt-2">
+                                <div><label class="text-[11px] mb-1 block">사전 증여 실행 금액 (천만원)</label><input type="number" id="v_giftAmt" value="20" class="input-box border-indigo-300 text-indigo-900" oninput="calcAll()"></div>
+                                <div><label class="text-[11px] mb-1 block">수증자 인적 공제 유형 선택</label>
+                                    <select id="v_giftTarget" class="input-box text-left border-indigo-300 h-[48px] font-extrabold" onchange="calcAll()">
+                                        <option value="60">배우자 세대 (10년 간 6억원 공제 면제)</option>
+                                        <option value="5" selected>성인 직계비속 자녀 (5천만원 공제 면제)</option>
+                                        <option value="2">미성년 자녀 세대 (2천만원 공제 면제)</option>
+                                        <option value="1">기타 방계 친족 (1천만원 공제 면제)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-indigo-600 text-white rounded-xl flex justify-between items-center shadow-inner mt-4">
+                            <span>산출 산정 증여세 부담액</span>
+                            <span id="o_giftFinal" class="text-xl font-black">0원</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(6)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(8)" class="bg-slate-900 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-slate-800 shadow-lg">종합 진단 최종 보고서 출력 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 8: 종합 결과 보고서 -->
+            <section id="step8" class="step-content card-premium text-slate-900 print:shadow-none print:border-none print:p-0">
+                <div class="text-center mb-8 border-b-4 border-slate-900 pb-6">
+                    <p class="text-blue-600 font-black tracking-widest text-[11px] mb-1">NEXT LIFE PREMIUM EXECUTIVE SOLUTON REPORT</p>
+                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">은퇴 자산 종합 정밀 진단 보고서</h1>
+                    <p class="text-slate-400 text-xs font-bold mt-2">작성 기준시점: 2026년 | 전담 카운셀러: Next Life FA</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-5 text-xs font-bold mb-6">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px] border-b pb-1 mb-2 uppercase">자산 총량 밸류에이션 리포트</span>
+                        <table class="w-full">
+                            <tbody>
+                                <tr><td class="py-1 text-slate-500 font-medium">고객 성명 명의:</td><td id="r_name" class="text-slate-800 py-1 text-right">-</td></tr>
+                                <tr><td class="py-1 text-slate-500 font-medium">종합 순자산 평가액:</td><td id="r_netAsset" class="py-1 text-right text-blue-600 font-black text-sm">0원</td></tr>
+                                <tr><td class="py-1 text-slate-500 font-medium">부동산 편중 비중율:</td><td id="r_reRate" class="text-slate-800 py-1 text-right">-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px] border-b pb-1 mb-2 uppercase">생애 수지 최적화 지표</span>
+                        <table class="w-full">
+                            <tbody>
+                                <tr><td class="py-1 text-slate-500 font-medium">은퇴 연계 크레바스:</td><td id="r_bridge" class="text-slate-800 py-1 text-right">-</td></tr>
+                                <tr><td class="py-1 text-slate-500 font-medium">순수 연금기 과부족(Phase2 GAP):</td><td id="r_gap" class="py-1 text-right text-rose-600 font-black text-sm">-</td></tr>
+                                <tr><td class="py-1 text-slate-500 font-medium">연간 복합 세제 절세총액:</td><td id="r_isaTax" class="py-1 text-right text-indigo-600 font-black text-sm">0원</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 text-slate-100 p-6 rounded-2xl relative overflow-hidden border border-slate-800 shadow-xl">
+                    <h3 class="text-sm font-black text-emerald-400 mb-3 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                        <span class="w-1.5 h-4 bg-emerald-400 block rounded-full"></span> 종합 자산관리 솔루션 전담 자문 전문가 의견서
+                    </h3>
+                    <div id="r_textExpert" class="text-slate-300 leading-relaxed text-sm text-justify font-normal space-y-2">
+                        <!-- 동적 텍스트 주입 -->
+                    </div>
+                </div>
+
+                <div class="text-center pt-6 print-hide">
+                    <button onclick="window.print()" class="bg-slate-900 text-white px-10 py-4 rounded-xl text-sm font-black shadow-lg transition transform hover:scale-[1.02]">📄 전체 리포트 인쇄 및 PDF 저장</button>
+                </div>
+
+                <!-- ★ 정식판 업그레이드 유도 카드 (Step 8 하단) -->
+                <div class="mt-8 rounded-2xl overflow-hidden print-hide" style="background:linear-gradient(135deg,#0f172a,#1e3a5f)">
+                    <div class="p-6 text-center space-y-3">
+                        <p class="text-amber-400 font-black text-xs tracking-widest uppercase">⭐ 이 분석보다 더 정밀하게 알고 싶다면?</p>
+                        <h3 class="text-white text-xl font-black leading-tight">
+                            은퇴준비자금 계산기 <span class="text-amber-400">정식판</span>
+                        </h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs font-bold text-left mx-auto max-w-sm">
+                            <div class="bg-white/10 rounded-xl px-3 py-2 text-slate-300">✅ 국민연금 A값 정밀 계산</div>
+                            <div class="bg-white/10 rounded-xl px-3 py-2 text-slate-300">✅ 공무원·사학·군인연금</div>
+                            <div class="bg-white/10 rounded-xl px-3 py-2 text-slate-300">✅ 현금흐름 연도별 시뮬레이션</div>
+                            <div class="bg-white/10 rounded-xl px-3 py-2 text-slate-300">✅ 역산 계산기 & 시나리오 비교</div>
+                            <div class="bg-white/10 rounded-xl px-3 py-2 text-slate-300">✅ 절세계좌 인출 세금 시뮬레이션</div>
+                            <div class="bg-white/10 rounded-xl px-3 py-2 text-slate-300">✅ 상담결과 종합 보고서</div>
+                        </div>
+                        <button onclick="openPremiumApp()" class="inline-block font-black text-sm px-10 py-4 rounded-xl shadow-xl transition transform hover:scale-[1.02]" style="background:#f59e0b;color:#1c1917;margin-top:4px">
+                            ▶ Play Store에서 정식판 열기 (₩49,900)
+                        </button>
+                        <p class="text-slate-500 text-[11px]">일회 구매 · 영구 사용 · 광고 없음</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 모바일 전용 하단 스텝 퀵점프 바 -->
+    <div id="mobile-step-bar" style="position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:1px solid #1e293b;z-index:100;padding:5px 2px">
+        <div style="display:flex;justify-content:space-around;align-items:center">
+            <button id="step-btn-1" onclick="showStep(1)" style="flex:1;padding:6px 2px;border:none;background:none;color:#3b82f6;font-size:11px;font-weight:800;cursor:pointer;border-radius:8px">1</button>
+            <button id="step-btn-2" onclick="showStep(2)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">2</button>
+            <button id="step-btn-3" onclick="showStep(3)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">3</button>
+            <button id="step-btn-4" onclick="showStep(4)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">4</button>
+            <button id="step-btn-5" onclick="showStep(5)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">5</button>
+            <button id="step-btn-6" onclick="showStep(6)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">6</button>
+            <button id="step-btn-7" onclick="showStep(7)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">7</button>
+            <button id="step-btn-8" onclick="showStep(8)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">8</button>
+        </div>
+    </div>
+
+    <!-- 다중 고객 백업 복원 모달 UI 창 -->
+    <div id="modalLoadManager" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden print-hide backdrop-blur-xs">
+        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh] border">
+            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
+                <div>
+                    <h4 class="font-black text-sm">📂 다중 고객 백업 세션 로더</h4>
+                    <p class="text-[10px] text-slate-400 mt-0.5">선택된 고객의 모든 파라미터 인자가 즉각 연동 로드됩니다.</p>
+                </div>
+                <button onclick="toggleLoadModalV19(false)" class="text-slate-400 hover:text-white font-bold text-lg px-2">✕</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 bg-slate-50 space-y-2" id="modalListContainer">
+                <!-- 동적 스크립트 주입 -->
+            </div>
+            <div class="p-3 bg-white border-t flex justify-end">
+                <button onclick="toggleLoadModalV19(false)" class="bg-slate-400 text-white px-4 py-2 rounded-lg font-bold text-xs">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ★ 유료 정식판 Play Store 연결 */
+        function openPremiumApp() {
+            var url = 'https://play.google.com/store/apps/details?id=com.risolve.totalrisolution';
+            try { window.open(url, '_system'); } catch(e) { window.open(url, '_blank'); }
+        }
+
+        /* ===== 모바일 반응형 UI ===== */
+        var _stepTitles = [
+            '', // index 0 unused
+            '1. 기본 정보 및 자산 현황',
+            '2. 은퇴 시기 & 연금 개시 플래닝',
+            '3. 현금흐름 GAP & 다차원 대안',
+            '4. 공적, 사적연금 세부분석',
+            '5. 절세계좌 & ISA 시뮬레이션',
+            '6. 솔루션 개선 효과 비교',
+            '7. 상속/증여 세무 통합 솔루션',
+            '8. 종합 결과 보고서'
+        ];
+        var _curStep = 1;
+
+        function initMobileUI() {
+            var isMobile = window.innerWidth <= 768;
+            var hdr = document.getElementById('mobile-header');
+            var bar = document.getElementById('mobile-step-bar');
+            if (hdr) hdr.style.display = isMobile ? 'flex' : 'none';
+            if (bar) bar.style.display = isMobile ? 'block' : 'none';
+        }
+
+        function toggleSidebar() {
+            document.querySelector('aside').classList.toggle('sidebar-open');
+            document.getElementById('sidebar-dim').classList.toggle('show');
+        }
+
+        function closeSidebar() {
+            document.querySelector('aside').classList.remove('sidebar-open');
+            document.getElementById('sidebar-dim').classList.remove('show');
+        }
+
+        function _updateMobileStepUI(stepNumber) {
+            // 헤더 타이틀 갱신
+            var titleEl = document.getElementById('mobile-step-title');
+            if (titleEl) titleEl.textContent = _stepTitles[stepNumber] || '';
+            // 하단 버튼 활성 표시
+            for (var i = 1; i <= 8; i++) {
+                var btn = document.getElementById('step-btn-' + i);
+                if (!btn) continue;
+                if (i === stepNumber) {
+                    btn.style.color = '#3b82f6';
+                    btn.style.background = 'rgba(59,130,246,.15)';
+                    btn.style.fontWeight = '800';
+                } else {
+                    btn.style.color = '#94a3b8';
+                    btn.style.background = 'none';
+                    btn.style.fontWeight = '700';
+                }
+            }
+            _curStep = stepNumber;
+            closeSidebar();
+        }
+
+        window.addEventListener('resize', initMobileUI);
+
+        let assetPieChart;
+
+        function formatKrwMixed(wonValue) {
+            if (!wonValue || wonValue === 0) return "0원";
+            const isNegative = wonValue < 0;
+            let absVal = Math.abs(wonValue);
+            let eok = Math.floor(absVal / 100000000);
+            let rest = absVal % 100000000;
+            let man = Math.floor(rest / 10000);
+            let resultStr = "";
+            if (eok > 0) resultStr += eok + "억 ";
+            if (man > 0) resultStr += man.toLocaleString() + "만 ";
+            resultStr += "원";
+            return isNegative ? "-" + resultStr.trim() : resultStr.trim();
+        }
+
+        /* 요청사항 1: 선택 직역별/생년월일 매핑 법정 개시 연령 판독 */
+        function autoCalculateAgeV19() {
+            const birthStr = document.getElementById('v_birth').value;
+            const pt = document.getElementById('v_pensionType').value;
+            
+            if (birthStr && birthStr.length === 8) {
+                const birthYear = parseInt(birthStr.substring(0, 4));
+                const currentYear = 2026;
+                let calculatedAge = currentYear - birthYear;
+                if (calculatedAge < 0) calculatedAge = 0;
+                document.getElementById('v_age').value = calculatedAge;
+                
+                let legalAge = 65; // 직역 및 1969년생 이후 기본값
+                if (pt === 'NPS') {
+                    if (birthYear <= 1952) legalAge = 60;
+                    else if (birthYear <= 1956) legalAge = 61;
+                    else if (birthYear <= 1960) legalAge = 62;
+                    else if (birthYear <= 1964) legalAge = 63;
+                    else if (birthYear <= 1968) legalAge = 64;
+                    document.getElementById('o_legalAgeDesc').innerText = `국민연금법 조항 적용: ${birthYear}년생 고객님의 정상 법정 수급개시 시점은 만 ${legalAge}세입니다.`;
+                } else {
+                    legalAge = 65; // 공무원/사학연금 등 1996년 이후 임용 법정 정년화 세팅 기준화
+                    document.getElementById('o_legalAgeDesc').innerText = `직역연금법 복합 법령 적용: 임용 구간별 법정 표준 연동에 의거 만 65세 개시 연령으로 자동 유도 매핑됩니다.`;
+                }
+                
+                document.getElementById('o_legalAgeNum').innerText = legalAge;
+                document.getElementById('o_npsLegalSub').innerText = `고객님의 법정 정상 개시연령은 ${legalAge}세입니다.`;
+                
+                if (!window.npsAgeSetByUserV19) {
+                    document.getElementById('v_npsAge').value = legalAge;
+                }
+                calcAll();
+            }
+        }
+
+        document.getElementById('v_npsAge').addEventListener('input', function() {
+            window.npsAgeSetByUserV19 = true;
+        });
+
+        function setRetireAgeV19(age) {
+            document.getElementById('v_retAge').value = age;
+            calcAll();
+        }
+
+        /* 요청사항 8: 완벽한 입력현황 초기화 로직 구현 */
+        function resetConsultingV19() {
+            if (!confirm("현재 화면의 모든 진단 인자 입력값을 리셋하고 새로운 VIP 상담 세션을 초기화하겠습니까?")) return;
+            
+            // 모든 명시적 필드 원복 초기화
+            const defaults = {
+                'v_name': '', 'v_birth': '', 'v_age': 58, 'v_pensionType': 'NPS',
+                'v_res_home': 90, 'v_res_inv': 0, 'v_res_bld': 0, 'v_res_land': 0,
+                'v_fin_cash': 30, 'v_fin_stock': 0, 'v_fin_pension': 20, 'v_fin_ins': 10,
+                'v_debt_mort': 0, 'v_debt_cred': 0,
+                'v_retAge': 60, 'v_npsAge': 65, 'v_privAge': 60,
+                'v_targetInc': 500, 'v_npsAmt': 180, 'v_privAmt': 50,
+                'v_npsStart': 28, 'v_npsEnd': 60, 'v_npsB': 300,
+                'v_extraStart': 60, 'v_extraEnd': 65, 'v_extraSalary': 150,
+                'v_tax_rate': '0.165', 'v_taxSave': 600, 'v_taxIrp': 300, 'v_isaRoll': 3000,
+                'v_isaType': '200', 'v_isaProfit': 500, 'v_taxBasic': 50, 'v_taxSpouse': 0, 'v_giftAmt': 20, 'v_giftTarget': '5'
+            };
+
+            Object.keys(defaults).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = defaults[id];
+            });
+
+            window.npsAgeSetByUserV19 = false;
+            document.getElementById('o_legalAgeNum').innerText = '65';
+            document.getElementById('o_legalAgeDesc').innerText = "생년월일 입력 시 출생구간별 법정 개시 연령이 자동으로 도출됩니다.";
+            
+            calcAll();
+            showStep(1);
+            alert("신규 VIP 상담 데이터 세션이 초기화 세팅 완료되었습니다.");
+        }
+
+        function saveDataV19() {
+            const name = document.getElementById('v_name').value.trim();
+            if (!name) { alert('고객 성명을 기입하십시오.'); return; }
+            
+            const data = {};
+            document.querySelectorAll('input, select').forEach(el => { if(el.id) data[el.id] = el.value; });
+            
+            let db = localStorage.getItem('next_life_db_v19') ? JSON.parse(localStorage.getItem('next_life_db_v19')) : {};
+            db[name] = { timestamp: new Date().toLocaleString('ko-KR'), payload: data };
+            
+            localStorage.setItem('next_life_db_v19', JSON.stringify(db));
+            alert(`'${name}' 고객님의 세션 파일 백업 보존 완료.`);
+        }
+
+        function toggleLoadModalV19(show) {
+            const modal = document.getElementById('modalLoadManager');
+            if (show) { modal.classList.remove('hidden'); renderLoadListV19(); }
+            else { modal.classList.add('hidden'); }
+        }
+
+        function renderLoadListV19() {
+            const container = document.getElementById('modalListContainer');
+            let db = localStorage.getItem('next_life_db_v19') ? JSON.parse(localStorage.getItem('next_life_db_v19')) : {};
+            const keys = Object.keys(db);
+            
+            if (keys.length === 0) {
+                container.innerHTML = `<p class="text-center py-6 text-xs text-slate-400 font-bold">보존 히스토리가 비어있습니다.</p>`;
+                return;
+            }
+            
+            let h = "";
+            keys.forEach(name => {
+                h += `<div class="flex justify-between items-center bg-white p-3 rounded-xl border font-bold text-xs">
+                    <div><p>${name} 고객님</p><span class="text-[10px] text-slate-400">${db[name].timestamp}</span></div>
+                    <div class="flex gap-1">
+                        <button onclick="loadCustV19('${name}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg">로드</button>
+                        <button onclick="delCustV19('${name}')" class="bg-slate-100 text-slate-500 px-2 py-1.5 rounded-lg">삭제</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = h;
+        }
+
+        function loadCustV19(name) {
+            let db = JSON.parse(localStorage.getItem('next_life_db_v19'));
+            const data = db[name].payload;
+            Object.keys(data).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = data[id];
+            });
+            window.npsAgeSetByUserV19 = true;
+            calcAll();
+            toggleLoadModalV19(false);
+        }
+
+        function delCustV19(name) {
+            if(!confirm("삭제하시겠습니까?")) return;
+            let db = JSON.parse(localStorage.getItem('next_life_db_v19'));
+            delete db[name]; localStorage.setItem('next_life_db_v19', JSON.stringify(db));
+            renderLoadListV19();
+        }
+
+        function calcAll() {
+            const inflRate = 2.0;
+            const returnRate = 4.5;
+
+            const name = document.getElementById('v_name').value || '신규 고객';
+            const age = parseInt(document.getElementById('v_age').value) || 0;
+
+            // 고객명 사이드바·보고서 동기화
+            const _sbName = document.getElementById('sb_customerName');
+            if (_sbName) _sbName.textContent = name + ' 님';
+            const _rName = document.getElementById('r_name');
+            if (_rName) _rName.textContent = name;
+
+            /* 자산군 연산 */
+            const resHome = parseFloat(document.getElementById('v_res_home').value) || 0;
+            const resInv = parseFloat(document.getElementById('v_res_inv').value) || 0;
+            const resBld = parseFloat(document.getElementById('v_res_bld').value) || 0;
+            const resLand = parseFloat(document.getElementById('v_res_land').value) || 0;
+
+            const finCash = parseFloat(document.getElementById('v_fin_cash').value) || 0;
+            const finStock = parseFloat(document.getElementById('v_fin_stock').value) || 0;
+            const finPension = parseFloat(document.getElementById('v_fin_pension').value) || 0;
+            const finIns = parseFloat(document.getElementById('v_fin_ins').value) || 0;
+
+            const debtMort = parseFloat(document.getElementById('v_debt_mort').value) || 0;
+            const debtCred = parseFloat(document.getElementById('v_debt_cred').value) || 0;
+            
+            const totalRE = resHome + resInv + resBld + resLand;
+            const totalFin = finCash + finStock + finPension + finIns;
+            const totalDebt = debtMort + debtCred;
+            const totalAsset = totalRE + totalFin;
+            const netAssetTenThous = totalAsset - totalDebt;
+            const netAssetWon = netAssetTenThous * 10000000;
+
+            document.getElementById('hd_grossAsset').innerText = formatKrwMixed(totalAsset * 10000000);
+            document.getElementById('hd_totalDebt').innerText = formatKrwMixed(totalDebt * 10000000);
+            document.getElementById('hd_netAsset').innerText = formatKrwMixed(netAssetWon);
+
+            const rateRe = totalAsset > 0 ? (totalRE / totalAsset) * 100 : 0;
+            const rateFin = totalAsset > 0 ? (totalFin / totalAsset) * 100 : 0;
+            document.getElementById('o_rateRe').innerText = rateRe.toFixed(1) + '%';
+            document.getElementById('o_rateFin').innerText = rateFin.toFixed(1) + '%';
+
+            if (assetPieChart) {
+                assetPieChart.data.datasets[0].data = totalAsset === 0 ? [1, 0] : [totalRE, totalFin];
+                assetPieChart.update();
+            }
+
+            // 진단 윙 제어
+            const dbBox = document.getElementById('diagBox');
+            if(totalAsset===0){
+                dbBox.className = "p-4 rounded-xl border flex gap-3 items-start mt-4 bg-slate-100";
+                document.getElementById('diagTitle').innerText = "진단 대기 중";
+                document.getElementById('diagDesc').innerText = "데이터 입력 시 자산 분산 피드백이 도출됩니다.";
+            } else if(rateRe > 80){
+                dbBox.className = "p-4 rounded-xl border flex gap-3 items-start mt-4 bg-amber-50 border-amber-200 text-amber-900";
+                document.getElementById('diagTitle').innerText = "⚠️ 부동산 자산 쏠림 리스크";
+                document.getElementById('diagDesc').innerText = "부동산 비중이 과다하여 현금흐름 경색 및 크레바스기 대응력이 약화될 우려가 큽니다.";
+            } else {
+                dbBox.className = "p-4 rounded-xl border flex gap-3 items-start mt-4 bg-blue-50 border-blue-200 text-blue-900";
+                document.getElementById('diagTitle').innerText = "✅ 적정 자산 다각화 구성";
+                document.getElementById('diagDesc').innerText = "금융 자산과의 배분이 조화로워 포트폴리오 안전성이 확보되었습니다.";
+            }
+
+            /* ================= 은퇴 타임라인 조약 및 법정 보정계수 연산 ================= */
+            const baseRetAge = parseInt(document.getElementById('v_retAge').value) || 60;
+            const npsAge = parseInt(document.getElementById('v_npsAge').value) || 65;
+            const privAge = parseInt(document.getElementById('v_privAge').value) || 60;
+
+            // 슬라이더 표시값 동기화 (B1)
+            document.getElementById('o_retAge').innerText = baseRetAge;
+            document.getElementById('o_npsAge').innerText = npsAge;
+            document.getElementById('o_privAge').innerText = privAge;
+
+            const legalAgeTxt = document.getElementById('o_legalAgeNum').innerText;
+            const legalNpsAge = legalAgeTxt !== '-' ? parseInt(legalAgeTxt) : 65;
+
+            // L2: 직역연금/국민연금 보정계수 분리
+            const _pensionType = document.getElementById('v_pensionType').value;
+            let npsFactor = 1.0;
+            let fbText = "정상 개시 (100% 수령)";
+            if (_pensionType === 'GOV') {
+                // 직역연금: 조기 5%/년 감액, 연기 가산 없음 (공무원·사학 일반 기준)
+                if (npsAge < legalNpsAge) {
+                    npsFactor = 1.0 - ((legalNpsAge - npsAge) * 0.05);
+                    fbText = `직역연금 조기 수령 (${Math.round(npsFactor*100)}% 수급)`;
+                } else {
+                    fbText = "직역연금 정상 개시 (100% 수령)";
+                }
+            } else {
+                // 국민연금: 조기 6%/년 감액, 연기 7.2%/년 가산
+                if (npsAge < legalNpsAge) {
+                    npsFactor = 1.0 - ((legalNpsAge - npsAge) * 0.06);
+                    fbText = `조기 특례 수령 (${Math.round(npsFactor*100)}% 감액 수급)`;
+                } else if (npsAge > legalNpsAge) {
+                    npsFactor = 1.0 + ((npsAge - legalNpsAge) * 0.072);
+                    fbText = `연기 가산 수령 (+${Math.round((npsFactor-1)*100)}% 가산 수급)`;
+                }
+            }
+            document.getElementById('o_npsStrategyFeedback').innerText = fbText;
+
+            const bridgeYears = Math.max(0, npsAge - baseRetAge);
+            document.getElementById('o_bridgeYears').innerText = bridgeYears;
+            if(bridgeYears > 0){
+                document.getElementById('bridge_alert').innerText = `은퇴 시점(${baseRetAge}세)부터 공적연금 수급 개시 연도(${npsAge}세)까지 총 ${bridgeYears}년의 소득 공백 가교 리스크 노출 기간이 확증됩니다.`;
+            } else {
+                document.getElementById('bridge_alert').innerText = `소득 크레바스 위험이 성공적으로 헷징 차단된 안전 수지 구간입니다.`;
+            }
+
+            /* ================= L4: 2026년 A값 정밀 반영 노령연금·기초연금 산식 ================= */
+            const npsStart = parseInt(document.getElementById('v_npsStart').value) || 28;
+            const npsEnd = parseInt(document.getElementById('v_npsEnd').value) || 60;
+            const npsDuration = Math.max(0, npsEnd - npsStart);
+
+            const A_value_2026 = 3000000; // 2026년 가상 A값 (전체 가입자 평균소득월액, 원)
+            const baseBasicPension_2026 = 34; // 2026년 기준 기초연금액 (만원/월, 단독가구)
+            const A_man = A_value_2026 / 10000; // A값을 만원 단위로 (= 300)
+
+            const baseNpsAmt = parseFloat(document.getElementById('v_npsAmt').value) || 0;
+            const adjustedNpsAmt = baseNpsAmt * npsFactor;
+
+            // 가입기간 기반 P 계수 (국민연금 표준 산식)
+            // n < 10년: 미수급 / n < 20년: 비례 / n ≥ 20년: 연 5% 가산
+            let P_factor;
+            if (npsDuration < 10) P_factor = 0;
+            else if (npsDuration < 20) P_factor = npsDuration / 20;
+            else P_factor = 1 + 0.05 * (npsDuration - 20);
+
+            // 균등부분 (A부분) = 1.2 × A × P / 12  (월액, 만원)
+            const uniformPart_monthly = (1.2 * A_man * P_factor) / 12;
+            // 소득비례부분 (A급여, B부분) — 실제 노령연금에서 균등부분 차감
+            const incomeProportionalPart = Math.max(0, adjustedNpsAmt - uniformPart_monthly);
+            // 본인 평균소득월액 (B) — 사용자 입력 (기본 A와 동일 = 300)
+            const B_man = parseFloat(document.getElementById('v_npsB')?.value) || A_man;
+            // B 기반 추정 노령연금 (사용자 본인소득 반영)
+            const estimatedNps_byB = (1.2 * (A_man + B_man) * P_factor) / 12;
+
+            // 기초연금 감액 (기초연금법 표준 산식): A급여 > 기준연금액 초과분의 50% 감액, 최대 50% 한도
+            let rawReduction = 0;
+            if (incomeProportionalPart > baseBasicPension_2026) {
+                rawReduction = (incomeProportionalPart - baseBasicPension_2026) * 0.5;
+                if (rawReduction > baseBasicPension_2026 * 0.5) {
+                    rawReduction = baseBasicPension_2026 * 0.5;
+                }
+            }
+
+            let finalBasicPension = baseBasicPension_2026 - rawReduction;
+            if (document.getElementById('v_pensionType').value === 'GOV') {
+                finalBasicPension = 0; // 직역연금법 제3조 자격 원천 배제
+            }
+
+            document.getElementById('o_basicPensionMonth').innerText = finalBasicPension > 0 ? Math.round(finalBasicPension) + " 만원" : "0 만원 (수급 제외)";
+            document.getElementById('o_basicPensionYear').innerText = finalBasicPension > 0 ? Math.round(finalBasicPension * 12) + " 만원" : "0 만원";
+
+            // 본인소득(B) 기반 추정치 표시 — nps_penalty_txt 확장
+            const _bRatio = (B_man / A_man).toFixed(2);
+            const _bLevel = B_man > A_man * 1.1 ? '고소득자' : (B_man < A_man * 0.9 ? '저소득자' : '평균 수준');
+            const _refTxt = ` | A값 ${A_man}만·B값 ${B_man}만(B/A=${_bRatio}, ${_bLevel})·가입 ${npsDuration}년 기준 추정 노령연금: 약 ${Math.round(estimatedNps_byB)}만원/월`;
+            let _baseLine;
+            if (npsFactor < 1) _baseLine = `⚠️ 조기 수령 페널티 감액 적용 (월 ${Math.round(adjustedNpsAmt)}만 원)`;
+            else if (npsFactor > 1) _baseLine = `✅ 연기 가산 인센티브 적용 (월 ${Math.round(adjustedNpsAmt)}만 원)`;
+            else _baseLine = `정상 개시 표준율 100% 반영 (월 ${Math.round(adjustedNpsAmt)}만 원)`;
+            document.getElementById('nps_penalty_txt').innerText = _baseLine + _refTxt;
+
+            /* ================= 현금흐름 과부족 GAP 이원화 Phase 1 / Phase 2 추적 매핑 ================= */
+            const baseTargetInc = parseFloat(document.getElementById('v_targetInc').value) || 0;
+            const privAmt = parseFloat(document.getElementById('v_privAmt').value) || 0;
+            const yearsToRetire = Math.max(0, baseRetAge - age);
+            // C2: 인플레이션 비대칭 제거 — 현재가치 기준 일관 비교
+            const targetInc = baseTargetInc;
+
+            const exStart = parseInt(document.getElementById('v_extraStart').value) || 60;
+            const exEnd = parseInt(document.getElementById('v_extraEnd').value) || 65;
+            const exSal = parseFloat(document.getElementById('v_extraSalary').value) || 0;
+            const exYears = Math.max(0, exEnd - exStart);
+            document.getElementById('o_extraTotal').innerText = `총 활동 가교 기간: ${exYears}년`;
+
+            // 기본 연금계좌 확보 소득 기저치 (모든 연금 활성 시 최대치)
+            const basePensionIncomeTotal = adjustedNpsAmt + privAmt + finalBasicPension;
+
+            // C3: Phase별 연금 수령 개시 연령 반영 — 각 연금원은 수령 연령 도달 후만 합산
+            // 기초연금 개시 = 65세
+            const phase1MidAge = (exStart + exEnd) / 2;
+            const phase2StartAge = exEnd;
+            const _npsP1 = (phase1MidAge >= npsAge) ? adjustedNpsAmt : 0;
+            const _npsP2 = (phase2StartAge >= npsAge) ? adjustedNpsAmt : 0;
+            const _privP1 = (phase1MidAge >= privAge) ? privAmt : 0;
+            const _privP2 = (phase2StartAge >= privAge) ? privAmt : 0;
+            const _basicP1 = (phase1MidAge >= 65) ? finalBasicPension : 0;
+            const _basicP2 = (phase2StartAge >= 65) ? finalBasicPension : 0;
+
+            // Phase 1: 가교 근로기 (재취업 활동 중)
+            const incPhase1 = _npsP1 + _privP1 + _basicP1 + exSal;
+            const gapPhase1 = incPhase1 - targetInc;
+            const irrPhase1 = targetInc > 0 ? (incPhase1 / targetInc) * 100 : 0;
+
+            document.getElementById('o_phase1_period').innerText = `${exStart}~${exEnd}세`;
+            document.getElementById('o_inc_phase1').innerText = Math.round(incPhase1).toLocaleString() + '만 원';
+            document.getElementById('o_irrRate_phase1').innerText = irrPhase1.toFixed(1) + '%';
+            document.getElementById('o_gapBar_phase1').style.width = Math.min(100, irrPhase1) + '%';
+
+            if (gapPhase1 < 0) {
+                document.getElementById('o_gapAmt_phase1').innerText = `월 -${Math.round(Math.abs(gapPhase1)).toLocaleString()}만 원 부족`;
+                document.getElementById('o_gapAmt_phase1').className = "text-xl font-black text-rose-400";
+            } else {
+                document.getElementById('o_gapAmt_phase1').innerText = `월 +${Math.round(gapPhase1).toLocaleString()}만 원 가용 (충족)`;
+                document.getElementById('o_gapAmt_phase1').className = "text-xl font-black text-emerald-400";
+            }
+
+            // Phase 2: 근로 종료 후 순수 연금 의존기 (수령 연령 도달 연금만)
+            const incPhase2 = _npsP2 + _privP2 + _basicP2;
+            const gapPhase2 = incPhase2 - targetInc;
+            const irrPhase2 = targetInc > 0 ? (incPhase2 / targetInc) * 100 : 0;
+            
+            document.getElementById('o_phase2_period').innerText = `${exEnd}세 이후`;
+            document.getElementById('o_irrRate_phase2').innerText = irrPhase2.toFixed(1) + '%';
+            document.getElementById('o_gapBar_phase2').style.width = Math.min(100, irrPhase2) + '%';
+            
+            if (gapPhase2 < 0) {
+                document.getElementById('o_gapAmt_phase2').innerText = `월 -${Math.round(Math.abs(gapPhase2)).toLocaleString()}만 원 부족`;
+                document.getElementById('o_gapAmt_phase2').className = "text-xl font-black text-rose-400";
+            } else {
+                document.getElementById('o_gapAmt_phase2').innerText = `월 +${Math.round(gapPhase2).toLocaleString()}만 원 여유`;
+                document.getElementById('o_gapAmt_phase2').className = "text-xl font-black text-blue-400";
+            }
+
+            // 전통 자산 유동화
+            const nonResAsset = resInv + resBld + resLand;
+            const solA_Inc = (nonResAsset * 1000 * (returnRate / 100)) / 12;
+            // C1: 주택연금 산식 정밀화 — 한국주택금융공사 종신지급 근사
+            // resHome(천만원) × 1000 × 연령별 월지급률
+            // 60세 이하 0.20% / 65세 0.25% / 70세 0.30% / 75세+ 0.35%
+            const _solB_rate = baseRetAge <= 60 ? 0.0020
+                             : (baseRetAge <= 65 ? 0.0025
+                             : (baseRetAge <= 70 ? 0.0030 : 0.0035));
+            const solB_Inc = resHome * 1000 * _solB_rate;
+            document.getElementById('o_solA').innerText = Math.round(solA_Inc).toLocaleString();
+            document.getElementById('o_solB').innerText = Math.round(solB_Inc).toLocaleString();
+
+            // 법령 경고 피드백 이관 배치부 (A값·균등/소득비례부분 명시)
+            const pt = document.getElementById('v_pensionType').value;
+            if(pt === 'NPS') {
+                document.getElementById('o_basicPensionLaw').innerHTML =
+                    `• A값 <strong>${A_man}만</strong>·가입 <strong>${npsDuration}년</strong> 기준 균등부분 ` +
+                    `<strong>${Math.round(uniformPart_monthly)}만/월</strong>, A급여(소득비례) ` +
+                    `<strong>${Math.round(incomeProportionalPart)}만/월</strong>. ` +
+                    `기준연금액 ${baseBasicPension_2026}만 초과분의 50% 감액 산식에 의해 매월 ` +
+                    `<strong>${Math.round(rawReduction)}만원</strong> 차감, 최종 기초연금 ` +
+                    `<strong>${Math.round(finalBasicPension)}만원/월</strong>으로 결정됩니다.`;
+            } else {
+                document.getElementById('o_basicPensionLaw').innerHTML = `• <strong>직역연금법 전면 제한 통보:</strong> 공무원/사학/군인연금 수급 자격 계층은 기초연금법령 제3조 규정에 따라 국가 기초노령연금 지급 청구 자격 명단에서 <strong>원천 전면 배제(0원 선언)</strong> 처리됩니다.`;
+            }
+
+            /* ================= Step 4 바인딩 수치화 ================= */
+            document.getElementById('s4_legalAge').innerText = legalNpsAge + "세";
+            document.getElementById('s4_selectAge').innerText = npsAge + "세";
+            document.getElementById('s4_modifier').innerText = fbText;
+            document.getElementById('s4_finalNps').innerText = Math.round(adjustedNpsAmt).toLocaleString() + "만 원 / 월";
+
+            const annualNps = adjustedNpsAmt * 12;
+            const annualOther = exSal * 12 + (solA_Inc * 12);
+            const annualTotal = annualNps + annualOther;
+            document.getElementById('s4_annualNps').innerText = Math.round(annualNps).toLocaleString() + " 만원";
+            document.getElementById('s4_annualOther').innerText = Math.round(annualOther).toLocaleString() + " 만원";
+            document.getElementById('s4_annualTotal').innerText = Math.round(annualTotal).toLocaleString() + " 만원";
+
+            const s4Alert = document.getElementById('s4_healthAlert');
+            if (annualTotal > 2000) {
+                s4Alert.innerHTML = `<div class="bg-rose-600 text-white p-4 rounded-xl font-bold text-center text-xs shadow-md">⚠️ 건보료 피부양자 자격 탈락 확정 리스크 구간 진입: 종합 합산 소득이 연 2,000만 원 규정을 초과하여 은퇴 후 지역가입자로의 강제 전환 부담금이 신설됩니다.</div>`;
+            } else {
+                s4Alert.innerHTML = `<div class="bg-emerald-600 text-white p-4 rounded-xl font-bold text-center text-xs shadow-md">✅ 피부양자 유지 안전지대 포지션 안착: 합산 소득 지표가 연 2,000만 원 이하 선에서 관리되므로 직계 가족 밑으로 건강보험 피부양 수급 자격 유지가 유리합니다.</div>`;
+            }
+
+            const annualPriv = privAmt * 12;
+            document.getElementById('s4_privAmtMonth').innerText = privAmt.toLocaleString();
+            document.getElementById('s4_privAmtYear').innerText = annualPriv.toLocaleString();
+            if (annualPriv <= 1500) {
+                document.getElementById('s4_privTaxSafe').classList.remove('hidden');
+                document.getElementById('s4_privTaxDanger').classList.add('hidden');
+            } else {
+                document.getElementById('s4_privTaxSafe').classList.add('hidden');
+                document.getElementById('s4_privTaxDanger').classList.remove('hidden');
+                // L5: 분리과세 16.5% 실제 세액 계산 출력
+                const _privSepTax = annualPriv * 0.165;
+                const _privSepTitle = document.getElementById('s4_privTaxDanger').querySelector('.bg-rose-50');
+                if (_privSepTitle) {
+                    _privSepTitle.innerHTML = `⚠️ 위험: 사적연금 수령 연간 총액이 <strong>1,500만 원 기준 한도를 상회 초과</strong>했습니다. 분리과세 16.5% 적용 시 연간 세액 <strong>약 ${Math.round(_privSepTax).toLocaleString()}만원</strong>. 다음 중 고객 유리 조건에 근거하여 과세 형태를 양자택일하시기 바랍니다.`;
+                }
+            }
+
+            /* ================= Step 5 절세 수치화 ================= */
+            const taxRate = parseFloat(document.getElementById('v_tax_rate').value) || 0.165;
+            document.getElementById('o_tax_rate_label').innerText = `종합소득세율 구간에 따른 지정 매핑 환급률: ${(taxRate*100).toFixed(1)}%`;
+            
+            const pSave = parseFloat(document.getElementById('v_taxSave').value) || 0;
+            const pIrp = parseFloat(document.getElementById('v_taxIrp').value) || 0;
+            const isaRoll = parseFloat(document.getElementById('v_isaRoll').value) || 0;
+
+            let baseLimit = Math.min(pSave, 600) + pIrp; if (baseLimit > 900) baseLimit = 900;
+            let isaLimit = isaRoll * 0.1; if (isaLimit > 300) isaLimit = 300;
+
+            const baseCredit = baseLimit * taxRate;
+            const isaCredit = isaLimit * taxRate;
+            const totalTaxReturn = baseCredit + isaCredit;
+
+            document.getElementById('o_taxBaseCredit').innerText = Math.round(baseCredit).toLocaleString() + " 만원";
+            document.getElementById('o_isaExtraCredit').innerText = "+ " + Math.round(isaCredit).toLocaleString() + " 만원";
+            document.getElementById('o_totalTaxReturn').innerText = Math.round(totalTaxReturn).toLocaleString() + " 만원";
+            
+            const isaTypeLimit = parseFloat(document.getElementById('v_isaType').value) || 200;
+            const isaProfit = parseFloat(document.getElementById('v_isaProfit').value) || 0;
+            let freeAmt = Math.min(isaProfit, isaTypeLimit);
+            let taxBaseAmt = Math.max(0, isaProfit - isaTypeLimit);
+            let isaTaxAmt = taxBaseAmt * 0.099;
+            let normalTaxAmt = isaProfit * 0.154;
+            let saveAmt = Math.max(0, normalTaxAmt - isaTaxAmt);
+
+            document.getElementById('o_isaFreeAmt').innerText = Math.round(freeAmt).toLocaleString() + " 만원";
+            document.getElementById('o_isaTaxAmt').innerText = Math.round(isaTaxAmt).toLocaleString() + " 만원";
+            document.getElementById('o_isaSaveAmt').innerText = Math.round(saveAmt).toLocaleString() + " 만원";
+
+            /* ================= Step 6 전후 비교 보드 연동 ================= */
+            document.getElementById('o_bfInc').innerText = Math.round(basePensionIncomeTotal).toLocaleString() + ' 만원';
+            document.getElementById('o_bfGap').innerText = gapPhase2 < 0 ? Math.round(Math.abs(gapPhase2)).toLocaleString() + ' 만원 부족' : '0 만원 (수지 균형)';
+            document.getElementById('o_bfBridge').innerText = bridgeYears + "년";
+            
+            const afIncTotal = basePensionIncomeTotal + solA_Inc + solB_Inc + exSal;
+            document.getElementById('o_afInc').innerText = Math.round(afIncTotal).toLocaleString() + ' 만원';
+            document.getElementById('o_afGap').innerText = (afIncTotal - targetInc) >= 0 ? "포트폴리오 대안 배치로 수지 완전 방어 성공" : Math.round(Math.abs(afIncTotal - targetInc)) + "만 원 부족 최소화";
+            
+            const totalTaxAndSave = totalTaxReturn + saveAmt;
+            document.getElementById('o_afTaxRet').innerText = Math.round(totalTaxAndSave).toLocaleString() + " 만원";
+
+            // 명세표 매핑
+            document.getElementById('tbl_extAgeInc').innerText = bridgeYears === 0 ? "공백 완전 방어" : `공백 구조 ${bridgeYears}년 관리`;
+            document.getElementById('tbl_extraSalAmt').innerText = exSal > 0 ? `+ ${Math.round(exSal).toLocaleString()} 만원` : '-';
+            document.getElementById('tbl_solAAmt').innerText = solA_Inc > 0 ? `+ ${Math.round(solA_Inc).toLocaleString()} 만원` : '-';
+            document.getElementById('tbl_solBAmt').innerText = solB_Inc > 0 ? `+ ${Math.round(solB_Inc).toLocaleString()} 만원` : '-';
+            document.getElementById('tbl_baseTaxAmt').innerText = baseCredit > 0 ? `+ ${Math.round(baseCredit).toLocaleString()} 만원` : '-';
+            document.getElementById('tbl_isaRollAmt').innerText = isaCredit > 0 ? `+ ${Math.round(isaCredit).toLocaleString()} 만원` : '-';
+            document.getElementById('tbl_isaSaveAmt').innerText = saveAmt > 0 ? `${Math.round(saveAmt).toLocaleString()} 만원 절세` : '-';
+
+            /* ================= Step 7 상속 증여 ================= */
+            const tBasic = parseFloat(document.getElementById('v_taxBasic').value) || 0;
+            const tSpouse = parseFloat(document.getElementById('v_taxSpouse').value) || 0;
+            document.getElementById('o_taxNetAsset').innerText = formatKrwMixed(netAssetWon);
+            
+            let taxBase = netAssetTenThous - tBasic - tSpouse; if (taxBase < 0) taxBase = 0;
+            document.getElementById('o_taxBase').innerText = formatKrwMixed(taxBase * 10000000);
+
+            let taxCalc = 0; let baseOck = taxBase / 10;
+            if (baseOck <= 1) taxCalc = baseOck * 0.1;
+            else if (baseOck <= 5) taxCalc = baseOck * 0.2 - 0.1;
+            else if (baseOck <= 10) taxCalc = baseOck * 0.3 - 0.6;
+            else if (baseOck <= 30) taxCalc = baseOck * 0.4 - 1.6;
+            else taxCalc = baseOck * 0.5 - 4.6;
+            
+            const finalTaxWon = taxBase > 0 ? Math.round(taxCalc * 0.97 * 100000000) : 0;
+            document.getElementById('o_taxFinal').innerText = formatKrwMixed(finalTaxWon);
+
+            const giftAmt = parseFloat(document.getElementById('v_giftAmt').value) || 0;
+            const giftTarget = parseFloat(document.getElementById('v_giftTarget').value) || 0;
+            let giftBase = giftAmt - giftTarget; if (giftBase < 0) giftBase = 0;
+            
+            let giftCalc = 0; let giftOck = giftBase / 10;
+            if (giftOck <= 1) giftCalc = giftOck * 0.1;
+            else if (giftOck <= 5) giftCalc = giftOck * 0.2 - 0.1;
+            else if (giftOck <= 10) giftCalc = giftOck * 0.3 - 0.6;
+            else if (giftOck <= 30) giftCalc = giftOck * 0.4 - 1.6;
+            else giftCalc = giftOck * 0.5 - 4.6;
+            
+            const finalGiftWon = giftBase > 0 ? Math.round(giftCalc * 0.97 * 100000000) : 0;
+            document.getElementById('o_giftFinal').innerText = formatKrwMixed(finalGiftWon);
+
+            /* ================= Step 8 종합 의견서 자동 빌더 ================= */
+            document.getElementById('r_netAsset').innerText = formatKrwMixed(netAssetWon);
+            document.getElementById('r_reRate').innerText = rateRe.toFixed(1) + '%';
+            document.getElementById('r_bridge').innerText = bridgeYears > 0 ? bridgeYears + "년의 공백 구간" : "완전 방어 매칭";
+            document.getElementById('r_gap').innerText = gapPhase2 < 0 ? "월 " + Math.round(Math.abs(gapPhase2)).toLocaleString() + "만 원 부족" : "수지 안정 안착";
+            document.getElementById('r_isaTax').innerText = Math.round(totalTaxAndSave).toLocaleString() + '만 원';
+            
+            let exp = `<p>고객님의 거시 포트폴리오 가치분석 결과 순자산 규모는 <strong>${formatKrwMixed(netAssetWon)}</strong>선으로 수치화되며, 부동산 자산으로의 쏠림 강도는 <strong>${rateRe.toFixed(1)}%</strong> 수준의 한계점을 노출하고 있습니다.</p>`;
+            if (bridgeYears > 0) {
+                exp += `<p>은퇴 설계 타임라인 분석 상 소득 공백 가교기가 <strong>${bridgeYears}년</strong> 발견되며, 이로 인해 제2근로 종료 시점인 Phase 2 구간의 순수 연금 의존 시 월 <strong>${Math.round(Math.abs(gapPhase2)).toLocaleString()}만 원</strong> 수준의 자산 경색 리스크가 예견됩니다. 거주 주택연금 및 금융 배당 자산으로의 가설적 포지션 이동이 강력 권장됩니다.</p>`;
+            }
+            if (annualTotal > 2000) {
+                exp += `<p>특히 공적연금 보정 요율과 재취업 수지가 결합되어 연 종합 합산소득이 2,000만 원 한계선을 상회하므로 <strong>건강보험 피부양 자격의 강제 박탈 및 지역보험료 부과 리스크</strong>에 대치되는 바, 가구 지출 예산 수립 시 해당 건보료 증가분을 사전에 매핑하여 제어해야 합니다.</p>`;
+            }
+            exp += `<p>절세 계좌 시뮬레이션의 경우 지정 소득세 구간 소득세율 <strong>${(taxRate*100).toFixed(1)}%</strong> 하에서 연금저축/IRP 기본 납입분 공제 및 ISA 연금계좌 롤오버 특례 조항 추가 세제 마진을 결합해 연간 종합 <strong>${Math.round(totalTaxAndSave).toLocaleString()}만 원</strong> 가량의 순 실질 세무 환급 이익 방어선이 성립됩니다.</p>`;
+            
+            document.getElementById('r_textExpert').innerHTML = exp;
+        }
+
+        function showStep(stepNumber) {
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                if (index + 1 === stepNumber) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+            document.querySelectorAll('.step-content').forEach((content, index) => {
+                if (index + 1 === stepNumber) content.classList.add('active');
+                else content.classList.remove('active');
+            });
+            calcAll();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            _updateMobileStepUI(stepNumber);
+        }
+
+        function initApp() {
+            const ctx = document.getElementById('chartAsset').getContext('2d');
+            assetPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['부동산 자산', '금융 자산'],
+                    datasets: [{ data: [1, 0], backgroundColor: ['#10b981', '#3b82f6'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '72%' }
+            });
+            autoCalculateAgeV19();
+            initMobileUI();
+            _updateMobileStepUI(1);
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
