@@ -348,12 +348,12 @@
                             <div class="border-t border-slate-200 pt-3 space-y-3">
                                 <span class="block text-xs font-black text-slate-600">🏛️ 기초연금 예상 계산기 (2026년 기준)</span>
                                 <div class="grid grid-cols-2 gap-3">
-                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 처음 가입한 나이</label><input type="number" id="v_npsStart" value="28" class="input-box text-sm font-bold" oninput="calcAll()"></div>
-                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 납입 마칠 나이</label><input type="number" id="v_npsEnd" value="60" class="input-box text-sm font-bold" oninput="calcAll()"></div>
+                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 처음 가입한 나이</label><input type="number" id="v_npsStart" value="28" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()"></div>
+                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 납입 마칠 나이</label><input type="number" id="v_npsEnd" value="60" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()"></div>
                                 </div>
                                 <div>
                                     <label class="text-[11px] font-bold text-slate-500 mb-1 block">본인 평균 월 소득 (만원/월, A값=300 기준)</label>
-                                    <input type="number" id="v_npsB" value="300" class="input-box text-sm font-bold" oninput="calcAll()">
+                                    <input type="number" id="v_npsB" value="300" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()">
                                 </div>
                                 <div class="bg-amber-50 border-2 border-amber-200 p-4 rounded-xl space-y-1.5">
                                     <div class="flex justify-between items-center text-xs font-bold text-amber-900">
@@ -369,6 +369,12 @@
                                     </p>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- 공적연금 관련 안내: 예상 공적연금 수령액 카드 바로 아래 배치 -->
+                        <div class="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-xs font-bold text-amber-800 leading-relaxed space-y-1">
+                            <h4 class="text-sm font-black text-amber-900 mb-1 flex items-center gap-1.5">⚖️ 공적연금 관련 안내</h4>
+                            <p id="o_basicPensionLaw">• 국민연금법 및 기초연금법 연계 조항에 따라, 국민연금 수령액 규모가 기준 기초연금액의 150%를 초과하므로 기초연금 소득비례 감액 조항이 활성화되어 계산에 반영됩니다.</p>
                         </div>
 
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -455,17 +461,13 @@
                                 </div>
                             </div>
                             <!-- 주석 가이드 윙 -->
-                            <div class="p-3 bg-white/80 border border-emerald-200 rounded-xl text-xs text-emerald-800 leading-relaxed font-semibold mt-3">
-                                ℹ️ <strong>계산 방법:</strong> 투자 부동산은 연 수익률로 월 임대수익을 계산하며, 주택연금은 거주 주택을 담보로 매달 지급받는 금액입니다.
+                            <div class="p-3 bg-white/80 border border-emerald-200 rounded-xl text-xs text-emerald-800 leading-relaxed font-semibold mt-3 space-y-1.5">
+                                <p>📐 <strong>산출근거</strong></p>
+                                <p>• <strong>투자 부동산 임대수익</strong>: (투자용 아파트·오피스텔 + 상가·빌딩 + 토지 자산 합계) × 연 4.5% ÷ 12개월. 거주주택은 제외합니다.</p>
+                                <p>• <strong>주택연금</strong>: 거주 주택 가액 × 연령별 월지급률(은퇴연령 60세 이하 0.20% / 65세 0.25% / 70세 0.30% / 75세 이상 0.35%)로, 한국주택금융공사 종신지급방식을 근사한 금액입니다.</p>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- 요청사항 5: 공적연금 법령 검토 요소를 대안 솔루션 하단 배치하여 가시성 동기화 -->
-                <div class="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-xs font-bold text-amber-800 leading-relaxed space-y-1">
-                    <h4 class="text-sm font-black text-amber-900 mb-1 flex items-center gap-1.5">⚖️ 공적연금 관련 안내</h4>
-                    <p id="o_basicPensionLaw">• 국민연금법 및 기초연금법 연계 조항에 따라, 국민연금 수령액 규모가 기준 기초연금액의 150%를 초과하므로 기초연금 소득비례 감액 조항이 활성화되어 계산에 반영됩니다.</p>
                 </div>
 
                 <div class="flex justify-between pt-2 print-hide">
@@ -737,6 +739,10 @@
                     </div>
                 </div>
 
+                <div class="p-4 bg-amber-50 border border-amber-300 rounded-2xl text-xs font-bold text-amber-900 leading-relaxed">
+                    ⚠️ <strong>안내:</strong> 위 상속·증여세는 일괄공제·금융재산공제·동거주택상속공제 등 다양한 공제항목과 사전증여 합산·세대생략 할증 등을 생략한 <strong>매우 단순화된 개략 추정치</strong>입니다. 실제 세액과 크게 다를 수 있으므로, 반드시 <strong>세무사 등 전문가와 상담·검토</strong>하신 후 의사결정하시기 바랍니다.
+                </div>
+
                 <div class="flex justify-between pt-2 print-hide">
                     <button onclick="showStep(6)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
                     <button onclick="showStep(8)" class="bg-slate-900 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-slate-800 shadow-lg">종합 진단 최종 보고서 출력 ➔</button>
@@ -924,6 +930,12 @@
             return isNegative ? "-" + resultStr.trim() : resultStr.trim();
         }
 
+        // 만원 단위 값을 100원 단위로 반올림해 원 단위 전체 표기
+        function fmtWon100(man) {
+            const won = Math.round((man * 10000) / 100) * 100;
+            return won.toLocaleString() + "원";
+        }
+
         /* 요청사항 1: 선택 직역별/생년월일 매핑 법정 개시 연령 판독 */
         function autoCalculateAgeV19() {
             const birthStr = document.getElementById('v_birth').value;
@@ -1060,6 +1072,21 @@
             let db = JSON.parse(localStorage.getItem('next_life_db_v19'));
             delete db[name]; localStorage.setItem('next_life_db_v19', JSON.stringify(db));
             renderLoadListV19();
+        }
+
+        // 기초연금 계산기 입력(가입나이·본인소득) 변경 시 예상 공적연금 수령액 칸 자동입력
+        function syncNpsEstimate() {
+            const npsStart = parseInt(document.getElementById('v_npsStart').value) || 28;
+            const npsEnd = parseInt(document.getElementById('v_npsEnd').value) || 60;
+            const npsDuration = Math.max(0, npsEnd - npsStart);
+            let P_factor;
+            if (npsDuration < 10) P_factor = 0;
+            else if (npsDuration < 20) P_factor = npsDuration / 20;
+            else P_factor = 1 + 0.05 * (npsDuration - 20);
+            const A_man = 300; // 2026년 A값(만원)
+            const B_man = parseFloat(document.getElementById('v_npsB')?.value) || A_man;
+            const est = (1.2 * (A_man + B_man) * P_factor) / 12;
+            document.getElementById('v_npsAmt').value = Math.round(est);
         }
 
         function calcAll() {
@@ -1374,9 +1401,9 @@
             const isaCredit = isaLimit * taxRate;
             const totalTaxReturn = baseCredit + isaCredit;
 
-            document.getElementById('o_taxBaseCredit').innerText = Math.round(baseCredit).toLocaleString() + " 만원";
-            document.getElementById('o_isaExtraCredit').innerText = "+ " + Math.round(isaCredit).toLocaleString() + " 만원";
-            document.getElementById('o_totalTaxReturn').innerText = Math.round(totalTaxReturn).toLocaleString() + " 만원";
+            document.getElementById('o_taxBaseCredit').innerText = fmtWon100(baseCredit);
+            document.getElementById('o_isaExtraCredit').innerText = "+ " + fmtWon100(isaCredit);
+            document.getElementById('o_totalTaxReturn').innerText = fmtWon100(totalTaxReturn);
             
             const isaTypeLimit = parseFloat(document.getElementById('v_isaType').value) || 200;
             const isaProfit = parseFloat(document.getElementById('v_isaProfit').value) || 0;
@@ -1386,9 +1413,9 @@
             let normalTaxAmt = isaProfit * 0.154;
             let saveAmt = Math.max(0, normalTaxAmt - isaTaxAmt);
 
-            document.getElementById('o_isaFreeAmt').innerText = Math.round(freeAmt).toLocaleString() + " 만원";
-            document.getElementById('o_isaTaxAmt').innerText = Math.round(isaTaxAmt).toLocaleString() + " 만원";
-            document.getElementById('o_isaSaveAmt').innerText = Math.round(saveAmt).toLocaleString() + " 만원";
+            document.getElementById('o_isaFreeAmt').innerText = fmtWon100(freeAmt);
+            document.getElementById('o_isaTaxAmt').innerText = fmtWon100(isaTaxAmt);
+            document.getElementById('o_isaSaveAmt').innerText = fmtWon100(saveAmt);
 
             /* ================= Step 6 전후 비교 보드 연동 ================= */
             document.getElementById('o_bfInc').innerText = Math.round(basePensionIncomeTotal).toLocaleString() + ' 만원';
@@ -1532,6 +1559,7 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '72%' }
             });
+            syncNpsEstimate();
             autoCalculateAgeV19();
             initMobileUI();
             _updateMobileStepUI(1);
