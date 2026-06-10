@@ -11814,6 +11814,12 @@ function updateCalc() {
   const _riInsUse  = document.getElementById('cfp-ins-cb')?.checked  ?? false;
   const _riRentUse = document.getElementById('cfp-rent-cb')?.checked ?? false;
   const _totalPensionM = (_riNpsUse?_riNpsRaw:0)+(_riGpUse?_riGpRaw:0)+(_riPrivUse?_riPrivRaw:0)+(_riEtcUse?_riEtcRaw:0)+(_riInsUse?_riInsRaw:0)+(_riRentUse?_riRentRaw:0)+_extraPensionM;
+  // 진단 안내 배지용 — 직접입력(ta-pension-*)이 아닌 시뮬레이션 폴백(confirmed)으로 차감된 연금 월액 합계.
+  // 연금 탭 방문 시 자동추정이 진단 숫자를 바꾸는 흐름을 사용자에게 표시하기 위해 기록.
+  window._pensionSimInjected =
+      (_riNpsUse  && _taNps  === 0 && _pcfC.nps  ? (_lastPensionMonthly || 0) : 0)
+    + (_riGpUse   && _taGp   === 0 && _pcfC.gp   ? (_lastGpMonthly     || 0) : 0)
+    + (_riPrivUse && _taPriv === 0 && _pcfC.priv ? (_lastPrivMonthly   || 0) : 0);
   const netWithdraw = Math.max(0, monthly - _totalPensionM);
   // 공적연금 개시연령 (이미 수령 중=ta입력>0이면 현재나이, 아니면 캐시 recvAge) — 개시 시차 반영
   const _npsStartAge = (_taNps > 0) ? curAge : Math.max(retAge, +(window._npsCalcCache?.recvAge || retAge));
@@ -12385,6 +12391,26 @@ function _calcUpdateHero(d) {
   // 역산 계산기 카드 — 항상 갱신 (action card 유무 무관)
   window._calcResult = { gap: d.gap, neededAtRet: d.neededAtRet, monthlySave: d.monthlySave, retAge: d.retAge, lifeAge: d.lifeAge, curAge: d.curAge, inflation: d.inflation, retReturn: d.retReturn, isAlreadyRetired: d.isAlreadyRetired, monthlyExp: d.monthly };
   try { initCalcTabReverse(); } catch(_) {}
+
+  // 연금 시뮬레이션 추정값 반영 안내 배지 — 연금 탭 방문으로 진단 숫자가 말없이 바뀌는 흐름을 사용자에게 표시
+  try {
+    const _simM = Math.round(window._pensionSimInjected || 0);
+    let _simBadge = document.getElementById('calc-pension-sim-badge');
+    if (_simM > 0) {
+      if (!_simBadge && heroWrap && heroWrap.parentNode) {
+        _simBadge = document.createElement('div');
+        _simBadge.id = 'calc-pension-sim-badge';
+        _simBadge.style.cssText = 'font-size:.72rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:6px 9px;margin-top:8px;line-height:1.5';
+        heroWrap.parentNode.insertBefore(_simBadge, heroWrap.nextSibling);
+      }
+      if (_simBadge) {
+        _simBadge.textContent = 'ℹ️ 연금 탭 시뮬레이션 추정 수령액 월 ' + _simM.toLocaleString() + '만원이 차감 반영된 결과입니다 — 연금 탭에서 확인·수정할 수 있습니다';
+        _simBadge.style.display = '';
+      }
+    } else if (_simBadge) {
+      _simBadge.style.display = 'none';
+    }
+  } catch(_) {}
 
   // 대응 계획
   if (!actionCard || !actionBody) return;
@@ -15876,86 +15902,8 @@ function updateTaxAccount() {
 updateTaxAccount = debounce(updateTaxAccount, 150);
 
 
-function calcIsaTransferSim(){
-  const matAmt = +(document.getElementById('isa-mat-amt') && document.getElementById('isa-mat-amt').value)||0;
-  const xferReq = +(document.getElementById('isa-xfer-amt') && document.getElementById('isa-xfer-amt').value)||0;
-  const curPay = +(document.getElementById('isa-cur-pay') && document.getElementById('isa-cur-pay').value)||0;
-  const rate = +(document.getElementById('isa-credit-rate') && document.getElementById('isa-credit-rate').value)||16.5;
-
-  const xferActual = Math.max(0, Math.min(xferReq, matAmt, 3000));
-  const baseLimit = 900;
-  const baseRemaining = Math.max(0, baseLimit - Math.min(curPay, baseLimit));
-  const extraCredit = Math.min(xferActual * 0.10, 300);
-  const addCredit = extraCredit;
-  const taxSave = addCredit * (rate/100);
-
-  const credEl = document.getElementById('isa-sim-credit');
-  const taxEl = document.getElementById('isa-sim-tax-save');
-  const detailEl = document.getElementById('isa-sim-detail');
-  // Task5: 원 단위 통화 표시 — 만원값 × 10000 = 원
-  const fmtKRW = function(v){ return '₩ ' + Math.round(v * 10000).toLocaleString('ko-KR'); };
-  if (credEl) credEl.textContent = fmtKRW(addCredit);
-  if (taxEl)  taxEl.textContent  = fmtKRW(taxSave);
-  if (detailEl) {
-    detailEl.innerHTML =
-      '<strong>계산 내역</strong><br>' +
-      '• ISA 전환 인정 금액: ' + fmtKRW(xferActual) + ' (요청 ' + fmtKRW(xferReq) + ', 만기 ' + fmtKRW(matAmt) + ', 한도 3,000만 중 작은 값)<br>' +
-      '• 전환분 추가 세액공제 한도: ' + fmtKRW(addCredit) + ' (전환액의 10%, 최대 300만원)<br>' +
-      '• 적용 세액공제율: <strong>' + rate + '%</strong> → 절세액 ' + fmtKRW(taxSave) + '<br>' +
-      '• 연금저축+IRP 일반 한도(900만원) 중 잔여 ' + fmtKRW(baseRemaining) + '는 추가 납입 시 별도 공제 가능';
-  }
-}
-
-function calcAcctCompare(){
-  const annual = +(document.getElementById('cmp-amt') && document.getElementById('cmp-amt').value)||0;
-  const yrs = +(document.getElementById('cmp-yrs') && document.getElementById('cmp-yrs').value)||0;
-  const genRate = +(document.getElementById('cmp-gen') && document.getElementById('cmp-gen').value)||15.4;
-  const penRate = +(document.getElementById('cmp-pen') && document.getElementById('cmp-pen').value)||5.5;
-  const roi = +(document.getElementById('cmp-roi') && document.getElementById('cmp-roi').value)||0; // FIX1: ROI 반영
-
-  const grossTotal = annual * yrs;
-  const genTax = grossTotal * (genRate/100);
-  const genNet = grossTotal - genTax;
-  const genEff = grossTotal>0 ? (genTax/grossTotal*100) : 0;
-  const penTax = grossTotal * (penRate/100);
-  const penNet = grossTotal - penTax;
-  const penEff = grossTotal>0 ? (penTax/grossTotal*100) : 0;
-  const _isaCfg   = getTaxConfig().isa;
-  const isaNontax = _isaCfg.generalLimit     || 200;
-  const _isaRate  = _isaCfg.surchargeTaxRate || 0.099;
-  // ISA: 만기 시 총이익에서 200만원(일반형) 일괄 비과세 (연간 아님) → 소득세법 §91의18
-  const isaTax = Math.round(Math.max(0, grossTotal - isaNontax) * _isaRate);
-  const isaNet = grossTotal - isaTax;
-  const isaEff = grossTotal>0 ? (isaTax/grossTotal*100) : 0;
-
-  // FIX1: ROI 가정 시 잔액 운용수익에 대한 일반계좌 추가 세부담 추정 (참고용)
-  // 단순 가정: 평균 잔액 = annual × (yrs/2). 매년 ROI% 수익 → 일반계좌만 추가 과세.
-  const avgBalance = annual * (yrs/2);
-  const annualROIIncome = avgBalance * (roi/100);
-  const totalROIIncome = annualROIIncome * yrs;
-  const extraGenTaxFromROI = totalROIIncome * (genRate/100);
-  const roiNote = (roi > 0)
-    ? '운용수익률 ' + roi.toFixed(1) + '% 가정 시 일반계좌 잔액에서 추가로 약 ' + fmtM(extraGenTaxFromROI) + '의 세금이 더 발생할 수 있습니다 (참고용 추정).'
-    : '운용수익률을 0%로 가정한 경우입니다.';
-
-  const tbody = document.getElementById('cmp-tbody');
-  if (!tbody) return;
-  const fmtPct = function(v){ return v.toFixed(2)+'%'; };
-  tbody.innerHTML =
-    '<tr><td class="tl"><strong>일반 과세계좌</strong><br><span style="font-size:.7rem;color:var(--g500)">금융소득세/종합과세</span></td>' +
-    '<td class="tr">'+fmtM(grossTotal)+'</td><td class="tr">'+genRate.toFixed(1)+'%</td>' +
-    '<td class="tr" style="font-weight:700">'+fmtM(genNet)+'</td><td class="hl-orange">'+fmtPct(genEff)+'</td></tr>' +
-    '<tr><td class="tl"><strong style="color:var(--pension)">연금계좌(연금저축/IRP)</strong><br><span style="font-size:.7rem;color:var(--g500)">분리과세 '+penRate+'%</span></td>' +
-    '<td class="tr">'+fmtM(grossTotal)+'</td><td class="tr">'+penRate.toFixed(1)+'%</td>' +
-    '<td class="tr" style="font-weight:700;color:var(--pension)">'+fmtM(penNet)+'</td><td class="hl-blue">'+fmtPct(penEff)+'</td></tr>' +
-    '<tr><td class="tl"><strong style="color:var(--isa)">ISA(일반형)</strong><br><span style="font-size:.7rem;color:var(--g500)">비과세 200만(만기 일괄) + 초과 9.9%</span></td>' +
-    '<td class="tr">'+fmtM(grossTotal)+'</td><td class="tr">9.9% (초과)</td>' +
-    '<td class="tr" style="font-weight:700;color:var(--success)">'+fmtM(isaNet)+'</td><td style="color:var(--success);font-weight:700">'+fmtPct(isaEff)+'</td></tr>';
-
-  // ROI 안내 박스 갱신
-  const roiNoteEl = document.getElementById('cmp-roi-note');
-  if (roiNoteEl) roiNoteEl.textContent = roiNote;
-}
+// (정리) calcIsaTransferSim/calcAcctCompare 구버전 정의 제거 — 동일 이름 재선언 시 마지막 선언이 이겨 여기 정의는 죽은 코드였음.
+// 현행 정의(getTaxConfig 기반)는 파일 하단 "3-1. ISA → 연금계좌 이전" / "3-2. 일반계좌 vs 연금계좌 vs ISA" 참조.
 
 
 // ── 07_pension-tax.js ──
@@ -23623,12 +23571,14 @@ function _initCalcTabReverseBase() {
   const r = window._calcResult;
   if (!r) return;
 
-  // 슬라이더 max 동적 조정
+  // 슬라이더 max 동적 조정 — r.gap은 은퇴시점 총액(만원), 월액 기준 슬라이더는 월 환산값 사용
+  const _rvPeriod = Math.max(1, (r.lifeAge || 90) - (r.retAge || 65));
+  const _rvMonthlyGap = Math.abs(r.gap || 0) / (_rvPeriod * 12); // 만원/월
   const aSlider = document.getElementById('calc-rv-a-sl');
   const eSlider = document.getElementById('calc-rv-e-sl');
   const pSlider = document.getElementById('calc-rv-p-sl');
-  if (aSlider) { aSlider.max = Math.max(50000, Math.round(Math.abs(r.gap) * r.retAge * 12 / 10000) * 10000); aSlider.value = 0; }
-  if (eSlider) { eSlider.max = Math.min(200, Math.round(Math.abs(r.gap) / 5) * 5 + 50); eSlider.value = 0; }
+  if (aSlider) { aSlider.max = Math.max(50000, Math.ceil(Math.abs(r.gap || 0) / 10000) * 10000); aSlider.value = 0; }
+  if (eSlider) { eSlider.max = Math.min(200, Math.round(_rvMonthlyGap / 5) * 5 + 50); eSlider.value = 0; }
   if (pSlider) { pSlider.max = 300; pSlider.value = 0; }
   updateCalcRv();
 }
@@ -23636,7 +23586,9 @@ function _initCalcTabReverseBase() {
 function updateCalcRv() {
   const r = window._calcResult;
   if (!r) return;
-  const gap = Math.abs(r.gap || 0); // 만원/월 부족
+  // _calcResult.gap은 은퇴시점 총액(만원) — 월 부족액으로 환산해 사용 (updateBasket과 동일 방식)
+  const retPeriod = Math.max(1, (r.lifeAge || 90) - (r.retAge || 65));
+  const gap = Math.abs(r.gap || 0) / (retPeriod * 12); // 만원/월 부족
 
   const aVal = parseFloat(document.getElementById('calc-rv-a-sl')?.value || 0);
   const eVal = parseFloat(document.getElementById('calc-rv-e-sl')?.value || 0);
@@ -23649,7 +23601,6 @@ function updateCalcRv() {
   setLbl('calc-rv-p-val', pVal ? '+' + pVal + '만원/월' : '0');
 
   // 추가 자산이 월 인출로 환산: 은퇴기간 = lifeAge - retAge
-  const retPeriod = Math.max(1, (r.lifeAge || 90) - (r.retAge || 65));
   const monthlyFromAsset = aVal / (retPeriod * 12);
   const totalResolved = monthlyFromAsset + eVal + pVal; // 만원/월
 

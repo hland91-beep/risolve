@@ -31,12 +31,16 @@
 - PDF 2종(`doSavePdf`, `exportFullReport`) 생성·다운로드 성공
 - 미존재 ID 참조 23건 전부 동적 생성 또는 null 가드됨, DOM ID 중복 0건
 
-### 미수정 잔여 이슈 (다음 세션 후보)
-- **[중간] 연금 탭을 열기만 해도 진단 결과 변동** (필요자금 12.4억→9.3억, 국민연금 자동추정이 탭 진입 시 주입).
-  의도된 기능으로 보이나 일관성 리스크 — 첫 계산부터 자동 반영 or 반영 안내 배지 검토. **사용자 의사결정 필요.**
-- [낮음] 죽은 중복 함수: `calcIsaTransferSim`·`calcAcctCompare` 2회 선언 (뒤 정의=getTaxConfig 버전이 최신이라 동작 정상, 앞 정의는 죽은 코드)
-- [낮음] `updateCalcRv`(부족분 역산 슬라이더): gap을 총액인데 월액으로 해석하는 단위 오류 — 해당 슬라이더 UI(`calc-rv-*`)가 HTML에 없어 현재 미실행(죽은 코드)
-- trial/index.html에는 basestore 수정사항 미반영 (코드베이스 분기 상태 — 동기화 여부 확인 필요)
+### 잔여 이슈 후속 처리 (같은 날 2차 커밋으로 완료)
+- ✅ **연금 탭 진단 변동 안내 배지 추가**: 시뮬레이션 폴백으로 차감된 연금 월액을 `window._pensionSimInjected`에 기록,
+  진단 히어로 아래 `#calc-pension-sim-badge`로 "월 N만원 차감 반영" 표시. 직접입력(`ta-pension-*`>0) 시 자동 숨김.
+  (계산 동작 자체는 변경하지 않음 — 첫 계산부터 자동 반영하는 방안은 미채택, 사용자가 원하면 별도 작업)
+- ✅ 죽은 중복 함수 제거: `calcIsaTransferSim`·`calcAcctCompare` 구버전(하드코딩 한도) 정의 삭제, getTaxConfig 버전만 유지
+- ✅ `updateCalcRv`·`_initCalcTabReverseBase` 슬라이더 max: gap(총액)을 월액으로 환산해 사용하도록 수정 (updateBasket과 동일 방식)
+- ⚠️ **trial/index.html은 난독화 빌드 산출물**(javascript-obfuscator) — 직접 패치 불가. 원본 소스에 basestore 수정사항 반영 후
+  `inject.py` 재실행으로 재생성해야 함 (코드 주석에 inject.py 언급 있음). **원본 소스는 이 저장소에 없음.**
+- ⚠️ **`PURCHASE_PENDING = true` 토글** (basestore 내): 플레이스토어에 앱이 실제 공개(라이브)된 후 `false`로 변경해야
+  구매 CTA가 "심사 진행 중" 모달 대신 Play Store 링크로 연결됨. 프로덕션 액세스 승인≠공개이므로 **라이브 확인 후 변경.**
 
 ### 출시 전 APK 체크리스트 (코드 외부, 미확인)
 1. APK 내 웹 자산 경로에 `trial`/`demo` 문자열 금지 (DEMO_MODE 오발동)
