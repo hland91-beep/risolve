@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Next Life PRO - 은퇴준비 자산관리 시스템 V19</title>
-    <!-- 인터넷 연결이 끊긴 오프라인 태블릿 환경에서도 100% 작동하도록 순수 로컬 자바스크립트 연산 엔진 설계 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- 인터넷 연결이 끊긴 오프라인 태블릿 환경에서도 100% 작동하도록 모든 리소스를 로컬 번들로 포함 -->
+    <link href="css/tailwind.css" rel="stylesheet">
+    <script src="js/chart.min.js"></script>
     <style>
         /* 태블릿 환경에서 가독성이 극대화되도록 전반적인 글자 크기, 여백, 터치 영역을 대폭 상향 조정 */
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; color: #0f172a; min-height: 100vh; font-size: 16px; }
@@ -1478,8 +1477,10 @@
             document.getElementById('r_isaTax').innerText = Math.round(totalTaxAndSave).toLocaleString() + '만 원';
             
             let exp = `<p>고객님의 순자산은 <strong>${formatKrwMixed(netAssetWon)}</strong>이며, 부동산 비중이 <strong>${rateRe.toFixed(1)}%</strong>입니다. 부동산 비중이 높으면 은퇴 후 현금 부족이 생길 수 있으므로 금융자산을 늘리는 것을 권장합니다.</p>`;
-            if (bridgeYears > 0) {
+            if (bridgeYears > 0 && gapPhase2 < 0) {
                 exp += `<p>은퇴 후 연금 받기까지 <strong>${bridgeYears}년</strong>의 소득 공백이 있으며, 완전 은퇴 후에는 월 <strong>${Math.round(Math.abs(gapPhase2)).toLocaleString()}만 원</strong>이 부족할 수 있습니다. 주택연금 및 금융자산 활용을 권장합니다.</p>`;
+            } else if (bridgeYears > 0) {
+                exp += `<p>은퇴 후 연금 받기까지 <strong>${bridgeYears}년</strong>의 소득 공백이 있으나, 완전 은퇴 후에는 연금만으로 월 <strong>${Math.round(gapPhase2).toLocaleString()}만 원</strong>의 여유가 생겨 생활비 충당이 가능합니다. 공백 기간 ${bridgeYears}년의 생활자금 마련에 집중하시기 바랍니다.</p>`;
             } else {
                 exp += `<p>연금 공백 없이 안정적인 소득이 이어집니다. 재취업과 연금 시작 시기가 잘 맞아 은퇴 후에도 수입이 끊기지 않습니다.</p>`;
             }
@@ -1563,6 +1564,7 @@
             autoCalculateAgeV19();
             initMobileUI();
             _updateMobileStepUI(1);
+            calcAll(); // 생년월일 미입력 상태에서도 첫 화면 대시보드 수치 즉시 표시
         }
 
         window.onload = initApp;
