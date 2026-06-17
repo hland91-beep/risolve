@@ -162,7 +162,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-2">연금 종류 선택</label>
-                        <select id="v_pensionType" class="input-box text-left h-[55px] font-extrabold" onchange="autoCalculateAgeV19()">
+                        <select id="v_pensionType" class="input-box text-left h-[55px] font-extrabold" onchange="autoCalculateAgeV19(); applyPensionTypeUI()">
                             <option value="NPS">국민연금</option>
                             <option value="GOV">직역연금 (공무원/사학/군인)</option>
                         </select>
@@ -345,13 +345,13 @@
                             </div>
                             
                             <div class="border-t border-slate-200 pt-3 space-y-3">
-                                <span class="block text-xs font-black text-slate-600">🏛️ 기초연금 예상 계산기 (2026년 기준)</span>
+                                <span id="lbl_basicCalc" class="block text-xs font-black text-slate-600">🏛️ 기초연금 예상 계산기 (2026년 기준)</span>
                                 <div class="grid grid-cols-2 gap-3">
-                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 처음 가입한 나이</label><input type="number" id="v_npsStart" value="28" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()"></div>
-                                    <div><label class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 납입 마칠 나이</label><input type="number" id="v_npsEnd" value="60" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()"></div>
+                                    <div><label id="lbl_npsStart" class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 처음 가입한 나이</label><input type="number" id="v_npsStart" value="28" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()"></div>
+                                    <div><label id="lbl_npsEnd" class="text-[11px] font-bold text-slate-500 mb-1 block">국민연금 납입 마칠 나이</label><input type="number" id="v_npsEnd" value="60" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()"></div>
                                 </div>
                                 <div>
-                                    <label class="text-[11px] font-bold text-slate-500 mb-1 block">본인 평균 월 소득 (만원/월, A값=300 기준)</label>
+                                    <label id="lbl_npsB" class="text-[11px] font-bold text-slate-500 mb-1 block">본인 평균 월 소득 (만원/월, A값=319만 기준)</label>
                                     <input type="number" id="v_npsB" value="300" class="input-box text-sm font-bold" oninput="syncNpsEstimate(); calcAll()">
                                 </div>
                                 <div class="bg-amber-50 border-2 border-amber-200 p-4 rounded-xl space-y-1.5">
@@ -364,7 +364,7 @@
                                         <span id="o_basicPensionYear" class="text-sm font-black text-amber-800">0 만원</span>
                                     </div>
                                     <p class="text-[10px] font-medium text-amber-700 leading-normal pt-1">
-                                        ※ 2026년 기준 계산식 적용 (A값 300만원, 기준액 34만원, 최대 50% 감액 한도)
+                                        ※ 2026년 기준 계산식 적용 (A값 319만원, 기준액 34만원, 최대 50% 감액 한도)
                                     </p>
                                 </div>
                             </div>
@@ -1062,6 +1062,7 @@
                 if (el) el.value = data[id];
             });
             window.npsAgeSetByUserV19 = true;
+            _updatePensionLabels();  // 저장된 v_npsAmt 보존: 라벨만 갱신(syncNpsEstimate 미호출)
             calcAll();
             toggleLoadModalV19(false);
         }
@@ -1073,19 +1074,61 @@
             renderLoadListV19();
         }
 
+        /* ===== 2026년 공적연금 최신 기준 상수 ===== */
+        const A_VALUE_2026 = 3193511;        // 2026년 A값(전체 가입자 평균소득월액, 원) — 보건복지부 고시
+        const GOV_ACCRUAL_RATE = 0.017;      // 공무원연금 지급률(재직 1년당, 2035년 완착 기준 1.7%)
+        const NPS_WORK_REDUCE_THRESHOLD = 509; // 소득활동에 따른 노령연금 감액 기준소득월액(만원) — 2026.6 개정(A값 초과→509만 초과)
+
+        // 소득활동에 따른 노령연금 감액(재직자 감액) — 509만 초과분 구간별 감액, 노령연금 50% 한도
+        function calcNpsWorkReduction(monthlyIncomeMan, pensionMan) {
+            const ex = Math.max(0, monthlyIncomeMan - NPS_WORK_REDUCE_THRESHOLD); // 초과소득월액(만원)
+            if (ex <= 0 || pensionMan <= 0) return 0;
+            let r;
+            if (ex < 100)      r = ex * 0.05;
+            else if (ex < 200) r = 5  + (ex - 100) * 0.10;
+            else if (ex < 300) r = 15 + (ex - 200) * 0.15;
+            else if (ex < 400) r = 30 + (ex - 300) * 0.20;
+            else               r = 50 + (ex - 400) * 0.25;
+            return Math.min(r, pensionMan * 0.5); // 노령연금액의 1/2 한도
+        }
+
         // 기초연금 계산기 입력(가입나이·본인소득) 변경 시 예상 공적연금 수령액 칸 자동입력
         function syncNpsEstimate() {
             const npsStart = parseInt(document.getElementById('v_npsStart').value) || 28;
             const npsEnd = parseInt(document.getElementById('v_npsEnd').value) || 60;
             const npsDuration = Math.max(0, npsEnd - npsStart);
-            let P_factor;
-            if (npsDuration < 10) P_factor = 0;
-            else if (npsDuration < 20) P_factor = npsDuration / 20;
-            else P_factor = 1 + 0.05 * (npsDuration - 20);
-            const A_man = 300; // 2026년 A값(만원)
+            const A_man = A_VALUE_2026 / 10000; // 2026년 A값(만원) = 319.35
             const B_man = parseFloat(document.getElementById('v_npsB')?.value) || A_man;
-            const est = (1.2 * (A_man + B_man) * P_factor) / 12;
+            const pt = document.getElementById('v_pensionType').value;
+            let est;
+            if (pt === 'GOV') {
+                // 공무원연금 전용 산식: 평균기준소득월액 × 재직연수 × 지급률(1.7%)
+                est = B_man * npsDuration * GOV_ACCRUAL_RATE;
+            } else {
+                // 국민연금 산식: 1.2 × (A + B) × P / 12
+                let P_factor;
+                if (npsDuration < 10) P_factor = 0;
+                else if (npsDuration < 20) P_factor = npsDuration / 20;
+                else P_factor = 1 + 0.05 * (npsDuration - 20);
+                est = (1.2 * (A_man + B_man) * P_factor) / 12;
+            }
             document.getElementById('v_npsAmt').value = Math.round(est);
+        }
+
+        // 연금유형(국민/공무원)에 따른 입력 라벨만 전환 (저장 불러오기 시 금액 보존용)
+        function _updatePensionLabels() {
+            const isGov = document.getElementById('v_pensionType').value === 'GOV';
+            const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+            set('lbl_npsStart', isGov ? '공무원 임용 나이' : '국민연금 처음 가입한 나이');
+            set('lbl_npsEnd',   isGov ? '퇴직 나이'       : '국민연금 납입 마칠 나이');
+            set('lbl_npsB',     isGov ? '평균기준소득월액 (만원/월)' : '본인 평균 월 소득 (만원/월, A값=319만 기준)');
+            set('lbl_basicCalc', isGov ? '🏛️ 공무원연금 예상 계산기 (지급률 1.7% 가정)' : '🏛️ 기초연금 예상 계산기 (2026년 기준)');
+        }
+        // 연금유형 변경 시: 라벨 전환 + 산식 재추정 + 재계산
+        function applyPensionTypeUI() {
+            _updatePensionLabels();
+            syncNpsEstimate();
+            calcAll();
         }
 
         function calcAll() {
@@ -1202,9 +1245,9 @@
             const npsEnd = parseInt(document.getElementById('v_npsEnd').value) || 60;
             const npsDuration = Math.max(0, npsEnd - npsStart);
 
-            const A_value_2026 = 3000000; // 2026년 가상 A값 (전체 가입자 평균소득월액, 원)
+            const A_value_2026 = A_VALUE_2026; // 2026년 실제 A값 (전체 가입자 평균소득월액, 원) — 3,193,511
             const baseBasicPension_2026 = 34; // 2026년 기준 기초연금액 (만원/월, 단독가구)
-            const A_man = A_value_2026 / 10000; // A값을 만원 단위로 (= 300)
+            const A_man = A_value_2026 / 10000; // A값을 만원 단위로 (= 319.35)
 
             const baseNpsAmt = parseFloat(document.getElementById('v_npsAmt').value) || 0;
             const adjustedNpsAmt = baseNpsAmt * npsFactor;
@@ -1280,8 +1323,19 @@
             const _basicP2 = (phase2StartAge >= 65) ? finalBasicPension : 0;
 
             // Phase 1: 가교 근로기 (재취업 활동 중)
-            const incPhase1 = _npsP1 + _privP1 + _basicP1 + exSal;
+            // 소득활동에 따른 노령연금 감액(재직자 감액) — 국민연금, 2026.6 개정: 재취업 월소득 509만 초과분에 한해 감액(노령연금 1/2 한도)
+            const _ptCur = document.getElementById('v_pensionType').value;
+            let npsWorkReduce = 0;
+            if (_ptCur === 'NPS' && _npsP1 > 0 && exSal > NPS_WORK_REDUCE_THRESHOLD) {
+                npsWorkReduce = calcNpsWorkReduction(exSal, _npsP1);
+            }
+            const _npsP1_net = Math.max(0, _npsP1 - npsWorkReduce);
+            const incPhase1 = _npsP1_net + _privP1 + _basicP1 + exSal;
             const gapPhase1 = incPhase1 - targetInc;
+            if (npsWorkReduce > 0) {
+                document.getElementById('nps_penalty_txt').innerText +=
+                    ` | 🔻재취업 감액: 월소득 ${Math.round(exSal)}만(기준 509만 초과 ${Math.round(exSal - NPS_WORK_REDUCE_THRESHOLD)}만) → 노령연금 -${Math.round(npsWorkReduce)}만/월 적용`;
+            }
             const irrPhase1 = targetInc > 0 ? (incPhase1 / targetInc) * 100 : 0;
 
             document.getElementById('o_phase1_period').innerText = `${exStart}~${exEnd}세`;
@@ -1489,6 +1543,9 @@
             } else if (annualTotal >= 1800) {
                 exp += `<p>현재 연간 합산소득이 <strong>${Math.round(annualTotal).toLocaleString()}만원</strong>으로 건강보험 피부양자 기준(연 2,000만원)에 가까워지고 있습니다. 수령액 조정이나 연금 시작 시기 분산을 통해 피부양자 자격을 유지하세요.</p>`;
             }
+            if (npsWorkReduce > 0) {
+                exp += `<p><strong>🔻 [재취업 중 노령연금 감액]</strong> 재취업 월소득 <strong>${Math.round(exSal).toLocaleString()}만원</strong>이 감액 기준(509만원, 2026.6 개정)을 초과하여, 소득활동에 따른 노령연금 감액으로 월 <strong>${Math.round(npsWorkReduce)}만원</strong>이 줄어듭니다(노령연금의 1/2 한도, 수급개시 후 5년간 적용). 재취업을 종료하거나 월소득이 509만원 이하로 낮아지면 전액 수령됩니다. 감액을 피하려면 연금 수령 시작을 재취업 종료 이후로 연기(연 7.2% 가산)하는 방법도 검토하세요.</p>`;
+            }
             exp += `<p>소득세율 <strong>${(taxRate*100).toFixed(1)}%</strong> 기준, 연금저축·IRP 세액공제와 ISA 이전 혜택을 합산하면 연간 <strong>${Math.round(totalTaxAndSave).toLocaleString()}만 원</strong>의 절세 효과가 있습니다.</p>`;
 
             /* ── 추가 섹션 1: 연금수령 전략 비교 ── */
@@ -1560,6 +1617,7 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '72%' }
             });
+            _updatePensionLabels();
             syncNpsEstimate();
             autoCalculateAgeV19();
             initMobileUI();
