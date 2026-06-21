@@ -1602,7 +1602,7 @@
                 }
             }
 
-            /* ================= Step 5 절세 수치화 ================= */
+            /* ================= Step 6 절세 수치화 ================= */
             const taxRate = parseFloat(document.getElementById('v_tax_rate').value) || 0.165;
             document.getElementById('o_tax_rate_label').innerText = `적용 세액공제율: ${(taxRate*100).toFixed(1)}%`;
             
@@ -1633,7 +1633,7 @@
             document.getElementById('o_isaTaxAmt').innerText = fmtWon100(isaTaxAmt);
             document.getElementById('o_isaSaveAmt').innerText = fmtWon100(saveAmt);
 
-            /* ================= Step 6 전후 비교 보드 연동 ================= */
+            /* ================= Step 7 전후 비교 보드 연동 ================= */
             document.getElementById('o_bfInc').innerText = Math.round(basePensionIncomeTotal).toLocaleString() + ' 만원';
             document.getElementById('o_bfGap').innerText = gapPhase2 < 0 ? Math.round(Math.abs(gapPhase2)).toLocaleString() + ' 만원 부족' : '0 만원 (수지 균형)';
             document.getElementById('o_bfBridge').innerText = bridgeYears + "년";
@@ -1654,7 +1654,7 @@
             document.getElementById('tbl_isaRollAmt').innerText = isaCredit > 0 ? `+ ${Math.round(isaCredit).toLocaleString()} 만원` : '-';
             document.getElementById('tbl_isaSaveAmt').innerText = saveAmt > 0 ? `${Math.round(saveAmt).toLocaleString()} 만원 절세` : '-';
 
-            /* ================= Step 7 상속 증여 ================= */
+            /* ================= Step 8 상속 증여 ================= */
             const tBasic = parseFloat(document.getElementById('v_taxBasic').value) || 0;
             const tSpouse = parseFloat(document.getElementById('v_taxSpouse').value) || 0;
             document.getElementById('o_taxNetAsset').innerText = formatKrwMixed(netAssetWon);
@@ -1686,7 +1686,7 @@
             const finalGiftWon = giftBase > 0 ? Math.round(giftCalc * 0.97 * 100000000) : 0;
             document.getElementById('o_giftFinal').innerText = formatKrwMixed(finalGiftWon);
 
-            /* ================= Step 8 종합 의견서 자동 빌더 ================= */
+            /* ================= Step 9 종합 의견서 자동 빌더 ================= */
             document.getElementById('r_netAsset').innerText = formatKrwMixed(netAssetWon);
             document.getElementById('r_reRate').innerText = rateRe.toFixed(1) + '%';
             document.getElementById('r_bridge').innerText = bridgeYears > 0 ? bridgeYears + "년 공백" : "공백 없음";
