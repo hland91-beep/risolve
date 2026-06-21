@@ -6,7 +6,6 @@
     <title>Next Life PRO - 은퇴준비 자산관리 시스템 V19</title>
     <!-- 인터넷 연결이 끊긴 오프라인 태블릿 환경에서도 100% 작동하도록 모든 리소스를 로컬 번들로 포함 -->
     <link href="css/tailwind.css" rel="stylesheet">
-    <script src="js/chart.min.js"></script>
     <style>
         /* 태블릿 환경에서 가독성이 극대화되도록 전반적인 글자 크기, 여백, 터치 영역을 대폭 상향 조정 */
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; color: #0f172a; min-height: 100vh; font-size: 16px; }
@@ -238,7 +237,7 @@
                         <div class="space-y-4">
                             <h4 class="text-xs font-black text-slate-600 text-center uppercase tracking-wider">자산 구성 비율</h4>
                             <div class="w-full max-w-[200px] aspect-square mx-auto">
-                                <canvas id="chartAsset"></canvas>
+                                <svg id="chartAsset" viewBox="0 0 120 120" style="width:100%;height:100%"></svg>
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-xs font-bold">
                                 <div class="bg-white p-3 rounded-xl border text-center"><span class="text-emerald-600 block mb-0.5">부동산 비중</span><p id="o_rateRe" class="text-base font-black">0.0%</p></div>
@@ -1035,7 +1034,45 @@
 
         window.addEventListener('resize', initMobileUI);
 
-        let assetPieChart;
+        /* 자산 구성 도넛(부동산 vs 금융) — Chart.js 제거 후 vanilla SVG 대체.
+           cutout 72%(stroke 두께로 재현), 색 #10b981/#3b82f6, 12시 시작(-90deg). */
+        function _drawAssetDonut(reVal, finVal) {
+            var svg = document.getElementById('chartAsset');
+            if (!svg) return;
+            var total = reVal + finVal;
+            var rRe = 1, rFin = 0;
+            if (total > 0) { rRe = reVal / total; rFin = finVal / total; }
+            else { rRe = 1; rFin = 0; } // 입력 전: 부동산 100% 회색 대체 동작 유지
+            var cx = 60, cy = 60, r = 47, sw = 14; // r·sw로 cutout≈72% 재현
+            var circ = 2 * Math.PI * r;
+            var reLen = circ * rRe, finLen = circ * rFin;
+            // 부동산은 12시부터, 금융은 부동산 끝에서 이어짐(dashoffset 음수로 시작점 이동)
+            var reColor = total > 0 ? '#10b981' : '#e2e8f0';
+            svg.innerHTML =
+                '<g transform="rotate(-90 ' + cx + ' ' + cy + ')">' +
+                '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + reColor + '" stroke-width="' + sw + '" ' +
+                'stroke-dasharray="' + reLen + ' ' + (circ - reLen) + '"></circle>' +
+                '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#3b82f6" stroke-width="' + sw + '" ' +
+                'stroke-dasharray="' + finLen + ' ' + (circ - finLen) + '" stroke-dashoffset="' + (-reLen) + '"></circle>' +
+                '</g>';
+        }
+
+        /* 순수 텍스트 출력 헬퍼 — 동일 값이면 DOM 쓰기 스킵(불필요 리플로우 방지). innerHTML(태그) 출력엔 쓰지 않음 */
+        function _setTxt(id, val) {
+            var e = document.getElementById(id);
+            var s = String(val);
+            if (e && e.textContent !== s) e.textContent = s;
+        }
+
+        /* 상속·증여세 공통 누진세율(5구간, 누진공제 반영). ock=과세표준(억원) → 산출세액(억원) */
+        function _progressiveTaxOck(ock) {
+            if (ock <= 0) return 0;
+            if (ock <= 1)  return ock * 0.1;
+            if (ock <= 5)  return ock * 0.2 - 0.1;
+            if (ock <= 10) return ock * 0.3 - 0.6;
+            if (ock <= 30) return ock * 0.4 - 1.6;
+            return ock * 0.5 - 4.6;
+        }
 
         function formatKrwMixed(wonValue) {
             if (!wonValue || wonValue === 0) return "0원";
@@ -1306,19 +1343,16 @@
             const netAssetTenThous = totalAsset - totalDebt;
             const netAssetWon = netAssetTenThous * 10000000;
 
-            document.getElementById('hd_grossAsset').innerText = formatKrwMixed(totalAsset * 10000000);
-            document.getElementById('hd_totalDebt').innerText = formatKrwMixed(totalDebt * 10000000);
-            document.getElementById('hd_netAsset').innerText = formatKrwMixed(netAssetWon);
+            _setTxt('hd_grossAsset', formatKrwMixed(totalAsset * 10000000));
+            _setTxt('hd_totalDebt', formatKrwMixed(totalDebt * 10000000));
+            _setTxt('hd_netAsset', formatKrwMixed(netAssetWon));
 
             const rateRe = totalAsset > 0 ? (totalRE / totalAsset) * 100 : 0;
             const rateFin = totalAsset > 0 ? (totalFin / totalAsset) * 100 : 0;
-            document.getElementById('o_rateRe').innerText = rateRe.toFixed(1) + '%';
-            document.getElementById('o_rateFin').innerText = rateFin.toFixed(1) + '%';
+            _setTxt('o_rateRe', rateRe.toFixed(1) + '%');
+            _setTxt('o_rateFin', rateFin.toFixed(1) + '%');
 
-            if (assetPieChart) {
-                assetPieChart.data.datasets[0].data = totalAsset === 0 ? [1, 0] : [totalRE, totalFin];
-                assetPieChart.update();
-            }
+            _drawAssetDonut(totalRE, totalFin);
 
             // 진단 윙 제어
             const dbBox = document.getElementById('diagBox');
@@ -1521,15 +1555,15 @@
 
             // 우측 패널 세부 수입·지출 내역 업데이트
             const _dfmt = function(v){ return v > 0 ? Math.round(v) + '만' : '-'; };
-            document.getElementById('o_d_exSal').innerText   = _dfmt(exSal);
-            document.getElementById('o_d_npsP1').innerText   = _dfmt(_npsP1_net);
-            document.getElementById('o_d_privP1').innerText  = _dfmt(_privP1);
-            document.getElementById('o_d_basicP1').innerText = _dfmt(_basicP1);
-            document.getElementById('o_d_npsP2').innerText   = _dfmt(_npsP2);
-            document.getElementById('o_d_privP2').innerText  = _dfmt(_privP2);
-            document.getElementById('o_d_basicP2').innerText = _dfmt(_basicP2);
-            document.getElementById('o_d_target').innerText  = Math.round(targetInc) + '만';
-            document.getElementById('o_targInc').innerText   = Math.round(targetInc) + '만';
+            _setTxt('o_d_exSal',   _dfmt(exSal));
+            _setTxt('o_d_npsP1',   _dfmt(_npsP1_net));
+            _setTxt('o_d_privP1',  _dfmt(_privP1));
+            _setTxt('o_d_basicP1', _dfmt(_basicP1));
+            _setTxt('o_d_npsP2',   _dfmt(_npsP2));
+            _setTxt('o_d_privP2',  _dfmt(_privP2));
+            _setTxt('o_d_basicP2', _dfmt(_basicP2));
+            _setTxt('o_d_target',  Math.round(targetInc) + '만');
+            _setTxt('o_targInc',   Math.round(targetInc) + '만');
 
             // 전통 자산 유동화
             const nonResAsset = resInv + resBld + resLand;
@@ -1662,13 +1696,7 @@
             let taxBase = netAssetTenThous - tBasic - tSpouse; if (taxBase < 0) taxBase = 0;
             document.getElementById('o_taxBase').innerText = formatKrwMixed(taxBase * 10000000);
 
-            let taxCalc = 0; let baseOck = taxBase / 10;
-            if (baseOck <= 1) taxCalc = baseOck * 0.1;
-            else if (baseOck <= 5) taxCalc = baseOck * 0.2 - 0.1;
-            else if (baseOck <= 10) taxCalc = baseOck * 0.3 - 0.6;
-            else if (baseOck <= 30) taxCalc = baseOck * 0.4 - 1.6;
-            else taxCalc = baseOck * 0.5 - 4.6;
-            
+            const taxCalc = _progressiveTaxOck(taxBase / 10);
             const finalTaxWon = taxBase > 0 ? Math.round(taxCalc * 0.97 * 100000000) : 0;
             document.getElementById('o_taxFinal').innerText = formatKrwMixed(finalTaxWon);
 
@@ -1676,13 +1704,7 @@
             const giftTarget = parseFloat(document.getElementById('v_giftTarget').value) || 0;
             let giftBase = giftAmt - giftTarget; if (giftBase < 0) giftBase = 0;
             
-            let giftCalc = 0; let giftOck = giftBase / 10;
-            if (giftOck <= 1) giftCalc = giftOck * 0.1;
-            else if (giftOck <= 5) giftCalc = giftOck * 0.2 - 0.1;
-            else if (giftOck <= 10) giftCalc = giftOck * 0.3 - 0.6;
-            else if (giftOck <= 30) giftCalc = giftOck * 0.4 - 1.6;
-            else giftCalc = giftOck * 0.5 - 4.6;
-            
+            const giftCalc = _progressiveTaxOck(giftBase / 10);
             const finalGiftWon = giftBase > 0 ? Math.round(giftCalc * 0.97 * 100000000) : 0;
             document.getElementById('o_giftFinal').innerText = formatKrwMixed(finalGiftWon);
 
@@ -1895,15 +1917,6 @@
         }
 
         function initApp() {
-            const ctx = document.getElementById('chartAsset').getContext('2d');
-            assetPieChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['부동산 자산', '금융 자산'],
-                    datasets: [{ data: [1, 0], backgroundColor: ['#10b981', '#3b82f6'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '72%' }
-            });
             _updatePensionLabels();
             syncNpsEstimate();
             autoCalculateAgeV19();
