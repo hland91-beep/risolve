@@ -109,7 +109,8 @@
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(5)">5. 절세 계좌 & ISA 시뮬레이션</li>
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(6)">6. 솔루션 효과 비교</li>
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(7)">7. 상속·증여 절세 시뮬레이션</li>
-                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(8)">8. 종합 진단 보고서</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(8)">8. 은퇴 목표자금 & 저축 로드맵</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(9)">9. 종합 진단 보고서</li>
             </ul>
         </nav>
 
@@ -744,12 +745,102 @@
 
                 <div class="flex justify-between pt-2 print-hide">
                     <button onclick="showStep(6)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
-                    <button onclick="showStep(8)" class="bg-slate-900 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-slate-800 shadow-lg">종합 진단 최종 보고서 출력 ➔</button>
+                    <button onclick="showStep(8)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 8단계 목표자금 & 저축 로드맵 ➔</button>
                 </div>
             </section>
 
-            <!-- Step 8: 종합 결과 보고서 -->
-            <section id="step8" class="step-content card-premium text-slate-900 print:shadow-none print:border-none print:p-0">
+            <!-- Step 8: 은퇴 목표자금 & 저축 로드맵 (적립 설계, 기존 입력 자동 연동) -->
+            <section id="step8" class="step-content card-premium space-y-6">
+                <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">8</span>
+                    <h2 class="text-2xl font-black text-slate-800">은퇴 목표자금 & 저축 로드맵</h2>
+                </div>
+
+                <div class="p-4 bg-blue-50/60 border-2 border-blue-200 rounded-2xl text-xs font-bold text-blue-800 leading-relaxed">
+                    💡 1~3단계에서 입력한 <strong>목표 월생활비 · 은퇴 나이 · 현재 나이 · 순자산</strong>을 자동으로 끌어와 계산합니다. 아래 가정값(물가상승률·수익률)만 조정하세요.
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 서브카드 A: 은퇴 목표자금 -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-black text-blue-900 text-sm border-b border-slate-200 pb-2">📈 1. 은퇴 목표자금 (인플레이션 반영)</h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div class="bg-white p-3 rounded-xl border">
+                                <span class="text-slate-500 block mb-1">현재기준 월생활비</span>
+                                <p id="g_curExp" class="text-blue-700 font-black text-sm">0만원</p>
+                                <span class="text-[10px] text-slate-400">3단계 목표생활비 연동</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border">
+                                <span class="text-slate-500 block mb-1">은퇴까지 기간</span>
+                                <p id="g_years" class="text-blue-700 font-black text-sm">0년</p>
+                                <span class="text-[10px] text-slate-400">은퇴나이 − 현재나이</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border">
+                                <span class="text-slate-500 block mb-1">현재 순자산</span>
+                                <p id="g_netAsset" class="text-emerald-700 font-black text-sm">0원</p>
+                                <span class="text-[10px] text-slate-400">1단계 자산 연동</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">예상 물가상승률 (%)</label>
+                                <input type="number" id="v_goalInfl" value="2.5" step="0.1" min="0" max="10" class="input-box" oninput="calcAll()">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">은퇴후 기대수익률 (%)</label>
+                                <input type="number" id="v_goalPostRet" value="4.5" step="0.1" min="0.1" max="15" class="input-box" oninput="calcAll()">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-normal">※ 물가상승률은 <strong>목표설정용(명목)</strong>이며, 앱 내부 현금흐름 GAP 비교(현재가치 2.0%)와는 별개입니다.</p>
+
+                        <div class="bg-white rounded-xl border p-4 space-y-2 text-xs font-bold">
+                            <div class="flex justify-between"><span class="text-slate-600">물가반영 미래 월생활비</span><span id="g_futExp" class="text-slate-900 font-black">0원</span></div>
+                            <div class="flex justify-between"><span class="text-slate-600">연간 필요소득</span><span id="g_annual" class="text-slate-900 font-black">0원</span></div>
+                            <div class="flex justify-between border-t pt-2 items-center"><span class="text-slate-700">원금보존형 목표자산</span><span id="g_target" class="text-blue-700 font-black text-base">0원</span></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-normal">※ <strong>원금보존형</strong>은 원금을 헐지 않고 수익만으로 생활비를 충당하는 <strong>보수적 상한</strong> 시나리오입니다. 주택연금·연금·재취업(6단계 솔루션) 활용 시 실제 필요자산은 더 작아집니다.</p>
+
+                        <div class="bg-white rounded-xl border p-2">
+                            <div class="text-[11px] font-bold text-slate-500 mb-1 px-1">월 생활비 명목가치 변화 (물가 반영)</div>
+                            <svg id="g_inflChart" viewBox="0 0 450 200" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet"></svg>
+                        </div>
+                    </div>
+
+                    <!-- 서브카드 B: 저축 로드맵 -->
+                    <div class="bg-emerald-50/40 p-5 rounded-2xl border border-emerald-200 space-y-4">
+                        <h3 class="font-black text-emerald-900 text-sm border-b border-emerald-200 pb-2">💰 2. 저축 로드맵 (벤츠 마크 3분할)</h3>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">기대 투자수익률 (%)</label>
+                            <input type="number" id="v_goalInvRet" value="6.0" step="0.1" min="0.1" max="20" class="input-box border-emerald-200" oninput="calcAll()">
+                        </div>
+
+                        <div class="bg-white rounded-xl border p-4 space-y-2 text-xs font-bold">
+                            <div class="flex justify-between"><span class="text-slate-600">목표자산 대비 부족분</span><span id="g_short" class="text-rose-600 font-black text-base">0원</span></div>
+                            <div class="flex justify-between border-t pt-2"><span class="text-slate-700">부족분 채우는 월 저축액</span><span id="g_monthlyShort" class="text-emerald-700 font-black text-base">0원</span></div>
+                            <div class="flex justify-between text-[11px] text-slate-500"><span>금융바구니(1/3) 기준 월 저축액</span><span id="g_monthlyBenz" class="font-black">0원</span></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl border p-2">
+                            <div class="text-[11px] font-bold text-slate-500 mb-1 px-1">벤츠 마크 자산 3분할 포트폴리오</div>
+                            <svg id="g_benzChart" viewBox="0 0 300 220" style="width:100%;height:auto;max-height:240px" preserveAspectRatio="xMidYMid meet"></svg>
+                        </div>
+
+                        <div id="g_benzCmp" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] font-bold text-amber-900 leading-relaxed">-</div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-normal">※ 벤츠 마크 3분할(부동산 · 현금/금 · 금융투자 균등)은 <strong>참고 가이드(이상 배분)</strong>이며, 실제 비중과 대조용입니다.</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 print-hide">
+                    <button onclick="showStep(7)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(9)" class="bg-slate-900 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-slate-800 shadow-lg">종합 진단 최종 보고서 출력 ➔</button>
+                </div>
+            </section>
+
+            <!-- Step 9: 종합 결과 보고서 -->
+            <section id="step9" class="step-content card-premium text-slate-900 print:shadow-none print:border-none print:p-0">
                 <div class="text-center mb-8 border-b-4 border-slate-900 pb-6">
                     <p class="text-blue-600 font-black tracking-widest text-[11px] mb-1">NEXT LIFE PREMIUM EXECUTIVE SOLUTON REPORT</p>
                     <h1 class="text-3xl font-black text-slate-900 tracking-tight">은퇴 자산 종합 정밀 진단 보고서</h1>
@@ -828,6 +919,7 @@
             <button id="step-btn-6" onclick="showStep(6)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">6</button>
             <button id="step-btn-7" onclick="showStep(7)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">7</button>
             <button id="step-btn-8" onclick="showStep(8)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">8</button>
+            <button id="step-btn-9" onclick="showStep(9)" style="flex:1;padding:6px 2px;border:none;background:none;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;border-radius:8px">9</button>
         </div>
     </div>
 
@@ -867,7 +959,8 @@
             '5. 절세 계좌 & ISA 시뮬레이션',
             '6. 솔루션 효과 비교',
             '7. 상속·증여 절세 시뮬레이션',
-            '8. 종합 진단 보고서'
+            '8. 은퇴 목표자금 & 저축 로드맵',
+            '9. 종합 진단 보고서'
         ];
         var _curStep = 1;
 
@@ -894,7 +987,7 @@
             var titleEl = document.getElementById('mobile-step-title');
             if (titleEl) titleEl.textContent = _stepTitles[stepNumber] || '';
             // 하단 버튼 활성 표시
-            for (var i = 1; i <= 8; i++) {
+            for (var i = 1; i <= 9; i++) {
                 var btn = document.getElementById('step-btn-' + i);
                 if (!btn) continue;
                 if (i === stepNumber) {
@@ -994,7 +1087,8 @@
                 'v_npsStart': 28, 'v_npsEnd': 60, 'v_npsB': 300,
                 'v_extraStart': 60, 'v_extraEnd': 65, 'v_extraSalary': 150,
                 'v_tax_rate': '0.165', 'v_taxSave': 600, 'v_taxIrp': 300, 'v_isaRoll': 3000,
-                'v_isaType': '200', 'v_isaProfit': 500, 'v_taxBasic': 50, 'v_taxSpouse': 0, 'v_giftAmt': 20, 'v_giftTarget': '5'
+                'v_isaType': '200', 'v_isaProfit': 500, 'v_taxBasic': 50, 'v_taxSpouse': 0, 'v_giftAmt': 20, 'v_giftTarget': '5',
+                'v_goalInfl': 2.5, 'v_goalPostRet': 4.5, 'v_goalInvRet': 6.0
             };
 
             Object.keys(defaults).forEach(id => {
@@ -1618,6 +1712,128 @@
             }
 
             document.getElementById('r_textExpert').innerHTML = exp;
+
+            /* ================= Step 8 은퇴 목표자금 & 저축 로드맵 (기존 입력 자동 연동) ================= */
+            calcGoalRoadmap(baseTargetInc, baseRetAge, age, netAssetWon, rateRe);
+        }
+
+        /* ===== 8단계: 은퇴 목표자금 & 저축 로드맵 (적립 설계) ===== */
+        // 차트 축·라벨용 짧은 한국어 화폐 단위(억/만)
+        function _goalKrwShort(won) {
+            if (!won || won <= 0) return '0원';
+            let eok = Math.floor(won / 100000000);
+            let man = Math.floor((won % 100000000) / 10000);
+            let res = '';
+            if (eok > 0) res += eok.toLocaleString() + '억 ';
+            if (man > 0) res += man.toLocaleString() + '만 ';
+            return (res.trim() || '0') + '원';
+        }
+
+        // 인플레이션 명목가치 곡선 SVG (viewBox 450x200)
+        function _goalDrawInfl(current, years, rate) {
+            const svg = document.getElementById('g_inflChart');
+            if (!svg) return;
+            const width = 450, height = 200, pL = 72, pR = 18, pT = 18, pB = 28;
+            let data = [];
+            for (let i = 0; i <= years; i++) data.push({ year: i, val: current * Math.pow(1 + rate / 100, i) });
+            if (data.length === 0) { svg.innerHTML = ''; return; }
+            const maxVal = data[data.length - 1].val * 1.1 || 100;
+            const gx = (y) => pL + (years > 0 ? (y / years) : 0) * (width - pL - pR);
+            const gy = (v) => height - pB - (v / maxVal) * (height - pT - pB);
+            let grid = '';
+            for (let i = 0; i <= 4; i++) {
+                let v = (maxVal / 4) * i, y = gy(v);
+                grid += `<line x1="${pL}" y1="${y}" x2="${width - pR}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
+                grid += `<text x="${pL - 8}" y="${y + 4}" font-size="10" fill="#94a3b8" text-anchor="end">${_goalKrwShort(v)}</text>`;
+            }
+            let path = `M ${gx(0)} ${gy(data[0].val)}`;
+            for (let i = 1; i < data.length; i++) path += ` L ${gx(data[i].year)} ${gy(data[i].val)}`;
+            const area = path + ` L ${gx(years)} ${gy(0)} L ${gx(0)} ${gy(0)} Z`;
+            let xax = `<line x1="${pL}" y1="${height - pB}" x2="${width - pR}" y2="${height - pB}" stroke="#cbd5e1" stroke-width="1.5"/>`;
+            [0, Math.floor(years / 2), years].forEach(y => {
+                if (y <= years && data[y]) {
+                    xax += `<text x="${gx(y)}" y="${height - pB + 16}" font-size="11" fill="#64748b" text-anchor="middle">${y}년</text>`;
+                    xax += `<circle cx="${gx(y)}" cy="${gy(data[y].val)}" r="4" fill="#3b82f6"/>`;
+                }
+            });
+            const lp = data[data.length - 1];
+            const lbl = `<g><rect x="${gx(lp.year) - 92}" y="${gy(lp.val) - 24}" width="92" height="18" rx="4" fill="#1e3a8a"/><text x="${gx(lp.year) - 46}" y="${gy(lp.val) - 12}" fill="white" font-size="10" font-weight="bold" text-anchor="middle">${_goalKrwShort(lp.val)}</text></g>`;
+            svg.innerHTML = `${grid}<path d="${area}" fill="#3b82f6" opacity="0.12"/><path d="${path}" fill="none" stroke="#3b82f6" stroke-width="2.5"/>${xax}${lbl}`;
+        }
+
+        // 벤츠 마크 3분할 SVG (viewBox 300x220)
+        function _goalDrawBenz(portionValue) {
+            const svg = document.getElementById('g_benzChart');
+            if (!svg) return;
+            const cx = 150, cy = 105, r = 80;
+            const val = _goalKrwShort(portionValue);
+            const rad = d => d * Math.PI / 180;
+            const pt = (deg) => [cx + r * Math.cos(rad(deg)), cy + r * Math.sin(rad(deg))];
+            const [xT, yT] = pt(-90), [xL, yL] = pt(150), [xR, yR] = pt(30);
+            svg.innerHTML = `
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#64748b" stroke-width="3"/>
+                <circle cx="${cx}" cy="${cy}" r="${r - 4}" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+                <line x1="${cx}" y1="${cy}" x2="${xT}" y2="${yT}" stroke="#64748b" stroke-width="2.5"/>
+                <line x1="${cx}" y1="${cy}" x2="${xL}" y2="${yL}" stroke="#64748b" stroke-width="2.5"/>
+                <line x1="${cx}" y1="${cy}" x2="${xR}" y2="${yR}" stroke="#64748b" stroke-width="2.5"/>
+                <circle cx="${cx}" cy="${cy}" r="5" fill="#1e3a8a"/>
+                <text x="${cx - 44}" y="${cy - 28}" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">부동산</text>
+                <text x="${cx - 44}" y="${cy - 13}" font-size="10" fill="#0f766e" text-anchor="middle">${val}</text>
+                <text x="${cx + 44}" y="${cy - 28}" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">현금·금</text>
+                <text x="${cx + 44}" y="${cy - 13}" font-size="10" fill="#0f766e" text-anchor="middle">${val}</text>
+                <text x="${cx}" y="${cy + 50}" font-size="12" font-weight="bold" fill="#1e3a8a" text-anchor="middle">금융투자</text>
+                <text x="${cx}" y="${cy + 66}" font-size="11" font-weight="bold" fill="#16a34a" text-anchor="middle">${val}</text>
+            `;
+        }
+
+        // 기존 입력(목표생활비·은퇴나이·현재나이·순자산·부동산비중) 자동 연동 산출
+        function calcGoalRoadmap(targetIncMan, retAge, curAge, netAssetWon, reRate) {
+            const infl = parseFloat(document.getElementById('v_goalInfl').value) || 0;
+            const postRet = parseFloat(document.getElementById('v_goalPostRet').value) || 0.1;
+            const invRet = parseFloat(document.getElementById('v_goalInvRet').value) || 0.1;
+            const years = Math.max(1, (retAge || 0) - (curAge || 0));
+            const curExpWon = (targetIncMan || 0) * 10000;
+
+            const futExp = curExpWon * Math.pow(1 + infl / 100, years);
+            const annual = futExp * 12;
+            const targetCapital = postRet > 0 ? annual / (postRet / 100) : 0;
+            const shortfall = Math.max(0, targetCapital - (netAssetWon || 0));
+
+            // 적립 미래가치(FV) 역산: 월 저축액 = (P·r)/((1+r)^n − 1)
+            const mRate = (invRet / 100) / 12;
+            const nMonths = years * 12;
+            const calcMonthly = (P) => P <= 0 ? 0 : (mRate > 0 ? (P * mRate) / (Math.pow(1 + mRate, nMonths) - 1) : P / nMonths);
+            const monthlyShort = calcMonthly(shortfall);
+            const benzPortion = targetCapital / 3;
+            const monthlyBenz = calcMonthly(benzPortion);
+
+            const setT = (id, v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+            setT('g_curExp', Math.round(targetIncMan || 0).toLocaleString() + '만원');
+            setT('g_years', years + '년');
+            setT('g_netAsset', formatKrwMixed(netAssetWon || 0));
+            setT('g_futExp', formatKrwMixed(Math.round(futExp)));
+            setT('g_annual', formatKrwMixed(Math.round(annual)));
+            setT('g_target', formatKrwMixed(Math.round(targetCapital)));
+            setT('g_short', shortfall > 0 ? formatKrwMixed(Math.round(shortfall)) : '목표 달성 (부족분 없음)');
+            setT('g_monthlyShort', monthlyShort > 0 ? formatKrwMixed(Math.round(monthlyShort)) + ' / 월' : '추가 저축 불필요');
+            setT('g_monthlyBenz', formatKrwMixed(Math.round(monthlyBenz)) + ' / 월');
+
+            const cmp = document.getElementById('g_benzCmp');
+            if (cmp) {
+                const msg = reRate > 50 ? '부동산 편중이 큽니다 — 금융자산 비중 확대를 검토하세요.'
+                          : (reRate < 20 ? '부동산 비중이 낮습니다 — 안정 자산 보완을 검토하세요.'
+                          : '비교적 균형 잡힌 배분입니다.');
+                cmp.innerHTML = `현재 부동산 비중 <strong>${(reRate || 0).toFixed(1)}%</strong> vs 벤츠마크 이상 배분 <strong>33.3%</strong>. ${msg}`;
+            }
+
+            _goalDrawInfl(curExpWon, years, infl);
+            _goalDrawBenz(benzPortion);
+
+            // 종합보고서(9단계) 의견서에 적립 액션플랜 1문단 추가
+            const expEl = document.getElementById('r_textExpert');
+            if (expEl) {
+                expEl.innerHTML += `<p><strong>📈 [은퇴 목표자금 & 적립 플랜]</strong> 물가 ${infl}% 반영 시 은퇴시점 목표자산은 <strong>${formatKrwMixed(Math.round(targetCapital))}</strong>(원금보존형 보수 기준), 현재 순자산 대비 부족분은 <strong>${shortfall > 0 ? formatKrwMixed(Math.round(shortfall)) : '없음'}</strong>입니다. ${shortfall > 0 ? `기대수익률 ${invRet}% 기준 ${years}년간 매월 <strong>${formatKrwMixed(Math.round(monthlyShort))}</strong>을 저축하면 목표 도달이 가능합니다. ` : ''}주택연금·연금·재취업(6단계 솔루션) 활용 시 실제 필요액은 더 작아질 수 있습니다.</p>`;
+            }
         }
 
         function showStep(stepNumber) {
