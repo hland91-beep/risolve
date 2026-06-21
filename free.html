@@ -106,10 +106,10 @@
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(2)">2. 은퇴 시기 & 연금 시작 나이</li>
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(3)">3. 월 수입·지출 분석</li>
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(4)">4. 공적·사적연금 세부 분석</li>
-                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(5)">5. 절세 계좌 & ISA 시뮬레이션</li>
-                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(6)">6. 솔루션 효과 비교</li>
-                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(7)">7. 상속·증여 절세 시뮬레이션</li>
-                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(8)">8. 은퇴 목표자금 & 저축 로드맵</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(5)">5. 은퇴 목표자금 & 저축 로드맵</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(6)">6. 절세 계좌 & ISA 시뮬레이션</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(7)">7. 솔루션 효과 비교</li>
+                <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(8)">8. 상속·증여 절세 시뮬레이션</li>
                 <li class="nav-item px-6 py-4.5 flex items-center" onclick="showStep(9)">9. 종합 진단 보고서</li>
             </ul>
         </nav>
@@ -385,6 +385,11 @@
                             <label class="block text-xs font-black text-slate-700 mb-1.5">개인연금 월 수령액 (만원/월)</label>
                             <input type="number" id="v_privAmt" value="50" class="input-box text-xl text-emerald-700" oninput="calcAll()">
                         </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <label class="block text-xs font-black text-slate-700 mb-1.5">개인연금 수령 종료 나이 (세)</label>
+                            <input type="number" id="v_privEndAge" value="80" class="input-box text-xl text-emerald-700" oninput="calcAll()">
+                            <p id="o_privPeriod" class="text-[10px] text-slate-400 font-medium mt-1.5">※ 수령 기간: -</p>
+                        </div>
                     </div>
 
                     <!-- 요청사항 2: 우측 상단 현금 과부족(GAP) 진단 창을 이원화(Phase 1 가교 근로기 vs Phase 2 순수 연금기)하여 시뮬레이션 판독 표시 -->
@@ -426,6 +431,30 @@
                             <div class="flex justify-between text-[10px] text-slate-400 font-bold">
                                 <span>목표 생활비: <span id="o_targInc" class="text-white">0만</span></span>
                                 <span>생활비 충당률: <span id="o_irrRate_phase2" class="text-rose-300">0%</span></span>
+                            </div>
+                        </div>
+
+                        <!-- 수입·지출 세부 내역 -->
+                        <div class="mt-3 pt-3 border-t border-slate-700">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">📋 수입·지출 세부 내역</p>
+                            <div class="grid grid-cols-2 gap-3 text-[10px] font-bold">
+                                <div class="space-y-1.5">
+                                    <p class="text-indigo-400 font-black border-b border-slate-700 pb-1 mb-1">재취업 기간</p>
+                                    <div class="flex justify-between"><span class="text-slate-500">재취업 소득</span><span id="o_d_exSal" class="text-indigo-300">-</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-500">공적연금</span><span id="o_d_npsP1" class="text-emerald-300">-</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-500">개인연금</span><span id="o_d_privP1" class="text-emerald-300">-</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-500">기초연금</span><span id="o_d_basicP1" class="text-emerald-300">-</span></div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <p class="text-rose-400 font-black border-b border-slate-700 pb-1 mb-1">완전 은퇴 후</p>
+                                    <div class="flex justify-between"><span class="text-slate-500">공적연금</span><span id="o_d_npsP2" class="text-emerald-300">-</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-500">개인연금</span><span id="o_d_privP2" class="text-emerald-300">-</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-500">기초연금</span><span id="o_d_basicP2" class="text-emerald-300">-</span></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-2 pt-2 border-t border-slate-700 text-[10px] font-bold">
+                                <span class="text-rose-400">목표 생활비</span>
+                                <span id="o_d_target" class="text-rose-300">-</span>
                             </div>
                         </div>
                     </div>
@@ -554,14 +583,14 @@
 
                 <div class="flex justify-between pt-2 print-hide">
                     <button onclick="showStep(3)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
-                    <button onclick="showStep(5)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 5단계 절세 구좌 솔루션 ➔</button>
+                    <button onclick="showStep(5)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 5단계 목표자금 & 저축 로드맵 ➔</button>
                 </div>
             </section>
 
-            <!-- Step 5: 절세계좌 & ISA 시뮬레이션 -->
-            <section id="step5" class="step-content card-premium space-y-6">
+            <!-- Step 6: 절세계좌 & ISA 시뮬레이션 -->
+            <section id="step6" class="step-content card-premium space-y-6">
                 <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
-                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">5</span>
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">6</span>
                     <h2 class="text-2xl font-black text-slate-800">절세 계좌 및 세액공제 시뮬레이션</h2>
                 </div>
                 
@@ -632,16 +661,16 @@
                 </div>
 
                 <div class="flex justify-between pt-2 print-hide">
-                    <button onclick="showStep(4)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
-                    <button onclick="showStep(6)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 6단계 효과 검증 ➔</button>
+                    <button onclick="showStep(5)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(7)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 7단계 효과 검증 ➔</button>
                 </div>
             </section>
 
-            <!-- Step 6: 솔루션 개선 효과 비교 -->
-            <section id="step6" class="step-content card-premium space-y-6">
+            <!-- Step 7: 솔루션 개선 효과 비교 -->
+            <section id="step7" class="step-content card-premium space-y-6">
                 <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
-                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">6</span>
-                    <h2 class="text-2xl font-black text-slate-800">6. 솔루션 개선 효과 비교</h2>
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">7</span>
+                    <h2 class="text-2xl font-black text-slate-800">7. 솔루션 개선 효과 비교</h2>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -687,15 +716,15 @@
                 </div>
 
                 <div class="flex justify-between pt-2 print-hide">
-                    <button onclick="showStep(5)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
-                    <button onclick="showStep(7)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 7단계 세무 연동 ➔</button>
+                    <button onclick="showStep(6)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(8)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 8단계 상속·증여 ➔</button>
                 </div>
             </section>
 
-            <!-- Step 7: 상속/증여 세무 통합 솔루션 -->
-            <section id="step7" class="step-content card-premium space-y-6">
+            <!-- Step 8: 상속/증여 세무 통합 솔루션 -->
+            <section id="step8" class="step-content card-premium space-y-6">
                 <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
-                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">7</span>
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">8</span>
                     <h2 class="text-2xl font-black text-slate-800">상속세 예상 및 증여 절세 시뮬레이션</h2>
                 </div>
                 
@@ -744,20 +773,20 @@
                 </div>
 
                 <div class="flex justify-between pt-2 print-hide">
-                    <button onclick="showStep(6)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
-                    <button onclick="showStep(8)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 8단계 목표자금 & 저축 로드맵 ➔</button>
+                    <button onclick="showStep(7)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(9)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 9단계 종합 보고서 ➔</button>
                 </div>
             </section>
 
-            <!-- Step 8: 은퇴 목표자금 & 저축 로드맵 (적립 설계, 기존 입력 자동 연동) -->
-            <section id="step8" class="step-content card-premium space-y-6">
+            <!-- Step 5: 은퇴 목표자금 & 저축 로드맵 (적립 설계, 기존 입력 자동 연동) -->
+            <section id="step5" class="step-content card-premium space-y-6">
                 <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
-                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">8</span>
+                    <span class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-md">5</span>
                     <h2 class="text-2xl font-black text-slate-800">은퇴 목표자금 & 저축 로드맵</h2>
                 </div>
 
                 <div class="p-4 bg-blue-50/60 border-2 border-blue-200 rounded-2xl text-xs font-bold text-blue-800 leading-relaxed">
-                    💡 1~3단계에서 입력한 <strong>목표 월생활비 · 은퇴 나이 · 현재 나이 · 순자산</strong>을 자동으로 끌어와 계산합니다. 아래 가정값(물가상승률·수익률)만 조정하세요.
+                    💡 1~4단계에서 입력한 <strong>목표 월생활비 · 은퇴 나이 · 현재 나이 · 순자산</strong>을 자동으로 끌어와 계산합니다. 아래 가정값(물가상승률·수익률)만 조정하세요.
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -834,8 +863,8 @@
                 </div>
 
                 <div class="flex justify-between pt-2 print-hide">
-                    <button onclick="showStep(7)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
-                    <button onclick="showStep(9)" class="bg-slate-900 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-slate-800 shadow-lg">종합 진단 최종 보고서 출력 ➔</button>
+                    <button onclick="showStep(4)" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-300">⬅ 이전</button>
+                    <button onclick="showStep(6)" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-black hover:bg-blue-700 shadow-lg">다음: 6단계 절세 계좌 솔루션 ➔</button>
                 </div>
             </section>
 
@@ -956,10 +985,10 @@
             '2. 은퇴 시기 & 연금 시작 나이',
             '3. 월 수입·지출 분석',
             '4. 공적·사적연금 세부 분석',
-            '5. 절세 계좌 & ISA 시뮬레이션',
-            '6. 솔루션 효과 비교',
-            '7. 상속·증여 절세 시뮬레이션',
-            '8. 은퇴 목표자금 & 저축 로드맵',
+            '5. 은퇴 목표자금 & 저축 로드맵',
+            '6. 절세 계좌 & ISA 시뮬레이션',
+            '7. 솔루션 효과 비교',
+            '8. 상속·증여 절세 시뮬레이션',
             '9. 종합 진단 보고서'
         ];
         var _curStep = 1;
@@ -1088,7 +1117,8 @@
                 'v_extraStart': 60, 'v_extraEnd': 65, 'v_extraSalary': 150,
                 'v_tax_rate': '0.165', 'v_taxSave': 600, 'v_taxIrp': 300, 'v_isaRoll': 3000,
                 'v_isaType': '200', 'v_isaProfit': 500, 'v_taxBasic': 50, 'v_taxSpouse': 0, 'v_giftAmt': 20, 'v_giftTarget': '5',
-                'v_goalInfl': 2.5, 'v_goalPostRet': 4.5, 'v_goalInvRet': 6.0
+                'v_goalInfl': 2.5, 'v_goalPostRet': 4.5, 'v_goalInvRet': 6.0,
+                'v_privEndAge': 80
             };
 
             Object.keys(defaults).forEach(id => {
@@ -1409,6 +1439,7 @@
             /* ================= 현금흐름 과부족 GAP 이원화 Phase 1 / Phase 2 추적 매핑 ================= */
             const baseTargetInc = parseFloat(document.getElementById('v_targetInc').value) || 0;
             const privAmt = parseFloat(document.getElementById('v_privAmt').value) || 0;
+            const privEndAge = parseFloat(document.getElementById('v_privEndAge').value) || 80;
             const yearsToRetire = Math.max(0, baseRetAge - age);
             // C2: 인플레이션 비대칭 제거 — 현재가치 기준 일관 비교
             const targetInc = baseTargetInc;
@@ -1428,8 +1459,10 @@
             const phase2StartAge = exEnd;
             const _npsP1 = (phase1MidAge >= npsAge) ? adjustedNpsAmt : 0;
             const _npsP2 = (phase2StartAge >= npsAge) ? adjustedNpsAmt : 0;
-            const _privP1 = (phase1MidAge >= privAge) ? privAmt : 0;
-            const _privP2 = (phase2StartAge >= privAge) ? privAmt : 0;
+            const _privP1 = (phase1MidAge >= privAge && phase1MidAge < privEndAge) ? privAmt : 0;
+            const _privP2 = (phase2StartAge >= privAge && phase2StartAge < privEndAge) ? privAmt : 0;
+            document.getElementById('o_privPeriod').innerText = `※ ${Math.round(privAge)}세 ~ ${Math.round(privEndAge)}세 (${Math.round(privEndAge - privAge)}년 수령)`;
+
             const _basicP1 = (phase1MidAge >= 65) ? finalBasicPension : 0;
             const _basicP2 = (phase2StartAge >= 65) ? finalBasicPension : 0;
 
@@ -1485,6 +1518,18 @@
                 document.getElementById('o_gapAmt_phase2').innerText = `월 +${Math.round(gapPhase2).toLocaleString()}만 원 여유`;
                 document.getElementById('o_gapAmt_phase2').className = "text-xl font-black text-blue-400";
             }
+
+            // 우측 패널 세부 수입·지출 내역 업데이트
+            const _dfmt = function(v){ return v > 0 ? Math.round(v) + '만' : '-'; };
+            document.getElementById('o_d_exSal').innerText   = _dfmt(exSal);
+            document.getElementById('o_d_npsP1').innerText   = _dfmt(_npsP1_net);
+            document.getElementById('o_d_privP1').innerText  = _dfmt(_privP1);
+            document.getElementById('o_d_basicP1').innerText = _dfmt(_basicP1);
+            document.getElementById('o_d_npsP2').innerText   = _dfmt(_npsP2);
+            document.getElementById('o_d_privP2').innerText  = _dfmt(_privP2);
+            document.getElementById('o_d_basicP2').innerText = _dfmt(_basicP2);
+            document.getElementById('o_d_target').innerText  = Math.round(targetInc) + '만';
+            document.getElementById('o_targInc').innerText   = Math.round(targetInc) + '만';
 
             // 전통 자산 유동화
             const nonResAsset = resInv + resBld + resLand;
@@ -1841,10 +1886,9 @@
                 if (index + 1 === stepNumber) item.classList.add('active');
                 else item.classList.remove('active');
             });
-            document.querySelectorAll('.step-content').forEach((content, index) => {
-                if (index + 1 === stepNumber) content.classList.add('active');
-                else content.classList.remove('active');
-            });
+            document.querySelectorAll('.step-content').forEach(function(c){ c.classList.remove('active'); });
+            var _st = document.getElementById('step' + stepNumber);
+            if (_st) _st.classList.add('active');
             calcAll();
             window.scrollTo({top: 0, behavior: 'smooth'});
             _updateMobileStepUI(stepNumber);
