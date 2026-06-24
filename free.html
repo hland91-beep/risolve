@@ -443,17 +443,24 @@
                                     <div class="flex justify-between"><span class="text-slate-500">공적연금</span><span id="o_d_npsP1" class="text-emerald-300">-</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500">개인연금</span><span id="o_d_privP1" class="text-emerald-300">-</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500">기초연금</span><span id="o_d_basicP1" class="text-emerald-300">-</span></div>
+                                    <div class="flex justify-between border-t border-slate-700 pt-1 mt-1"><span class="text-indigo-400 font-black">월 수입 합계</span><span id="o_d_sumP1" class="text-indigo-200 font-black">-</span></div>
                                 </div>
                                 <div class="space-y-1.5">
                                     <p class="text-rose-400 font-black border-b border-slate-700 pb-1 mb-1">완전 은퇴 후</p>
                                     <div class="flex justify-between"><span class="text-slate-500">공적연금</span><span id="o_d_npsP2" class="text-emerald-300">-</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500">개인연금</span><span id="o_d_privP2" class="text-emerald-300">-</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500">기초연금</span><span id="o_d_basicP2" class="text-emerald-300">-</span></div>
+                                    <div class="flex justify-between border-t border-slate-700 pt-1 mt-1"><span class="text-rose-400 font-black">월 수입 합계</span><span id="o_d_sumP2" class="text-rose-200 font-black">-</span></div>
                                 </div>
                             </div>
                             <div class="flex justify-between mt-2 pt-2 border-t border-slate-700 text-[10px] font-bold">
-                                <span class="text-rose-400">목표 생활비</span>
+                                <span class="text-rose-400">목표 생활비 (월 지출)</span>
                                 <span id="o_d_target" class="text-rose-300">-</span>
+                            </div>
+                            <!-- 월 수입·지출 분석 해설 -->
+                            <div class="mt-3 pt-3 border-t border-slate-700">
+                                <p class="text-[10px] font-black text-amber-400 uppercase tracking-wider mb-1.5">📈 월 수입·지출 분석</p>
+                                <p id="o_d_analysis" class="text-[10px] text-slate-400 font-medium leading-relaxed">-</p>
                             </div>
                         </div>
                     </div>
@@ -682,7 +689,16 @@
 
                     <div class="bg-blue-50/40 p-5 rounded-xl border-2 border-blue-400 font-bold text-xs space-y-3 shadow-md">
                         <h4 class="text-center font-black text-blue-700 text-sm border-b pb-1">개선 후 상태 (솔루션 적용 후)</h4>
-                        <div class="flex justify-between"><span>모든 방법 적용 후 총 월 수입:</span><span id="o_afInc" class="text-blue-800">0 만원</span></div>
+                        <div class="flex justify-between"><span>모든 방법 적용 후 총 월 수입:</span><span id="o_afInc" class="text-blue-800 font-black">0 만원</span></div>
+                        <!-- 총 월 수입 세부 구성 -->
+                        <div class="bg-white/80 rounded-lg border border-blue-100 p-3 space-y-1 text-[11px] font-semibold text-slate-500">
+                            <p class="text-[10px] font-black text-blue-600 uppercase tracking-wider mb-1">└ 월 수입 세부 구성</p>
+                            <div class="flex justify-between"><span>공적·사적연금 (국민·개인·기초)</span><span id="o_af_pension" class="text-emerald-600 font-bold">0 만원</span></div>
+                            <div class="flex justify-between"><span>재취업 근로소득</span><span id="o_af_exSal" class="text-indigo-600 font-bold">0 만원</span></div>
+                            <div class="flex justify-between"><span>자산 유동화 (투자부동산 임대수익)</span><span id="o_af_solA" class="text-emerald-600 font-bold">0 만원</span></div>
+                            <div class="flex justify-between"><span>주택연금 (거주주택 담보)</span><span id="o_af_solB" class="text-blue-600 font-bold">0 만원</span></div>
+                            <div class="flex justify-between border-t border-blue-100 pt-1 mt-1"><span class="text-blue-700 font-black">합계</span><span id="o_af_sum" class="text-blue-800 font-black">0 만원</span></div>
+                        </div>
                         <div class="flex justify-between text-blue-700"><span>최종 생활비 충당 여부:</span><span id="o_afGap" class="font-black">생활비 충당 가능</span></div>
                         <div class="flex justify-between text-indigo-700"><span>연간 절세 효과 합계:</span><span id="o_afTaxRet" class="font-black">0 만원</span></div>
                     </div>
@@ -849,6 +865,13 @@
                             <div class="flex justify-between"><span class="text-slate-600">목표자산 대비 부족분</span><span id="g_short" class="text-rose-600 font-black text-base">0원</span></div>
                             <div class="flex justify-between border-t pt-2"><span class="text-slate-700">부족분 채우는 월 저축액</span><span id="g_monthlyShort" class="text-emerald-700 font-black text-base">0원</span></div>
                             <div class="flex justify-between text-[11px] text-slate-500"><span>금융바구니(1/3) 기준 월 저축액</span><span id="g_monthlyBenz" class="font-black">0원</span></div>
+                        </div>
+
+                        <!-- 절세계좌 우선 적립 추천 포트폴리오 -->
+                        <div class="bg-white rounded-xl border border-emerald-200 p-4 space-y-2">
+                            <div class="text-[11px] font-black text-emerald-800 border-b border-emerald-100 pb-1.5 mb-1 flex items-center gap-1">🪜 금융바구니 월 저축액 추천 배분 (세액공제 한도 우선)</div>
+                            <div id="g_benzAlloc" class="space-y-1.5 text-[11px] font-bold text-slate-600"></div>
+                            <p class="text-[10px] text-slate-400 font-medium leading-normal pt-1 border-t border-slate-100">※ ①연금저축(연 600만)·②IRP 추가(연금계좌 합산 900만)의 <strong>세액공제 한도</strong>를 먼저 채우고, 그 다음 ③ISA(연 2,000만, 만기 시 연금계좌 이전 추가공제)·④비과세 저축 순으로 적립하는 절세 우선 배분안입니다.</p>
                         </div>
 
                         <div class="bg-white rounded-xl border p-2">
@@ -1565,6 +1588,27 @@
             _setTxt('o_d_target',  Math.round(targetInc) + '만');
             _setTxt('o_targInc',   Math.round(targetInc) + '만');
 
+            // 수입 합계(Phase별) 표시
+            _setTxt('o_d_sumP1', Math.round(incPhase1).toLocaleString() + '만');
+            _setTxt('o_d_sumP2', Math.round(incPhase2).toLocaleString() + '만');
+
+            // 월 수입·지출 분석 해설 자동 생성
+            (function(){
+                const el = document.getElementById('o_d_analysis');
+                if (!el) return;
+                const g1 = incPhase1 - targetInc;
+                const g2 = incPhase2 - targetInc;
+                const f = (v) => Math.round(Math.abs(v)).toLocaleString();
+                let msg = `목표 월 지출 <strong class="text-white">${Math.round(targetInc).toLocaleString()}만 원</strong> 대비, `;
+                msg += g1 >= 0
+                    ? `재취업 기간(${exStart}~${exEnd}세)에는 근로·연금 합산 <strong class="text-indigo-300">${Math.round(incPhase1).toLocaleString()}만 원</strong>으로 월 <strong class="text-emerald-300">+${f(g1)}만 원</strong> 여유가 있으나, `
+                    : `재취업 기간(${exStart}~${exEnd}세)에도 합산 수입 <strong class="text-indigo-300">${Math.round(incPhase1).toLocaleString()}만 원</strong>으로 월 <strong class="text-rose-300">${f(g1)}만 원</strong> 부족하며, `;
+                msg += g2 >= 0
+                    ? `완전 은퇴 후에는 연금만으로 <strong class="text-rose-300">${Math.round(incPhase2).toLocaleString()}만 원</strong>이 확보되어 월 <strong class="text-emerald-300">+${f(g2)}만 원</strong> 충당됩니다.`
+                    : `완전 은퇴 후(${exEnd}세~)에는 연금 수입이 <strong class="text-rose-300">${Math.round(incPhase2).toLocaleString()}만 원</strong>으로 줄어 월 <strong class="text-rose-300">${f(g2)}만 원</strong>이 부족합니다. 아래 ‘소득 부족분 해결 방법’(재취업·주택연금·자산 유동화)으로 공백을 메우세요.`;
+                el.innerHTML = msg;
+            })();
+
             // 전통 자산 유동화
             const nonResAsset = resInv + resBld + resLand;
             const solA_Inc = (nonResAsset * 1000 * (returnRate / 100)) / 12;
@@ -1674,6 +1718,14 @@
             
             const afIncTotal = basePensionIncomeTotal + solA_Inc + solB_Inc + exSal;
             document.getElementById('o_afInc').innerText = Math.round(afIncTotal).toLocaleString() + ' 만원';
+
+            // 개선 후 총 월 수입 세부 구성 표기
+            const _afFmt = (v) => Math.round(v).toLocaleString() + ' 만원';
+            document.getElementById('o_af_pension').innerText = _afFmt(basePensionIncomeTotal);
+            document.getElementById('o_af_exSal').innerText   = _afFmt(exSal);
+            document.getElementById('o_af_solA').innerText    = _afFmt(solA_Inc);
+            document.getElementById('o_af_solB').innerText    = _afFmt(solB_Inc);
+            document.getElementById('o_af_sum').innerText     = _afFmt(afIncTotal);
             document.getElementById('o_afGap').innerText = (afIncTotal - targetInc) >= 0 ? "모든 방법 적용 시 생활비 충당 가능" : Math.round(Math.abs(afIncTotal - targetInc)) + "만 원 부족 (최소화됨)";
             
             const totalTaxAndSave = totalTaxReturn + saveAmt;
@@ -1884,6 +1936,31 @@
             setT('g_short', shortfall > 0 ? formatKrwMixed(Math.round(shortfall)) : '목표 달성 (부족분 없음)');
             setT('g_monthlyShort', monthlyShort > 0 ? formatKrwMixed(Math.round(monthlyShort)) + ' / 월' : '추가 저축 불필요');
             setT('g_monthlyBenz', formatKrwMixed(Math.round(monthlyBenz)) + ' / 월');
+
+            // 절세계좌 우선 적립 추천 배분 (세액공제 한도 → 비과세/ISA 순)
+            (function(){
+                const box = document.getElementById('g_benzAlloc');
+                if (!box) return;
+                let remain = Math.max(0, Math.round(monthlyBenz / 10000)); // 원→만원/월
+                // 한도(월 환산, 만원): 연금저축 600만/12=50, IRP 추가 300만/12=25, ISA 2000만/12≈167
+                const tiers = [
+                    { name: '① 연금저축',  cap: 50,  note: '세액공제 한도 연 600만', cls: 'text-emerald-700' },
+                    { name: '② IRP 추가',  cap: 25,  note: '연금계좌 합산 900만', cls: 'text-emerald-700' },
+                    { name: '③ ISA',       cap: 167, note: '연 2,000만·만기 연금이전', cls: 'text-blue-700' },
+                    { name: '④ 비과세 저축', cap: Infinity, note: '잔여분 적립', cls: 'text-slate-600' },
+                ];
+                let html = '';
+                tiers.forEach(t => {
+                    const alloc = Math.min(remain, t.cap);
+                    remain -= alloc;
+                    const capStr = t.cap === Infinity ? '한도 외' : `한도 ${t.cap}만`;
+                    html += `<div class="flex justify-between items-center">
+                        <span class="${t.cls}">${t.name} <span class="text-[10px] text-slate-400 font-medium">(${t.note})</span></span>
+                        <span class="${alloc > 0 ? 'font-black ' + t.cls : 'text-slate-300'}">${alloc > 0 ? alloc.toLocaleString() + '만/월' : '-'}<span class="text-[10px] text-slate-400 font-medium ml-1">/ ${capStr}</span></span>
+                    </div>`;
+                });
+                box.innerHTML = html;
+            })();
 
             const cmp = document.getElementById('g_benzCmp');
             if (cmp) {
