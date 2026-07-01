@@ -15,15 +15,29 @@
     .nl-slider { -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:#dfe1e6; outline:none; }
   </style>
 <style>
+    /* 한국어 단어 단위 줄바꿈 — 좁은 셀에서 한 글자씩 세로로 깨지는 것 방지 */
+    #nlAppRoot, #printReport { word-break: keep-all; overflow-wrap: break-word; }
+
     @media (max-width: 900px) {
       aside#nlSidebar { position: fixed; left: -300px; top: 0; bottom: 0; z-index: 200; transition: left .25s ease; box-shadow: 2px 0 18px rgba(0,0,0,.25); }
       aside#nlSidebar.nl-open { left: 0; }
       #nlSidebarDim { display: none; position: fixed; inset: 0; background: rgba(11,31,51,.45); z-index: 190; }
       #nlSidebarDim.nl-open { display: block; }
       #nlHamburger { display: flex !important; }
-      main { padding: 64px 16px 40px !important; }
+      main { padding: calc(64px + env(safe-area-inset-top, 0px)) 16px 40px !important; }
     }
-    #nlHamburger { display: none; position: fixed; top: 14px; left: 14px; z-index: 210; width: 42px; height: 42px; border-radius: 9px; background: #0b1f33; border: 1px solid #21426a; color: #c9a24b; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+    #nlHamburger { display: none; position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: 14px; z-index: 210; width: 42px; height: 42px; border-radius: 9px; background: #0b1f33; border: 1px solid #21426a; color: #c9a24b; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+
+    /* ===== 스마트폰 최적화: 폰 폭에서는 모든 다단 그리드를 1열로 ===== */
+    @media (max-width: 640px) {
+      main { padding: calc(58px + env(safe-area-inset-top, 0px)) 12px 36px !important; }
+      main section { padding: 22px 16px !important; }
+      main div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+      main [style*="grid-column:span 3"], main [style*="grid-column: span 3"] { grid-column: auto !important; }
+      main div[style*="display:flex"][style*="justify-content:space-between"] { flex-wrap: wrap; }
+      main h1 { font-size: 22px !important; }
+      main h2 { font-size: 19px !important; }
+    }
 
     @media print {
       @page { margin: 12mm 12mm 14mm; }
