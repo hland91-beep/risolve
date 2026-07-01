@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Next Life Advisory - 통합은퇴설계솔루션 (전문가용)</title>
+<script src="js/html2canvas.min.js"></script>
+<script src="js/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
   <style>
     @keyframes nlFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -1102,6 +1104,69 @@ function drawDrawdownChart(data, lifeExp, depletionAge) {
 
 const Calc = { A_VALUE_2026, GOV_ACCRUAL_RATE, NPS_WORK_REDUCE_THRESHOLD, GOV_WORK_THRESHOLD, GOV_FULL_SUSPEND_INCOME, formatKrwMixed, fmtWon100, goalKrwShort, calcNpsWorkReduction, calcGovWorkSuspension, progressiveTaxOck, NETWORTH_BENCH, benchForAge, ASSUMPTIONS, drawAssetDonut, drawInflChart, drawBenzChart, drawDrawdownChart };
 
+function detectEnv() {
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const isKakao = /KAKAOTALK/i.test(ua);
+  const isIPadOS = !isIOS && navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua);
+  return { isKakao, isIOS: isIOS || isIPadOS, isAndroid, isMobile: isIOS || isIPadOS || isAndroid };
+}
+
+async function smartDownload(blob, filename) {
+  const env = detectEnv();
+
+  // Capacitor 네이티브 앱(Android/iOS): Filesystem 캐시에 저장 후 Share 시트로 오픈
+  const _cap = window.Capacitor;
+  if (_cap && _cap.isNativePlatform && _cap.isNativePlatform()) {
+    try {
+      const { Filesystem, Share } = _cap.Plugins || {};
+      if (Filesystem && Share) {
+        const base64 = await new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onload = () => {
+            const r = fr.result;
+            if (!r || !r.includes(',')) { rej(new Error('base64 변환 실패')); return; }
+            res(r.split(',')[1]);
+          };
+          fr.onerror = () => rej(new Error('FileReader 오류'));
+          fr.readAsDataURL(blob);
+        });
+        const saved = await Filesystem.writeFile({ path: filename, data: base64, directory: 'CACHE' });
+        if (!saved || !saved.uri) throw new Error('파일 저장 URI 없음');
+        await Share.share({ title: filename, url: saved.uri, dialogTitle: 'PDF 저장' });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // 사용자가 공유 취소
+      // 플러그인 없거나 실패 → 아래 폴백으로 계속
+    }
+  }
+
+  // 모바일 브라우저: Web Share API (Chrome/Safari)
+  if (env.isMobile && typeof navigator.share === 'function') {
+    try {
+      const file = new File([blob], filename, { type: blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      // 공유 실패 → 아래 다운로드 폴백
+    }
+  }
+
+  // 데스크톱/그 외: 일반 다운로드
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
 class NextLifeAdvisorApp {
 
   constructor() {
@@ -1358,8 +1423,46 @@ class NextLifeAdvisorApp {
       </div>
     </div>`;
     const box = document.getElementById('printReport');
-    if (box) { box.innerHTML = html; box.style.display = 'block'; }
-    setTimeout(() => { window.print(); if (box) box.style.display = 'none'; }, 150);
+    if (box) { box.innerHTML = html; }
+    const fname = `NextLife_은퇴진단보고서_${(g('r_name') || '고객').replace(/\s+/g, '')}_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.pdf`;
+    this._exportReportPdf(box, fname);
+  }
+
+  async _exportReportPdf(box, filename) {
+    if (!box || !window.jspdf || !window.html2canvas) {
+      alert('PDF 라이브러리를 불러오지 못했습니다. 앱을 다시 실행해 주세요.');
+      return;
+    }
+    const btn = document.querySelector('button[onclick*="buildPrintReportFn"]');
+    const origText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ PDF 생성 중...'; }
+    const prevStyle = box.getAttribute('style') || '';
+    box.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;display:block;padding:24px;box-sizing:border-box;z-index:-1';
+    try {
+      await new Promise(r => setTimeout(r, 60));
+      const canvas = await html2canvas(box, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: 800 });
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = 210, pageH = 297;
+      const imgW = pageW;
+      const imgH = canvas.height * imgW / canvas.width;
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      let heightLeft = imgH, position = 0;
+      pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+        heightLeft -= pageH;
+      }
+      await smartDownload(pdf.output('blob'), filename);
+    } catch (e) {
+      alert('PDF 생성 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      box.setAttribute('style', prevStyle);
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+    }
   }
 
   calcAll() {
