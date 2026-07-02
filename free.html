@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Next Life Advisory - 통합은퇴설계솔루션 (전문가용)</title>
+<script src="js/legal-constants.js"></script>
 <script src="js/html2canvas.min.js"></script>
 <script src="js/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
@@ -829,14 +830,39 @@
       </section>
 
       <!-- ============ Step 9 : 종합 진단 보고서 ============ -->
-      <section id="step9" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:40px">
-        <div style="text-align:center;margin-bottom:30px;border-bottom:3px solid #0b1f33;padding-bottom:22px">
-          <p style="color:#0b1f33;font-weight:800;letter-spacing:.15em;font-size:11px;margin:0 0 6px;text-transform:uppercase">NEXT LIFE · Executive Solution Report</p>
-          <h1 style="font-size:27px;font-weight:800;color:#101828;letter-spacing:-.01em;margin:0">은퇴 자산 종합 정밀 진단 보고서</h1>
-          <p style="color:#94a3b8;font-size:12px;font-weight:700;margin:8px 0 0">작성 기준시점: 2026년 &nbsp;|&nbsp; 전담 카운셀러: Next Life FA</p>
+      <section id="step9" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:16px;padding:48px 44px">
+        <div style="text-align:center;margin-bottom:34px;border-bottom:3px solid #0b1f33;padding-bottom:26px">
+          <p style="color:#0b1f33;font-weight:800;letter-spacing:.2em;font-size:11px;margin:0 0 8px;text-transform:uppercase">NEXT LIFE · Executive Solution Report</p>
+          <h1 style="font-size:29px;font-weight:800;color:#101828;letter-spacing:-.01em;margin:0">은퇴 자산 종합 정밀 진단 보고서</h1>
+          <p style="color:#94a3b8;font-size:12px;font-weight:700;margin:10px 0 0">작성 기준시점: 2026년 &nbsp;|&nbsp; 전담 카운셀러: Next Life FA</p>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:12px;font-weight:700;margin-bottom:22px">
+        <!-- 스냅샷 인포그래픽: 순자산·부동산비중·월수지·자산고갈 위험을 한눈에 -->
+        <div style="display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:14px;margin-bottom:30px">
+          <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:13px;padding:18px;display:flex;align-items:center;gap:14px">
+            <svg id="r_assetDonut9" viewBox="0 0 120 120" style="width:56px;height:56px;flex:0 0 auto"></svg>
+            <div style="min-width:0">
+              <span style="display:block;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.05em">순자산</span>
+              <span id="r_netAssetBig" style="display:block;font-size:18px;font-weight:900;color:#0b1f33;margin-top:4px;line-height:1.25">0원</span>
+            </div>
+          </div>
+          <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:13px;padding:18px">
+            <span style="display:block;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.05em">부동산 비중</span>
+            <span id="r_reRateBig" style="display:block;font-size:22px;font-weight:900;color:#0f766e;margin:6px 0 9px">-</span>
+            <div style="background:#e7e5dd;border-radius:5px;height:7px;overflow:hidden"><span id="r_reRateBar" style="display:block;height:100%;background:#0f766e;width:0%;border-radius:5px;transition:width .3s"></span></div>
+          </div>
+          <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:13px;padding:18px">
+            <span style="display:block;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.05em">완전 은퇴 후 월수지</span>
+            <span id="r_gapBig" style="display:block;font-size:17px;font-weight:900;color:#8a2f2f;margin-top:6px;line-height:1.3">-</span>
+          </div>
+          <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:13px;padding:18px">
+            <span style="display:block;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.05em">금융자산 지속 전망</span>
+            <span id="r_depletionBadge" style="display:block;font-size:15px;font-weight:900;margin-top:6px;line-height:1.3;color:#8a2f2f">-</span>
+          </div>
+        </div>
+
+        <div style="font-size:13px;font-weight:900;color:#0b1f33;letter-spacing:.02em;margin:0 0 12px">Ⅰ. 고객 자산·소득 현황 요약</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:12px;font-weight:700;margin-bottom:30px">
           <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:11px;padding:16px">
             <span style="color:#94a3b8;display:block;font-size:10px;border-bottom:1px solid #e2e1da;padding-bottom:7px;margin-bottom:9px;text-transform:uppercase">자산 현황 요약</span>
             <table style="width:100%;border-collapse:collapse">
@@ -859,15 +885,27 @@
           </div>
         </div>
 
-        <div style="background:#0b1f33;color:#dce3ec;padding:24px;border-radius:14px">
-          <h3 style="font-size:14px;font-weight:800;color:#c9a24b;margin:0 0 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #17304a;padding-bottom:10px">
-            <span style="width:6px;height:16px;background:#c9a24b;display:block;border-radius:3px"></span> 종합 진단 의견
-          </h3>
+        <div style="font-size:13px;font-weight:900;color:#0b1f33;letter-spacing:.02em;margin:0 0 12px">Ⅱ. 종합 진단 의견</div>
+        <div style="background:#0b1f33;color:#dce3ec;padding:26px 24px;border-radius:16px">
           <div id="r_headline"></div>
           <div id="r_textExpert" style="font-weight:400"></div>
         </div>
 
-        <div style="text-align:center;padding-top:26px">
+        <!-- Ⅲ. 즉시 실행 가능한 단기 과제 (Quick Wins) -->
+        <div style="margin-top:30px;background:#fbf9f2;border:1px solid #e7d9ad;border-radius:16px;padding:28px 26px">
+          <h3 style="font-size:16px;font-weight:900;color:#0b1f33;margin:0 0 6px;display:flex;align-items:center;gap:9px"><span style="width:7px;height:18px;background:#0f766e;border-radius:3px;display:block;flex:0 0 auto"></span>Ⅲ. 즉시 실행 가능한 단기 과제 <span style="color:#0f766e">Quick Wins</span></h3>
+          <p style="font-size:12px;color:#8a7a4a;margin:0 0 4px;font-weight:600;line-height:1.6">지금 바로 실행하면 빠르게 체감되는 재무적 이득이 있는 항목입니다. 체크박스에 표시하며 하나씩 실행해 보세요.</p>
+          <div id="r_quickWins"></div>
+        </div>
+
+        <!-- Ⅳ. 장기 검토 과제 -->
+        <div style="margin-top:18px;background:#f6f6f4;border:1px solid #dfe1e6;border-radius:16px;padding:28px 26px">
+          <h3 style="font-size:16px;font-weight:900;color:#0b1f33;margin:0 0 6px;display:flex;align-items:center;gap:9px"><span style="width:7px;height:18px;background:#8a6d1f;border-radius:3px;display:block;flex:0 0 auto"></span>Ⅳ. 장기 검토 과제 <span style="color:#8a6d1f">전문가와 함께</span></h3>
+          <p style="font-size:12px;color:#6b7280;margin:0 0 4px;font-weight:600;line-height:1.6">시간을 두고 신중하게 결정할 항목입니다. 서두르지 않으셔도 되며, 담당 컨설턴트와 단계적으로 진행하시면 됩니다.</p>
+          <div id="r_longTerm"></div>
+        </div>
+
+        <div style="text-align:center;padding-top:30px">
           <button onclick="app.buildPrintReportFn()" style="background:#0b1f33;color:#fff;padding:16px 40px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 10px rgba(11,31,51,.2)">전체 리포트 인쇄 및 PDF 저장</button>
         </div>
 
@@ -921,11 +959,13 @@
    원본 v19 계산 로직을 1:1 그대로 이식 (수치 변경 없음)
    ============================================================ */
 
-const A_VALUE_2026 = 3193511;        // 2026년 A값(전체 가입자 평균소득월액, 원)
-const GOV_ACCRUAL_RATE = 0.01736;    // 공무원연금 지급률(재직 1년당)
-const NPS_WORK_REDUCE_THRESHOLD = 509; // 노령연금 감액 기준소득월액(만원)
-const GOV_WORK_THRESHOLD = 280;        // 공무원연금 일부정지 기준(만원)
-const GOV_FULL_SUSPEND_INCOME = 913.6; // 공무원연금 전액정지 근로소득월액(만원)
+// 법령 상수는 js/legal-constants.js(LEGAL_CONSTANTS)에서 관리 — 매년 개정 시 그 파일만 수정하면 됨
+const LC = (typeof LEGAL_CONSTANTS !== 'undefined') ? LEGAL_CONSTANTS : {};
+const A_VALUE_2026 = LC.NPS_A_VALUE_2026 ?? 3193511;                    // 2026년 A값(전체 가입자 평균소득월액, 원)
+const GOV_ACCRUAL_RATE = LC.GOV_ACCRUAL_RATE ?? 0.01736;                // 공무원연금 지급률(재직 1년당)
+const NPS_WORK_REDUCE_THRESHOLD = LC.NPS_WORK_REDUCE_THRESHOLD ?? 519;  // 노령연금 감액 기준소득월액(만원)
+const GOV_WORK_THRESHOLD = LC.GOV_WORK_THRESHOLD ?? 280;                // 공무원연금 일부정지 기준(만원)
+const GOV_FULL_SUSPEND_INCOME = LC.GOV_FULL_SUSPEND_INCOME ?? 913.6;    // 공무원연금 전액정지 근로소득월액(만원)
 
 function formatKrwMixed(wonValue) {
   if (!wonValue || wonValue === 0) return "0원";
@@ -956,7 +996,7 @@ function goalKrwShort(won) {
   return (res.trim() || '0') + '원';
 }
 
-// 소득활동에 따른 노령연금 감액(국민연금, 재직자 감액) — 509만 초과분 구간별, 50% 한도
+// 소득활동에 따른 노령연금 감액(국민연금, 재직자 감액) — NPS_WORK_REDUCE_THRESHOLD(만원) 초과분 구간별, 50% 한도
 function calcNpsWorkReduction(monthlyIncomeMan, pensionMan) {
   const ex = Math.max(0, monthlyIncomeMan - NPS_WORK_REDUCE_THRESHOLD);
   if (ex <= 0 || pensionMan <= 0) return 0;
@@ -1006,13 +1046,13 @@ function benchForAge(a) {
   return NETWORTH_BENCH[NETWORTH_BENCH.length - 1];
 }
 
-// 보고서 '주요 가정 및 근거' — [항목, 적용기준, 출처/시점]
+// 보고서 '주요 가정 및 근거' — [항목, 적용기준, 출처/시점] · 수치는 모두 LEGAL_CONSTANTS 참조(하드코딩 금지)
 const ASSUMPTIONS = [
-  ['건강보험 피부양자 소득기준', '연 2,000만 원 초과 시 자격 상실', '국민건강보험법 시행규칙 (2026 기준)'],
-  ['노령연금 재취업 감액 기준', '월 509만 원 초과분 감액(수급 후 5년)', '국민연금법 (2026.6 개정)'],
-  ['공무원연금 정지 기준', '평균연금월액(월 280만 원) 초과 시', '공무원연금법 소득심사'],
-  ['사적연금 분리과세 한도', '연 1,500만 원(초과 시 16.5%)', '소득세법 §20-3'],
-  ['주택연금 월지급률', '연령별 0.20~0.35% 적용', '한국주택금융공사 종신지급 근사'],
+  ['건강보험 피부양자 소득기준', `연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원 초과 시 자격 상실`, LC.SOURCES?.HEALTH_DEPENDENT ?? '국민건강보험법 시행규칙 (2026 기준)'],
+  ['노령연금 재취업 감액 기준', `월 ${NPS_WORK_REDUCE_THRESHOLD}만 원 초과분 감액(수급 후 ${LC.NPS_WORK_REDUCE_YEARS ?? 5}년)`, LC.SOURCES?.NPS_WORK_REDUCE ?? '국민연금법 (2026년 A값 고시 반영)'],
+  ['공무원연금 정지 기준', `평균연금월액(월 ${GOV_WORK_THRESHOLD}만 원) 초과 시`, LC.SOURCES?.GOV_SUSPEND ?? '공무원연금법 소득심사'],
+  ['사적연금 분리과세 한도', `연 ${(LC.PRIVATE_PENSION_SEPARATE_TAX_LIMIT ?? 1500).toLocaleString()}만 원(초과 시 ${((LC.PRIVATE_PENSION_SEPARATE_TAX_RATE ?? 0.165) * 100).toFixed(1)}%)`, LC.SOURCES?.PRIVATE_PENSION_TAX ?? '소득세법 §20-3'],
+  ['주택연금 월지급률', '연령별 0.20~0.35% 적용', LC.SOURCES?.HOUSING_PENSION ?? '한국주택금융공사 종신지급 근사'],
   ['물가상승률·기대수익률', '사용자 입력값(기본 물가 2.5%/수익률 6.0%)', '시나리오 가정값']
 ];
 
@@ -1392,46 +1432,97 @@ class NextLifeAdvisorApp {
     return `<div style="border-top:1px solid #17304a;padding-top:12px;margin-top:12px"><div style="color:#fff;font-weight:800;font-size:13.5px;margin-bottom:4px">${title}</div><div style="color:#c7d0dc;font-size:13px;line-height:1.65">${body}</div></div>`;
   }
 
+  // 실행 체크리스트 항목(단기/장기 공통) — 화면과 PDF 보고서가 동일 마크업을 공유
+  _actionItem(title, body, impact, tone) {
+    const isQuick = tone !== 'long';
+    const accent = isQuick ? '#0f766e' : '#8a6d1f';
+    const badge = impact ? `<span style="display:inline-block;margin-left:8px;padding:2px 10px;border-radius:20px;background:${isQuick ? 'rgba(15,118,110,.1)' : 'rgba(201,162,75,.16)'};color:${accent};font-size:11px;font-weight:800;white-space:nowrap;vertical-align:middle">${impact}</span>` : '';
+    return `<div style="display:flex;gap:13px;align-items:flex-start;padding:15px 2px;border-bottom:1px solid #ece9e1">
+      <span style="flex:0 0 19px;width:19px;height:19px;border:2px solid ${accent};border-radius:5px;margin-top:2px;box-sizing:border-box"></span>
+      <div style="flex:1 1 auto;min-width:0">
+        <div style="font-size:13.5px;font-weight:800;color:#101828;line-height:1.4">${title}${badge}</div>
+        <div style="font-size:12.5px;color:#55606f;line-height:1.65;margin-top:5px">${body}</div>
+      </div>
+    </div>`;
+  }
+  _addQuick(title, body, impact) { this._quickItems.push(this._actionItem(title, body, impact, 'quick')); }
+  _addLong(title, body, impact) { this._longItems.push(this._actionItem(title, body, impact, 'long')); }
+  _renderActionPlan() {
+    const qEl = document.getElementById('r_quickWins');
+    if (qEl) qEl.innerHTML = this._quickItems.length ? this._quickItems.join('') : `<div style="padding:14px 2px;color:#94a3b8;font-size:12.5px">현재 즉시 실행이 필요한 항목은 없습니다.</div>`;
+    const lEl = document.getElementById('r_longTerm');
+    if (lEl) lEl.innerHTML = this._longItems.length ? this._longItems.join('') : `<div style="padding:14px 2px;color:#94a3b8;font-size:12.5px">현재 장기 검토가 필요한 항목은 없습니다.</div>`;
+  }
+
   buildPrintReport() {
     try { this.calcAll(); } catch (e) {}
     const g = (id) => { const e = document.getElementById(id); return e ? e.innerText.trim() : '-'; };
+    const gHtml = (id) => { const e = document.getElementById(id); return e ? e.innerHTML : ''; };
     const d = new Date();
     const dateStr = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
     const hb = document.getElementById('r_headline');
     const headlineHtml = (hb && hb.innerHTML.trim()) ? `<div style="${hb.getAttribute('data-print-style') || ''}">${hb.innerHTML}</div>` : '';
     const detailHtml = (document.getElementById('r_textExpert') || {}).innerHTML || '';
-    const secTitles = [...document.querySelectorAll('#r_textExpert div')].filter(function (el) {
-      return el.style && el.style.fontWeight === '800' && el.parentElement && el.parentElement.style.borderTop;
-    });
-    let recoList = '';
-    document.querySelectorAll('#r_textExpert > div').forEach(function (sec) {
-      const t = sec.children && sec.children[0] ? sec.children[0].textContent.trim() : '';
-      if (t) recoList += `<div>▸ ${t}</div>`;
-    });
-    if (!recoList) recoList = '<div>도출된 권고 항목이 없습니다.</div>';
+    const quickHtml = gHtml('r_quickWins') || `<div style="padding:10px 2px;color:#94a3b8;font-size:12px">현재 즉시 실행이 필요한 항목은 없습니다.</div>`;
+    const longHtml = gHtml('r_longTerm') || `<div style="padding:10px 2px;color:#94a3b8;font-size:12px">현재 장기 검토가 필요한 항목은 없습니다.</div>`;
+    const donutSvg = gHtml('r_assetDonut9');
+    const depletionText = g('r_depletionBadge');
+    const depletionColor = (this._depletionAge && this._lifeExp && this._depletionAge <= this._lifeExp) ? '#8a2f2f' : '#0f766e';
     const html = `
     <div class="pr-wrap" style="max-width:760px;margin:0 auto;font-family:'Pretendard',sans-serif;color:#101828">
-      <div style="border-bottom:3px solid #0b1f33;padding-bottom:14px;margin-bottom:18px">
-        <div style="color:#0b1f33;font-weight:800;letter-spacing:.15em;font-size:10px">${null ?? 'NEXT LIFE'} EXECUTIVE REPORT</div>
-        <div style="font-size:24px;font-weight:900;margin:5px 0 7px;letter-spacing:-.01em">은퇴 자산 종합 정밀 진단 보고서</div>
+      <div style="border-bottom:3px solid #0b1f33;padding-bottom:16px;margin-bottom:22px">
+        <div style="color:#0b1f33;font-weight:800;letter-spacing:.18em;font-size:10px">${null ?? 'NEXT LIFE'} EXECUTIVE REPORT</div>
+        <div style="font-size:25px;font-weight:900;margin:6px 0 8px;letter-spacing:-.01em">은퇴 자산 종합 정밀 진단 보고서</div>
         <div style="font-size:11px;color:#64748b;font-weight:700">고객 ${g('r_name')} 님 &nbsp;|&nbsp; 작성일 ${dateStr} &nbsp;|&nbsp; ${null ?? '전담 카운셀러: Next Life FA'}</div>
       </div>
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">I. 고객 자산·소득 현황 요약</div>
+
+      <div style="display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:10px;margin-bottom:24px">
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px">
+          <svg viewBox="0 0 120 120" style="width:38px;height:38px;flex:0 0 auto">${donutSvg}</svg>
+          <div style="min-width:0"><div style="font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase">순자산</div><div style="font-size:13px;font-weight:900;color:#0b1f33;margin-top:2px;line-height:1.25">${g('r_netAsset')}</div></div>
+        </div>
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:13px">
+          <div style="font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase">부동산 비중</div>
+          <div style="font-size:16px;font-weight:900;color:#0f766e;margin-top:2px">${g('r_reRate')}</div>
+        </div>
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:13px">
+          <div style="font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase">완전 은퇴 후 월수지</div>
+          <div style="font-size:12.5px;font-weight:900;color:#8a2f2f;margin-top:2px;line-height:1.3">${g('r_gap')}</div>
+        </div>
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:13px">
+          <div style="font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase">금융자산 지속 전망</div>
+          <div style="font-size:12px;font-weight:900;color:${depletionColor};margin-top:2px;line-height:1.3">${depletionText}</div>
+        </div>
+      </div>
+
+      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">Ⅰ. 고객 자산·소득 현황 요약</div>
       <table style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">고객 성명</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_name')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">연금 공백 기간</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_bridge')}</td></tr>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">순자산</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_netAsset')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">완전 은퇴 후 월 부족액</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_gap')}</td></tr>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">부동산 비중</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_reRate')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">연간 절세 합계</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_isaTax')}</td></tr>
       </tbody></table>
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">II. 종합 진단 의견</div>
+
+      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅱ. 종합 진단 의견</div>
       ${headlineHtml}
-      <div style="margin-top:4px">${detailHtml}</div>
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">III. 핵심 실행 권고 요약</div>
-      <div style="font-size:12px">${recoList}</div>
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">IV. 주요 가정 및 근거</div>
-      <table style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>
-        ${Calc.ASSUMPTIONS.map(a => `<tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">${a[0]}</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:700">${a[1]}</td><td style="border:1px solid #e2e1da;padding:8px 10px;color:#64748b">${a[2]}</td></tr>`).join('')}
+      <div style="margin-top:4px;background:#0b1f33;color:#dce3ec;padding:16px 18px;border-radius:12px">${detailHtml}</div>
+
+      <div style="font-size:14px;font-weight:900;color:#0f766e;border-left:5px solid #0f766e;padding-left:9px;margin:26px 0 4px">Ⅲ. 즉시 실행 가능한 단기 과제 <span style="font-size:11px;font-weight:700;color:#8a7a4a">Quick Wins — 체크하며 실행하세요</span></div>
+      <div style="border:1px solid #e7d9ad;border-radius:10px;padding:4px 14px;background:#fdfcf7">${quickHtml}</div>
+
+      <div style="font-size:14px;font-weight:900;color:#8a6d1f;border-left:5px solid #8a6d1f;padding-left:9px;margin:22px 0 4px">Ⅳ. 장기 검토 과제 <span style="font-size:11px;font-weight:700;color:#6b7280">전문가와 함께 단계적으로</span></div>
+      <div style="border:1px solid #dfe1e6;border-radius:10px;padding:4px 14px;background:#fbfbfa">${longHtml}</div>
+
+      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅴ. 주요 가정 및 근거</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr>
+        <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left;width:22%">항목</th>
+        <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left">적용 기준</th>
+        <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left">출처·시점</th>
+      </tr></thead><tbody>
+        ${Calc.ASSUMPTIONS.map((a, i) => `<tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:${i % 2 ? '#faf9f6' : '#fff'};color:#334155;font-weight:700">${a[0]}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:${i % 2 ? '#faf9f6' : '#fff'};font-weight:700">${a[1]}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:${i % 2 ? '#faf9f6' : '#fff'};color:#64748b">${a[2]}</td></tr>`).join('')}
       </tbody></table>
-      <div style="margin-top:18px;text-align:right;font-size:12px;font-weight:700;color:#101828">${null ?? '전담 카운셀러 Next Life FA'} &nbsp;&nbsp;(인)</div>
+      <div style="font-size:9.5px;color:#94a3b8;margin-top:6px">※ 상단 법령 상수 기준시점: ${LC.UPDATED_AT ?? '2026-07'}</div>
+
+      <div style="margin-top:22px;text-align:right;font-size:12px;font-weight:700;color:#101828">${null ?? '전담 카운셀러 Next Life FA'} &nbsp;&nbsp;(인)</div>
       <div style="margin-top:14px;border-top:1px solid #c3ccd6;padding-top:12px;font-size:10px;color:#94a3b8;line-height:1.65">
         ※ 본 보고서는 고객님이 입력하신 정보를 기초로 산출된 참고용 분석 자료입니다. 실제 연금 수령액·세액·건강보험료 등은 관계 법령과 개인별 상황에 따라 달라질 수 있으며, 중요한 재무·세무 의사결정 전에는 반드시 세무사·재무설계사 등 전문가와 상담하시기 바랍니다. &nbsp;© ${null ?? 'NEXT LIFE'} — 통합 은퇴설계 솔루션.
       </div>
@@ -1510,6 +1601,8 @@ class NextLifeAdvisorApp {
 
     const chartEl = document.getElementById('chartAsset');
     if (chartEl) chartEl.innerHTML = C.drawAssetDonut(totalRE, totalFin);
+    const chartEl9 = document.getElementById('r_assetDonut9');
+    if (chartEl9) chartEl9.innerHTML = C.drawAssetDonut(totalRE, totalFin);
 
     const dbBox = document.getElementById('diagBox');
     const dIcon = document.getElementById('diagIcon');
@@ -1635,8 +1728,8 @@ class NextLifeAdvisorApp {
     const gapPhase1 = incPhase1 - targetInc;
     if (npsWorkReduce > 0) {
       _baseLine += (_pensionType === 'GOV')
-        ? ` | 공무원연금 일부정지: 재취업 월소득 ${Math.round(exSal)}만(평균연금 280만 초과) → 연금 -${Math.round(npsWorkReduce)}만/월 ${npsWorkReduce >= _npsP1 ? '전액정지' : '정지'}`
-        : ` | 재취업 감액: 월소득 ${Math.round(exSal)}만(기준 509만 초과 ${Math.round(exSal - C.NPS_WORK_REDUCE_THRESHOLD)}만) → 노령연금 -${Math.round(npsWorkReduce)}만/월 적용`;
+        ? ` | 공무원연금 일부정지: 재취업 월소득 ${Math.round(exSal)}만(평균연금 ${C.GOV_WORK_THRESHOLD}만 초과) → 연금 -${Math.round(npsWorkReduce)}만/월 ${npsWorkReduce >= _npsP1 ? '전액정지' : '정지'}`
+        : ` | 재취업 감액: 월소득 ${Math.round(exSal)}만(기준 ${C.NPS_WORK_REDUCE_THRESHOLD}만 초과 ${Math.round(exSal - C.NPS_WORK_REDUCE_THRESHOLD)}만) → 노령연금 -${Math.round(npsWorkReduce)}만/월 적용`;
     }
     this._setTxt('nps_penalty_txt', _baseLine + _refTxt);
     const irrPhase1 = targetInc > 0 ? (incPhase1 / targetInc) * 100 : 0;
@@ -1812,6 +1905,15 @@ class NextLifeAdvisorApp {
     this._setTxt('r_gap', gapPhase2 < 0 ? '월 ' + Math.round(Math.abs(gapPhase2)).toLocaleString() + '만 원 부족' : '생활비 충당 가능');
     this._setTxt('r_isaTax', Math.round(totalTaxAndSave).toLocaleString() + '만 원');
 
+    // ── Step9 스냅샷 인포그래픽(순자산·부동산비중·월수지) ──
+    this._setTxt('r_netAssetBig', C.formatKrwMixed(netAssetWon));
+    this._setTxt('r_reRateBig', rateRe.toFixed(1) + '%');
+    const _reBarEl = document.getElementById('r_reRateBar');
+    if (_reBarEl) _reBarEl.style.width = Math.max(0, Math.min(100, rateRe)).toFixed(1) + '%';
+    this._setTxt('r_gapBig', gapPhase2 < 0 ? '월 ' + Math.round(Math.abs(gapPhase2)).toLocaleString() + '만 원 부족' : '충당 가능(여유)');
+    const _gapBigEl = document.getElementById('r_gapBig');
+    if (_gapBigEl) _gapBigEl.style.color = gapPhase2 < 0 ? '#8a2f2f' : '#0f766e';
+
     const _gapMan = Math.round(Math.abs(gapPhase2));
     const _hb = document.getElementById('r_headline');
     if (_hb) {
@@ -1827,7 +1929,11 @@ class NextLifeAdvisorApp {
       _hb.innerHTML = `<span style="display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;color:#c9a24b;margin-bottom:6px">핵심 진단</span><div>${_headline}</div>`;
     }
 
+    // ── 진단 서술(r_textExpert, 다크 패널) — "왜 그런가"를 설명하는 정보성 콘텐츠 ──
     const _secs = [];
+    // ── 실행 체크리스트(단기 Quick Wins / 장기 검토) — "무엇을 할까"를 담는 액션 아이템 ──
+    this._quickItems = []; this._longItems = [];
+
     _secs.push(this._repSection('자산 구성 진단',
       `순자산 <strong>${C.formatKrwMixed(netAssetWon)}</strong> 중 부동산 비중이 <strong>${rateRe.toFixed(1)}%</strong>입니다. ` +
       (rateRe > 50 ? '부동산 편중이 커 은퇴 후 현금이 부족할 수 있으므로 금융자산 비중 확대를 권장합니다.'
@@ -1843,9 +1949,10 @@ class NextLifeAdvisorApp {
       _secs.push(this._repSection('은퇴 후 소득', `연금 공백 없이 소득이 이어집니다. 재취업·연금 개시 시기가 잘 맞아 수입 단절 위험이 낮습니다.`));
     }
 
+    let _levers = [];
     if (gapPhase2 < 0) {
       const _short = Math.max(0, -gapPhase2);
-      const _levers = [
+      _levers = [
         { name: '재취업 소득', val: Math.round(exSal) },
         { name: '주택연금', val: Math.round(solB_Inc) },
         { name: '금융자산 운용', val: Math.round(solA_Inc) }
@@ -1866,50 +1973,102 @@ class NextLifeAdvisorApp {
         const _tail = _residual > 0
           ? ` 위 방법으로도 월 <strong>${_residual.toLocaleString()}만 원</strong>이 남으므로 절세계좌 적립·지출 조정을 함께 검토하세요.`
           : ` 위 방법을 모두 적용하면 부족분이 해소됩니다.`;
-        _secs.push(this._repSection('부족액 해소 실행 플랜',
+        _secs.push(this._repSection('부족액 해소 우선순위 (실행 레버)',
           `월 부족액 <strong>${Math.round(_short).toLocaleString()}만 원</strong>은 효과가 큰 <strong>${_firstName}</strong>부터 순서대로 메우는 것이 유리합니다.${_tail}` + _wf));
       }
     }
 
-    if (annualTotal > 2000) {
-      _secs.push(this._repSection('건강보험 피부양자', `합산소득이 연 2,000만 원을 넘어 <strong>피부양자 자격이 상실</strong>되고 지역가입자로 전환됩니다. 보험료 증가분을 생활비에 미리 반영하세요.`));
-    } else if (annualTotal >= 1800) {
-      _secs.push(this._repSection('건강보험 피부양자', `합산소득 <strong>${Math.round(annualTotal).toLocaleString()}만 원</strong>으로 피부양자 기준(2,000만 원)에 근접했습니다. 수령 시기 분산으로 자격 유지를 검토하세요.`));
+    // ══════════════════ Ⅲ. 즉시 실행 가능한 단기 과제 (Quick Wins) ══════════════════
+    // 1순위: 세액공제 환급 — 가장 빠르고 확실한 재무적 이득이므로 항상 최상단
+    if (baseCredit > 0 || isaCredit > 0) {
+      const _yearsLeft = Math.max(0, baseRetAge - age);
+      const _cumBenefit = Math.round(totalTaxReturn * _yearsLeft);
+      this._addQuick('연금저축·IRP 세팅으로 세액공제 환급받기',
+        `연금저축(연 ${LC.PENSION_SAVINGS_CREDIT_CAP ?? 600}만)·IRP(합산 ${LC.IRP_CREDIT_CAP ?? 900}만) 한도를 채우면 세율 ${(taxRate * 100).toFixed(1)}% 기준 연 <strong>${Math.round(totalTaxReturn).toLocaleString()}만 원</strong>을 환급받습니다. 은퇴까지 ${_yearsLeft}년 유지 시 누적 약 <strong>${_cumBenefit.toLocaleString()}만 원</strong>. 납입 순서는 연금저축→IRP→ISA 순으로 진행하세요.`,
+        `연 ${Math.round(totalTaxReturn).toLocaleString()}만 원 환급`);
+    }
+
+    // 재취업·근로소득 레버가 유효하면 즉시 실행 항목으로 안내
+    const _reworkLever = _levers.find(l => l.name === '재취업 소득');
+    if (_reworkLever) {
+      this._addQuick('재취업·근로소득으로 공백기 메우기',
+        `월 <strong>${_reworkLever.val.toLocaleString()}만 원</strong>의 재취업 소득이 부족분 해소에 가장 빠르게 반영됩니다. 다만 소득 수준에 따라 연금 감액 기준이 적용될 수 있으니 아래 감액 기준을 함께 확인하세요.`,
+        `월 +${_reworkLever.val.toLocaleString()}만 원`);
     }
 
     if (npsWorkReduce > 0 && _pensionType === 'GOV') {
       const _govFull = npsWorkReduce >= adjustedNpsAmt;
-      _secs.push(this._repSection('공무원연금 재취업 정지', `재취업 월소득 <strong>${Math.round(exSal).toLocaleString()}만 원</strong>이 기준(평균연금월액 280만 원)을 초과해 월 <strong>${Math.round(npsWorkReduce)}만 원</strong>이 ${_govFull ? '전액' : '일부'} 정지됩니다(퇴직연금의 1/2 한도). 소득이 280만 원 이하로 낮아지면 전액 수령됩니다.`));
+      this._addQuick('공무원연금 재취업 소득심사 기준 확인',
+        `재취업 월소득 <strong>${Math.round(exSal).toLocaleString()}만 원</strong>이 기준(평균연금월액 ${C.GOV_WORK_THRESHOLD}만 원)을 초과해 월 <strong>${Math.round(npsWorkReduce)}만 원</strong>이 ${_govFull ? '전액' : '일부'} 정지됩니다(퇴직연금의 1/2 한도). 소득을 ${C.GOV_WORK_THRESHOLD}만 원 이하로 조정하면 전액 수령이 가능하니 재취업 조건 협상 시 참고하세요.`,
+        `월 −${Math.round(npsWorkReduce).toLocaleString()}만 원`);
     } else if (npsWorkReduce > 0) {
-      _secs.push(this._repSection('재취업 노령연금 감액', `재취업 월소득 <strong>${Math.round(exSal).toLocaleString()}만 원</strong>이 감액 기준(509만 원)을 초과해 월 <strong>${Math.round(npsWorkReduce)}만 원</strong>이 줄어듭니다(수급 후 5년 적용). 연금 개시를 재취업 종료 이후로 연기(연 7.2% 가산)하는 방법도 있습니다.`));
+      this._addQuick('노령연금 재취업 감액 기준 확인',
+        `재취업 월소득 <strong>${Math.round(exSal).toLocaleString()}만 원</strong>이 감액 기준(월 ${C.NPS_WORK_REDUCE_THRESHOLD}만 원)을 초과해 월 <strong>${Math.round(npsWorkReduce)}만 원</strong>이 줄어듭니다(수급 후 ${LC.NPS_WORK_REDUCE_YEARS ?? 5}년 적용). 연금 개시를 재취업 종료 이후로 늦추면 연 ${((LC.NPS_LATE_ACCRUAL_ANNUAL ?? 0.072) * 100).toFixed(1)}% 가산도 받을 수 있습니다.`,
+        `월 −${Math.round(npsWorkReduce).toLocaleString()}만 원`);
+    }
+
+    if (annualTotal > (LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000)) {
+      this._addQuick('건강보험 피부양자 자격 상실 대비',
+        `합산소득이 연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원을 넘어 <strong>피부양자 자격이 상실</strong>되고 지역가입자로 전환됩니다. 예상 보험료를 미리 확인해 생활비 계획에 반영해 두세요.`,
+        '자격 상실 주의');
+      _secs.push(this._repSection('건강보험 피부양자', `합산소득이 연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원을 넘어 <strong>피부양자 자격이 상실</strong>되고 지역가입자로 전환됩니다. 보험료 증가분을 생활비에 미리 반영하세요.`));
+    } else if (annualTotal >= (LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000) * 0.9) {
+      this._addQuick('건강보험 피부양자 기준 근접 확인',
+        `합산소득 <strong>${Math.round(annualTotal).toLocaleString()}만 원</strong>으로 피부양자 기준(${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원)에 근접했습니다. 연금 수령 시기를 분산하면 자격 유지에 도움이 됩니다.`,
+        '기준 근접');
+      _secs.push(this._repSection('건강보험 피부양자', `합산소득 <strong>${Math.round(annualTotal).toLocaleString()}만 원</strong>으로 피부양자 기준(${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원)에 근접했습니다. 수령 시기 분산으로 자격 유지를 검토하세요.`));
+    }
+
+    {
+      const _riskItems = [];
+      const _privLimit = LC.PRIVATE_PENSION_SEPARATE_TAX_LIMIT ?? 1500;
+      if (annualPriv > 0 && annualPriv < _privLimit) _riskItems.push(`사적연금 분리과세 한도(${_privLimit.toLocaleString()}만 원)까지 여유 <strong>${Math.round(_privLimit - annualPriv).toLocaleString()}만 원</strong>`);
+      if (finalGiftWon > 0) _riskItems.push('증여세 신고기한(증여일 후 3개월) 준수');
+      if (_riskItems.length > 0) {
+        this._addQuick('세제 한도·신고기한 점검', _riskItems.join(' · ') + '.');
+        _secs.push(this._repSection('주요 관리 포인트', _riskItems.join(' · ') + '.'));
+      }
+    }
+
+    // ══════════════════ Ⅳ. 장기 검토 과제 (전문가와 함께 단계적으로) ══════════════════
+    const _reRateLever = rateRe > 50;
+    if (_reRateLever) {
+      this._addLong('부동산 비중 재조정 검토',
+        `현재 부동산 비중이 <strong>${rateRe.toFixed(1)}%</strong>로 다소 높은 편입니다. 급하게 처분하기보다, 담당 컨설턴트와 함께 향후 2~3년에 걸쳐 유동화 시점과 방법(일부 매각, 주택연금 등)을 단계적으로 조율해 나가시길 권해 드립니다.`,
+        `부동산 ${rateRe.toFixed(1)}%`);
+    }
+
+    const _housingLever = _levers.find(l => l.name === '주택연금');
+    if (_housingLever) {
+      this._addLong('주택연금 전환, 서두르지 말고 함께 검토',
+        `주택연금은 매월 <strong>${_housingLever.val.toLocaleString()}만 원</strong> 상당의 안정적 현금흐름을 만들어 줄 수 있는 강력한 카드입니다. 다만 거주 부동산을 활용하는 만큼 심리적 부담이 클 수 있는 결정이므로, 지금 당장 결정하지 않으셔도 됩니다. 담당 컨설턴트와 함께 예상 지급액과 자녀 상속 영향 등을 충분히 살펴본 뒤, 준비가 되셨을 때 단계적으로 진행하시면 됩니다.`,
+        `월 +${_housingLever.val.toLocaleString()}만 원 예상`);
+    }
+
+    const _fundLever = _levers.find(l => l.name === '금융자산 운용');
+    if (_fundLever) {
+      this._addLong('금융자산 인출·운용 전략 재점검',
+        `금융자산 운용 최적화로 월 <strong>${_fundLever.val.toLocaleString()}만 원</strong> 상당을 추가로 확보할 수 있습니다. 인출 순서와 상품 구성은 시장 상황에 따라 조정이 필요하므로, 정기적으로(예: 연 1회) 컨설턴트와 함께 점검하는 것을 권장합니다.`,
+        `월 +${_fundLever.val.toLocaleString()}만 원`);
     }
 
     if (baseNpsAmt > 0) {
       const _isGovRep = (_pensionType === 'GOV');
-      const _earlyAmt = Math.round(baseNpsAmt * 0.70);
+      const _earlyAmt = Math.round(baseNpsAmt * (LC.NPS_EARLY_RATE ?? 0.70));
       const _normalAmt = Math.round(baseNpsAmt);
-      const _lateAmt = Math.round(baseNpsAmt * (_isGovRep ? 1.0 : 1.36));
+      const _lateAmt = Math.round(baseNpsAmt * (_isGovRep ? 1.0 : (LC.NPS_LATE_RATE ?? 1.36)));
       const _lateDesc = _isGovRep ? '연기 가산은 적용되지 않습니다' : `연기(+5년) <strong>${_lateAmt.toLocaleString()}만 원</strong>(+36%)`;
-      _secs.push(this._repSection('연금 수령 시기 비교', `${_isGovRep ? '직역연금' : '국민연금'} 기준 조기(-5년) <strong>${_earlyAmt.toLocaleString()}만 원</strong>(-30%) · 정상 <strong>${_normalAmt.toLocaleString()}만 원</strong> · ${_lateDesc}. 건강보험·금융소득 과세를 함께 고려해 개시 시기를 정하세요.`));
-    }
-
-    if (baseCredit > 0 || isaCredit > 0) {
-      const _yearsLeft = Math.max(0, baseRetAge - age);
-      const _cumBenefit = Math.round(totalTaxReturn * _yearsLeft);
-      _secs.push(this._repSection('절세 계좌 활용', `세율 ${(taxRate * 100).toFixed(1)}% 기준 연금저축·IRP 세액공제로 연 <strong>${Math.round(totalTaxReturn).toLocaleString()}만 원</strong>을 환급받고, 은퇴까지 ${_yearsLeft}년이면 누적 약 <strong>${_cumBenefit.toLocaleString()}만 원</strong>입니다. 납입 순서는 연금저축(600만)→IRP(합산 900만)→ISA를 권장합니다.`));
+      const _cmpText = `${_isGovRep ? '직역연금' : '국민연금'} 기준 조기(-5년) <strong>${_earlyAmt.toLocaleString()}만 원</strong>(-30%) · 정상 <strong>${_normalAmt.toLocaleString()}만 원</strong> · ${_lateDesc}. 한 번 정하면 되돌리기 어려운 결정이니, 건강보험료·금융소득 과세까지 함께 고려해 컨설턴트와 신중히 개시 시기를 정하시길 권합니다.`;
+      this._addLong('연금 수령 개시 시기 최적화', _cmpText, '조기·정상·연기 비교');
+      _secs.push(this._repSection('연금 수령 시기 비교', _cmpText));
     }
 
     if (finalGiftWon > 0 || finalTaxWon > 0) {
       const _giftStr = finalGiftWon > 0 ? `증여세 <strong>${C.formatKrwMixed(finalGiftWon)}</strong>` : '증여세 없음(공제 이내)';
       const _inhStr = finalTaxWon > 0 ? `상속세 추정 <strong>${C.formatKrwMixed(finalTaxWon)}</strong>` : '상속세 없음(공제 이내)';
-      _secs.push(this._repSection('증여·상속 설계', `${_giftStr} / ${_inhStr}. 10년 주기 분할 증여와 혼인·출산 공제로 세부담을 단계적으로 낮출 수 있습니다. 동거주택(최대 6억)·금융재산(최대 2억) 공제 적용 여부는 세무사 상담을 권장합니다.`));
-    }
-
-    {
-      const _riskItems = [];
-      if (annualPriv > 0 && annualPriv < 1500) _riskItems.push(`사적연금 분리과세 한도(1,500만 원)까지 여유 <strong>${Math.round(1500 - annualPriv).toLocaleString()}만 원</strong>`);
-      if (finalGiftWon > 0) _riskItems.push('증여세 신고기한(증여일 후 3개월) 준수');
-      if (_riskItems.length > 0) _secs.push(this._repSection('주요 관리 포인트', _riskItems.join(' · ') + '.'));
+      const _giftBody = `${_giftStr} / ${_inhStr}. 10년 주기 분할 증여, 혼인·출산 공제 등을 활용하면 세부담을 단계적으로 낮출 수 있는 여지가 있습니다. 다년간에 걸친 설계가 필요한 만큼 지금 모두 결정하실 필요는 없으며, 세무사·컨설턴트와 함께 로드맵을 하나씩 세워가시길 권해 드립니다.`;
+      this._addLong('증여·상속 설계, 10년 로드맵으로 준비', _giftBody, finalTaxWon > 0 ? `상속세 ${C.formatKrwMixed(finalTaxWon)}` : '증여 설계 검토');
+      _secs.push(this._repSection('증여·상속 설계', _giftBody));
     }
 
     const expEl = document.getElementById('r_textExpert');
@@ -2035,6 +2194,17 @@ class NextLifeAdvisorApp {
       ddData.push({ age: a + 1, bal: Math.max(0, _bal) });
     }
     const ddEl = document.getElementById('g_drawdownChart'); if (ddEl) ddEl.innerHTML = C.drawDrawdownChart(ddData, lifeExp, depletionAge);
+    this._depletionAge = depletionAge; this._lifeExp = lifeExp; // buildPrintReport()의 인포그래픽 배지에서 재사용
+    const _deplBadgeEl = document.getElementById('r_depletionBadge');
+    if (_deplBadgeEl) {
+      if (depletionAge && depletionAge <= lifeExp) {
+        _deplBadgeEl.textContent = `약 ${depletionAge}세 자산고갈 위험`;
+        _deplBadgeEl.style.color = '#8a2f2f';
+      } else {
+        _deplBadgeEl.textContent = `기대수명(${lifeExp}세)까지 유지`;
+        _deplBadgeEl.style.color = '#0f766e';
+      }
+    }
 
     const _noDraw = (monthlyGapMan <= 0 && careCost <= 0 && lumpSum <= 0);
     let ddMsg, ddReportBody;
@@ -2089,11 +2259,14 @@ class NextLifeAdvisorApp {
           `<div style="border:1px solid rgba(148,163,184,.3);border-radius:9px;padding:8px 6px;text-align:center"><div style="font-size:10px;font-weight:800;color:${colors[s.cls]}">${s.tag}</div><div style="font-size:11px;color:#94a3b8;font-weight:700;margin:2px 0">수익률 ${s.rate.toFixed(1)}%</div><div style="font-size:13px;font-weight:800;color:#fff">${C.formatKrwMixed(Math.round(s.amt))}/월</div></div>`
         ).join('') + '</div>';
         expEl.innerHTML += this._repSection('수익률 시나리오별 월 저축액', `목표 달성에 필요한 월 저축액은 투자수익률에 따라 달라집니다. 수익률을 낮게(보수적으로) 잡고 계획할수록 더 안전합니다.` + _scHtml);
+        this._addLong('목표자금 적립 플랜 수립', `목표 달성을 위해 향후 ${years}년간 매월 <strong>${C.formatKrwMixed(Math.round(monthlyShort))}</strong> 저축이 필요합니다(기대수익률 ${invRet}% 기준). 장기간에 걸친 계획인 만큼, 시장 상황에 맞춰 매년 컨설턴트와 함께 저축액과 상품 구성을 재점검하시길 권합니다.`, `월 ${C.formatKrwMixed(Math.round(monthlyShort))}`);
       }
 
       expEl.innerHTML += this._repSection('장수·간병 리스크 (자산 고갈 시점)', ddReportBody);
       expEl.innerHTML += this._repSection('동년배 자산 비교', benchMsg + ` <span style="opacity:.75">참고: 통계청 가계금융복지조사(가구주 연령대별 순자산 평균).</span>`);
     }
+
+    this._renderActionPlan();
   }
 
 
