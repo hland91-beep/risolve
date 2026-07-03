@@ -41,11 +41,21 @@
     }
 
     @media print {
-      @page { margin: 12mm 12mm 14mm; }
-      body { background: #fff !important; }
+      @page { margin: 14mm 12mm 16mm; }
+      html, body { background: #fff !important; }
       #nlAppRoot { display: block !important; height: auto !important; overflow: visible !important; }
       #nlHamburger, #nlSidebarDim, aside#nlSidebar, main, #modalLoadManager { display: none !important; }
       #printReport { display: block !important; }
+      /* 배경색·강조색이 인쇄 시 사라지지 않도록(네이비 패널·골드 헤더 등 유지) */
+      #printReport, #printReport * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      /* 인쇄 시 폭을 페이지 전체로 */
+      #printReport .pr-wrap { max-width: none !important; }
+      /* 자연스러운 페이지 흐름: 작은 단위만 쪼개지지 않게 하고, 큰 블록은 페이지를 넘겨 흐르게 함 */
+      #printReport .pr-head { page-break-after: avoid; break-after: avoid; }   /* 섹션 제목이 페이지 하단에 홀로 남지 않도록 */
+      #printReport .pr-keep { page-break-inside: avoid; break-inside: avoid; } /* 요약카드·실행항목·진단 소단락이 반토막나지 않도록 */
+      #printReport table { page-break-inside: auto; }
+      #printReport tr { page-break-inside: avoid; break-inside: avoid; }       /* 표는 행 단위로 자연스럽게 넘김 */
+      #printReport thead { display: table-header-group; }                      /* 여러 페이지에 걸친 표는 머리글 반복 */
     }
 </style>
 </head>
@@ -1429,7 +1439,7 @@ class NextLifeAdvisorApp {
   }
 
   _repSection(title, body) {
-    return `<div style="border-top:1px solid #17304a;padding-top:12px;margin-top:12px"><div style="color:#fff;font-weight:800;font-size:13.5px;margin-bottom:4px">${title}</div><div style="color:#c7d0dc;font-size:13px;line-height:1.65">${body}</div></div>`;
+    return `<div class="pr-keep" style="border-top:1px solid #17304a;padding-top:12px;margin-top:12px"><div style="color:#fff;font-weight:800;font-size:13.5px;margin-bottom:4px">${title}</div><div style="color:#c7d0dc;font-size:13px;line-height:1.65">${body}</div></div>`;
   }
 
   // 실행 체크리스트 항목(단기/장기 공통) — 화면과 PDF 보고서가 동일 마크업을 공유
@@ -1437,7 +1447,7 @@ class NextLifeAdvisorApp {
     const isQuick = tone !== 'long';
     const accent = isQuick ? '#0f766e' : '#8a6d1f';
     const badge = impact ? `<span style="display:inline-block;margin-left:8px;padding:2px 10px;border-radius:20px;background:${isQuick ? 'rgba(15,118,110,.1)' : 'rgba(201,162,75,.16)'};color:${accent};font-size:11px;font-weight:800;white-space:nowrap;vertical-align:middle">${impact}</span>` : '';
-    return `<div style="display:flex;gap:13px;align-items:flex-start;padding:15px 2px;border-bottom:1px solid #ece9e1">
+    return `<div class="pr-keep" style="display:flex;gap:13px;align-items:flex-start;padding:15px 2px;border-bottom:1px solid #ece9e1">
       <span style="flex:0 0 19px;width:19px;height:19px;border:2px solid ${accent};border-radius:5px;margin-top:2px;box-sizing:border-box"></span>
       <div style="flex:1 1 auto;min-width:0">
         <div style="font-size:13.5px;font-weight:800;color:#101828;line-height:1.4">${title}${badge}</div>
@@ -1460,8 +1470,7 @@ class NextLifeAdvisorApp {
     const gHtml = (id) => { const e = document.getElementById(id); return e ? e.innerHTML : ''; };
     const d = new Date();
     const dateStr = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
-    const hb = document.getElementById('r_headline');
-    const headlineHtml = (hb && hb.innerHTML.trim()) ? `<div style="${hb.getAttribute('data-print-style') || ''}">${hb.innerHTML}</div>` : '';
+    const headlineHtml = gHtml('r_headline'); // 흰색 강조 텍스트를 포함하므로 반드시 어두운 배경 패널 안에서만 사용할 것
     const detailHtml = (document.getElementById('r_textExpert') || {}).innerHTML || '';
     const quickHtml = gHtml('r_quickWins') || `<div style="padding:10px 2px;color:#94a3b8;font-size:12px">현재 즉시 실행이 필요한 항목은 없습니다.</div>`;
     const longHtml = gHtml('r_longTerm') || `<div style="padding:10px 2px;color:#94a3b8;font-size:12px">현재 장기 검토가 필요한 항목은 없습니다.</div>`;
@@ -1470,13 +1479,13 @@ class NextLifeAdvisorApp {
     const depletionColor = (this._depletionAge && this._lifeExp && this._depletionAge <= this._lifeExp) ? '#8a2f2f' : '#0f766e';
     const html = `
     <div class="pr-wrap" style="max-width:760px;margin:0 auto;font-family:'Pretendard',sans-serif;color:#101828">
-      <div style="border-bottom:3px solid #0b1f33;padding-bottom:16px;margin-bottom:22px">
+      <div class="pr-keep" style="border-bottom:3px solid #0b1f33;padding-bottom:16px;margin-bottom:22px">
         <div style="color:#0b1f33;font-weight:800;letter-spacing:.18em;font-size:10px">${null ?? 'NEXT LIFE'} EXECUTIVE REPORT</div>
         <div style="font-size:25px;font-weight:900;margin:6px 0 8px;letter-spacing:-.01em">은퇴 자산 종합 정밀 진단 보고서</div>
         <div style="font-size:11px;color:#64748b;font-weight:700">고객 ${g('r_name')} 님 &nbsp;|&nbsp; 작성일 ${dateStr} &nbsp;|&nbsp; ${null ?? '전담 카운셀러: Next Life FA'}</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:10px;margin-bottom:24px">
+      <div class="pr-keep" style="display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:10px;margin-bottom:24px">
         <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px">
           <svg viewBox="0 0 120 120" style="width:38px;height:38px;flex:0 0 auto">${donutSvg}</svg>
           <div style="min-width:0"><div style="font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase">순자산</div><div style="font-size:13px;font-weight:900;color:#0b1f33;margin-top:2px;line-height:1.25">${g('r_netAsset')}</div></div>
@@ -1495,45 +1504,126 @@ class NextLifeAdvisorApp {
         </div>
       </div>
 
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">Ⅰ. 고객 자산·소득 현황 요약</div>
-      <table style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>
+      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">Ⅰ. 고객 자산·소득 현황 요약</div>
+      <table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">고객 성명</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_name')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">연금 공백 기간</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_bridge')}</td></tr>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">순자산</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_netAsset')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">완전 은퇴 후 월 부족액</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_gap')}</td></tr>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">부동산 비중</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_reRate')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">연간 절세 합계</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_isaTax')}</td></tr>
       </tbody></table>
 
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅱ. 종합 진단 의견</div>
-      ${headlineHtml}
-      <div style="margin-top:4px;background:#0b1f33;color:#dce3ec;padding:16px 18px;border-radius:12px">${detailHtml}</div>
+      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅱ. 종합 진단 의견</div>
+      <div style="margin-top:4px;background:#0b1f33;color:#dce3ec;border-radius:12px">
+        ${headlineHtml ? `<div class="pr-keep" style="padding:16px 18px 10px;border-bottom:1px solid rgba(255,255,255,.14)">${headlineHtml}</div>` : ''}
+        <div style="padding:14px 18px 16px">${detailHtml}</div>
+      </div>
 
-      <div style="font-size:14px;font-weight:900;color:#0f766e;border-left:5px solid #0f766e;padding-left:9px;margin:26px 0 4px">Ⅲ. 즉시 실행 가능한 단기 과제 <span style="font-size:11px;font-weight:700;color:#8a7a4a">Quick Wins — 체크하며 실행하세요</span></div>
+      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0f766e;border-left:5px solid #0f766e;padding-left:9px;margin:26px 0 4px">Ⅲ. 즉시 실행 가능한 단기 과제 <span style="font-size:11px;font-weight:700;color:#8a7a4a">Quick Wins — 체크하며 실행하세요</span></div>
       <div style="border:1px solid #e7d9ad;border-radius:10px;padding:4px 14px;background:#fdfcf7">${quickHtml}</div>
 
-      <div style="font-size:14px;font-weight:900;color:#8a6d1f;border-left:5px solid #8a6d1f;padding-left:9px;margin:22px 0 4px">Ⅳ. 장기 검토 과제 <span style="font-size:11px;font-weight:700;color:#6b7280">전문가와 함께 단계적으로</span></div>
+      <div class="pr-head" style="font-size:14px;font-weight:900;color:#8a6d1f;border-left:5px solid #8a6d1f;padding-left:9px;margin:26px 0 4px">Ⅳ. 장기 검토 과제 <span style="font-size:11px;font-weight:700;color:#6b7280">전문가와 함께 단계적으로</span></div>
       <div style="border:1px solid #dfe1e6;border-radius:10px;padding:4px 14px;background:#fbfbfa">${longHtml}</div>
 
-      <div style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅴ. 주요 가정 및 근거</div>
-      <table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr>
+      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅴ. 주요 가정 및 근거</div>
+      <table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr>
         <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left;width:22%">항목</th>
         <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left">적용 기준</th>
         <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left">출처·시점</th>
       </tr></thead><tbody>
         ${Calc.ASSUMPTIONS.map((a, i) => `<tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:${i % 2 ? '#faf9f6' : '#fff'};color:#334155;font-weight:700">${a[0]}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:${i % 2 ? '#faf9f6' : '#fff'};font-weight:700">${a[1]}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:${i % 2 ? '#faf9f6' : '#fff'};color:#64748b">${a[2]}</td></tr>`).join('')}
       </tbody></table>
-      <div style="font-size:9.5px;color:#94a3b8;margin-top:6px">※ 상단 법령 상수 기준시점: ${LC.UPDATED_AT ?? '2026-07'}</div>
+      <div class="pr-keep" style="font-size:9.5px;color:#94a3b8;margin-top:6px">※ 상단 법령 상수 기준시점: ${LC.UPDATED_AT ?? '2026-07'}</div>
 
-      <div style="margin-top:22px;text-align:right;font-size:12px;font-weight:700;color:#101828">${null ?? '전담 카운셀러 Next Life FA'} &nbsp;&nbsp;(인)</div>
-      <div style="margin-top:14px;border-top:1px solid #c3ccd6;padding-top:12px;font-size:10px;color:#94a3b8;line-height:1.65">
+      <div class="pr-keep" style="margin-top:22px;text-align:right;font-size:12px;font-weight:700;color:#101828">${null ?? '전담 카운셀러 Next Life FA'} &nbsp;&nbsp;(인)</div>
+      <div class="pr-keep" style="margin-top:14px;border-top:1px solid #c3ccd6;padding-top:12px;font-size:10px;color:#94a3b8;line-height:1.65">
         ※ 본 보고서는 고객님이 입력하신 정보를 기초로 산출된 참고용 분석 자료입니다. 실제 연금 수령액·세액·건강보험료 등은 관계 법령과 개인별 상황에 따라 달라질 수 있으며, 중요한 재무·세무 의사결정 전에는 반드시 세무사·재무설계사 등 전문가와 상담하시기 바랍니다. &nbsp;© ${null ?? 'NEXT LIFE'} — 통합 은퇴설계 솔루션.
       </div>
     </div>`;
     const box = document.getElementById('printReport');
     if (box) { box.innerHTML = html; }
-    const fname = `NextLife_은퇴진단보고서_${(g('r_name') || '고객').replace(/\s+/g, '')}_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.pdf`;
-    this._exportReportPdf(box, fname);
+    const custName = g('r_name') || '고객';
+    const fnameBase = `NextLife_은퇴진단보고서_${custName.replace(/\s+/g, '')}_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    // 안드로이드(Capacitor 네이티브) WebView는 window.print()를 지원하지 않으므로(과거 실기기에서 확인된 회귀)
+    // 네이티브 앱에서만 html2canvas+jsPDF로 PDF 파일을 직접 만들어 공유 시트로 저장하고,
+    // 웹(PC/모바일 브라우저)에서는 텍스트 그대로 브라우저 인쇄 엔진에 맡겨 빠르고 선택 가능한 PDF를 만든다.
+    const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    if (isNativeApp) {
+      this._exportReportPdf(box, fnameBase + '.pdf', custName);
+    } else {
+      this._printReportWeb(fnameBase);
+    }
   }
 
-  async _exportReportPdf(box, filename) {
+  // ── 웹(PC/모바일 브라우저): 브라우저 네이티브 인쇄 ──
+  // #printReport의 실제 텍스트/표를 브라우저 인쇄 엔진이 직접 조판(텍스트 선택·검색 가능, 빠름, 폰트 임베딩 불필요).
+  // @media print의 page-break 규칙(.pr-head/.pr-keep 등)으로 페이지가 자연스럽게 흐름.
+  _printReportWeb(fnameBase) {
+    const prevTitle = document.title; // 저장 대화상자 기본 파일명으로 document.title이 쓰임
+    if (fnameBase) document.title = fnameBase;
+    const restore = () => {
+      document.title = prevTitle;
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    setTimeout(restore, 60000); // afterprint 미지원 환경 안전장치
+    try {
+      window.print();
+    } catch (e) {
+      restore();
+      alert('인쇄 기능을 실행하지 못했습니다: ' + e.message);
+    }
+  }
+
+  // ── 안드로이드 네이티브 앱: html2canvas로 캡처해 jsPDF로 PDF 생성 후 공유 시트로 저장 ──
+  // 페이지 경계에 걸리는 블록이 반토막나지 않도록, 캡처 직전에 최소 단위(.pr-keep)만 모아 걸치는 블록 앞에
+  // 여백을 끼워 다음 페이지로 밀어낸다. .pr-head(섹션 제목)는 바로 다음 최소 단위와 묶어 처리해 제목이
+  // 페이지 하단에 혼자 남지 않게 하되, 글루 대상이 항상 작은 단위(헤드라인 카드 하나·표 하나·항목 하나)라서
+  // 과거처럼 페이지 전체 크기의 블록을 통째로 밀어 큰 빈 여백이 생기는 일은 없다.
+  _avoidPageBreaks(box, pageHpx) {
+    const wrap = box.querySelector('.pr-wrap') || box;
+    const boxTop = box.getBoundingClientRect().top;
+    const rectTop = (el) => el.getBoundingClientRect().top - boxTop;
+
+    const units = [];
+    const collect = (node) => {
+      Array.from(node.children).forEach((el) => {
+        if (el.classList.contains('pr-keep')) { units.push({ el, head: false }); return; }
+        if (el.classList.contains('pr-head')) { units.push({ el, head: true }); collect(el); return; }
+        collect(el);
+      });
+    };
+    collect(wrap);
+
+    for (let i = 0; i < units.length; i++) {
+      const u = units[i];
+      const group = [u];
+      if (u.head && units[i + 1]) { group.push(units[i + 1]); i++; }
+      const first = group[0].el, last = group[group.length - 1].el;
+      const t = rectTop(first);
+      const b = rectTop(last) + last.getBoundingClientRect().height;
+      const h = b - t;
+      if (h >= pageHpx) continue; // 한 페이지보다 큰 블록은 어쩔 수 없이 자연 분할(드묾: 6행 고정표·항목 1건 수준이라 사실상 발생 안 함)
+      const startPage = Math.floor(t / pageHpx);
+      const endPage = Math.floor((b - 0.01) / pageHpx);
+      if (startPage !== endPage) {
+        const gap = (endPage * pageHpx) - t;
+        if (gap > 0) first.style.marginTop = ((parseFloat(first.style.marginTop) || 0) + gap) + 'px';
+      }
+    }
+  }
+
+  _drawPdfFooter(pdf, pageNum, totalPages, label) {
+    const pageW = 210, pageH = 297;
+    pdf.setDrawColor(226, 225, 218);
+    pdf.setLineWidth(0.2);
+    pdf.line(14, pageH - 12, pageW - 14, pageH - 12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(148, 163, 184);
+    pdf.text(label, 14, pageH - 7);
+    pdf.text(`${pageNum} / ${totalPages}`, pageW - 14, pageH - 7, { align: 'right' });
+  }
+
+  async _exportReportPdf(box, filename, customerName) {
     if (!box || !window.jspdf || !window.html2canvas) {
       alert('PDF 라이브러리를 불러오지 못했습니다. 앱을 다시 실행해 주세요.');
       return;
@@ -1545,20 +1635,27 @@ class NextLifeAdvisorApp {
     box.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;display:block;padding:24px;box-sizing:border-box;z-index:-1';
     try {
       await new Promise(r => setTimeout(r, 60));
+      const pageW = 210, pageH = 297;
+      const pageHpx = pageH * (800 / pageW); // A4 페이지 높이를 box 좌표계(800px=210mm)의 px로 환산
+      this._avoidPageBreaks(box, pageHpx);
       const canvas = await html2canvas(box, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: 800 });
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageW = 210, pageH = 297;
       const imgW = pageW;
       const imgH = canvas.height * imgW / canvas.width;
       const imgData = canvas.toDataURL('image/jpeg', 0.92);
-      let heightLeft = imgH, position = 0;
+      const totalPages = Math.max(1, Math.ceil(imgH / pageH - 1e-6));
+      const footerLabel = `NEXT LIFE EXECUTIVE REPORT  |  ${customerName || '고객'} 님`;
+      let heightLeft = imgH, position = 0, pageNum = 1;
       pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+      this._drawPdfFooter(pdf, pageNum, totalPages, footerLabel);
       heightLeft -= pageH;
       while (heightLeft > 0) {
         position = heightLeft - imgH;
         pdf.addPage();
+        pageNum++;
         pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+        this._drawPdfFooter(pdf, pageNum, totalPages, footerLabel);
         heightLeft -= pageH;
       }
       await smartDownload(pdf.output('blob'), filename);
