@@ -82,6 +82,7 @@
         <button onclick="app.openLoadModal()" style="background:#16324f;color:#dce7f5;border:1px solid #21426a;font-size:11.5px;font-weight:700;padding:10px 4px;border-radius:8px;cursor:pointer">불러오기</button>
       </div>
       <button onclick="app.resetConsulting()" style="background:transparent;color:#93a5bd;border:1px solid #21426a;font-size:11px;font-weight:700;padding:9px 4px;border-radius:8px;cursor:pointer;margin-top:2px">신규 상담 시작 (초기화)</button>
+      <button onclick="nlqOpen()" style="background:linear-gradient(135deg,#c9a24b,#b3893a);color:#0b1f33;border:none;font-size:12px;font-weight:800;padding:11px 4px;border-radius:8px;cursor:pointer;margin-top:2px">⚡ 간편 진단 (3분)</button>
     </div>
 
     <nav style="flex:1;padding:18px 14px;display:flex;flex-direction:column;gap:18px">
@@ -2363,6 +2364,24 @@ class NextLifeAdvisorApp {
       expEl.innerHTML += this._repSection('동년배 자산 비교', benchMsg + ` <span style="opacity:.75">참고: 통계청 가계금융복지조사(가구주 연령대별 순자산 평균).</span>`);
     }
 
+    // ── 간편모드가 읽는 KPI 경계 (store-app window._calcKpiRaw 대응, 순수 스냅샷·로직 변경 없음) ──
+    // 확보율(coverPct): targetCapital은 "연금 제외·자산만으로 목표소득 전액 충당"이라 연금 좋은 고객을 과소평가한다.
+    // 대신 드로다운 시뮬 결과(고갈나이 vs 기대수명)로 정의 — monthlyGapMan이 이미 연금소득을 차감한 값이라 연금 인지형 지표.
+    const _covPct = _noDraw ? 100
+      : (depletionAge && depletionAge <= lifeExp
+          ? Math.max(0, Math.min(100, Math.round((depletionAge - retAge) / Math.max(1, lifeExp - retAge) * 100)))
+          : 100);
+    window._nlKpi = {
+      curAge, retAge, lifeExp, isRetired: curAge >= retAge,
+      netAssetWon, reRate, finAssetWon,
+      targetIncMan, targetCapital, shortfall, monthlyShort,
+      scenarios: _scenarios,               // [{tag,cls,rate,amt}] 보수/기준/낙관
+      gapMonthlyMan: monthlyGapMan,        // 완전은퇴 후 월 부족(만원, ≥0)
+      depletionAge, noDraw: _noDraw,
+      coverPct: _covPct,                   // 은퇴자금 확보율(%) — 연금소득 반영(고갈나이 기반)
+      benchAvgWon: _bench.avg * 10000, benchRatio: _ratio
+    };
+
     this._renderActionPlan();
   }
 
@@ -2391,7 +2410,392 @@ window.addEventListener('DOMContentLoaded', () => {
   window.app = new NextLifeAdvisorApp();
   window.__nlAdvisor = window.app; // renderLoadList() generates onclick="window.__nlAdvisor.loadCust/delCust(...)"
   app.init();
+  try { if (typeof nlqMaybeAutoOpen === 'function') nlqMaybeAutoOpen(); } catch (e) {}
 });
+</script>
+
+<!-- ═══════════════════ 간편 은퇴 진단 오버레이 (store-app 간편모드 패턴 이식) ═══════════════════ -->
+<style>
+  #nl-quick, #nl-quick * { box-sizing:border-box; font-family:'Pretendard',sans-serif; }
+  #nl-quick .nlq-panel { background:#0e2437; border:1px solid #1c3a57; border-radius:14px; padding:18px; }
+  #nl-quick .nlq-input { width:100%; padding:13px 14px; background:#0b1f33; border:1.5px solid #26456a; border-radius:10px; color:#fff; font-weight:700; font-size:15px; }
+  #nl-quick .nlq-input::placeholder { color:#5f7994; }
+  #nl-quick .nlq-lbl { display:block; font-size:11.5px; font-weight:700; color:#8fa0b8; margin-bottom:7px; }
+  #nl-quick .nlq-pill { padding:10px 14px; border-radius:999px; border:1.5px solid #26456a; background:#0b1f33; color:#c7d0dc; font-weight:800; font-size:13px; cursor:pointer; transition:.12s; }
+  #nl-quick .nlq-pill.on { background:#c9a24b; border-color:#c9a24b; color:#0b1f33; }
+  #nl-quick .nlq-card { border:1.5px solid #26456a; background:#0b1f33; border-radius:12px; padding:14px 10px; text-align:center; cursor:pointer; transition:.12s; }
+  #nl-quick .nlq-card.on { border-color:#c9a24b; background:#132a42; box-shadow:0 0 0 1px #c9a24b inset; }
+  #nl-quick .nlq-cta { width:100%; padding:16px; border:none; border-radius:12px; background:#c9a24b; color:#0b1f33; font-weight:800; font-size:15px; cursor:pointer; }
+  #nl-quick .nlq-cta.sub { background:transparent; border:1.5px solid #26456a; color:#c7d0dc; }
+  #nl-quick .nlq-chipbtn { display:flex; justify-content:space-between; align-items:center; width:100%; padding:13px 15px; border:1.5px solid #26456a; background:#0b1f33; border-radius:11px; color:#c7d0dc; font-weight:800; font-size:13.5px; cursor:pointer; }
+  #nl-quick .nlq-chipbtn.on { border-color:#c9a24b; color:#fff; }
+  #nl-quick .nlq-row { margin-top:8px; }
+</style>
+<div id="nl-quick" style="display:none;position:fixed;inset:0;z-index:100000;background:#0b1f33;overflow-y:auto">
+  <div style="max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-bottom:8px">
+    <!-- 헤더 -->
+    <div style="padding:22px 22px 12px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font-size:19px">⚡</span>
+        <span style="color:#fff;font-weight:800;font-size:16px">간편 은퇴 진단</span>
+        <span style="color:#7c8ea6;font-size:11px;font-weight:700">3분이면 충분해요</span>
+      </div>
+      <button onclick="nlqClose()" style="background:transparent;border:none;color:#7c8ea6;font-size:22px;cursor:pointer;padding:2px 8px">&times;</button>
+    </div>
+    <!-- 진행바 -->
+    <div id="nlq-progress" style="display:flex;gap:6px;padding:0 22px 14px">
+      <div data-nlqstep="1" style="flex:1;text-align:center"><div class="nlq-bar" style="height:4px;border-radius:2px;background:#c9a24b"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">프로필</div></div>
+      <div data-nlqstep="2" style="flex:1;text-align:center"><div class="nlq-bar" style="height:4px;border-radius:2px;background:#26456a"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">필요자금</div></div>
+      <div data-nlqstep="3" style="flex:1;text-align:center"><div class="nlq-bar" style="height:4px;border-radius:2px;background:#26456a"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">확보율</div></div>
+      <div data-nlqstep="4" style="flex:1;text-align:center"><div class="nlq-bar" style="height:4px;border-radius:2px;background:#26456a"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">해법</div></div>
+    </div>
+
+    <!-- ───── STEP 1 : 프로필 ───── -->
+    <div id="nlq-step-1" class="nlq-step" style="padding:4px 22px 22px;display:flex;flex-direction:column;gap:16px">
+      <div class="nlq-panel" style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label class="nlq-lbl">고객명 <span style="color:#5f7994">(선택)</span></label>
+          <input id="nlq-name" class="nlq-input" type="text" maxlength="20" placeholder="예: 홍길동" />
+        </div>
+        <div>
+          <label class="nlq-lbl">생년월일 8자리</label>
+          <input id="nlq-birth" class="nlq-input" type="number" placeholder="예: 19680512" oninput="nlqOnBirth()" />
+          <div id="nlq-age-chip" style="margin-top:7px;font-size:12px;color:#7fd6c4;font-weight:800;display:none"></div>
+        </div>
+      </div>
+
+      <div class="nlq-panel">
+        <label class="nlq-lbl">은퇴 희망 나이</label>
+        <div style="display:flex;gap:8px">
+          <button class="nlq-pill nlq-ret-chip" data-ret="60" onclick="nlqSelRet(60)">60세</button>
+          <button class="nlq-pill nlq-ret-chip" data-ret="65" onclick="nlqSelRet(65)">65세</button>
+          <button class="nlq-pill nlq-ret-chip" data-ret="70" onclick="nlqSelRet(70)">70세</button>
+        </div>
+      </div>
+
+      <div class="nlq-panel">
+        <label class="nlq-lbl">가구 형태</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button id="nlq-hh-couple" class="nlq-pill" style="flex:1" onclick="nlqSetHH('couple')">👫 부부</button>
+          <button id="nlq-hh-solo" class="nlq-pill" style="flex:1" onclick="nlqSetHH('solo')">🧍 1인</button>
+        </div>
+        <label class="nlq-lbl">은퇴 후 월 생활비</label>
+        <div id="nlq-ls-cards" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+      </div>
+
+      <button class="nlq-cta" onclick="nlqShowResult()">필요 자금 바로 보기 →</button>
+    </div>
+
+    <!-- ───── STEP 2 : 필요자금 ───── -->
+    <div id="nlq-step-2" class="nlq-step" style="display:none;padding:4px 22px 22px;flex-direction:column;gap:16px">
+      <div class="nlq-panel" style="text-align:center;background:linear-gradient(155deg,#132a42,#0e2437)">
+        <div id="nlq-needed-label" style="font-size:12.5px;color:#8fa0b8;font-weight:700;margin-bottom:8px">은퇴까지 준비해야 할 노후자금</div>
+        <div id="nlq-needed" style="font-size:34px;font-weight:900;color:#c9a24b;line-height:1.1">–</div>
+        <div id="nlq-asmonthly" style="font-size:12.5px;color:#c7d0dc;font-weight:700;margin-top:10px"></div>
+        <div id="nlq-assump" style="font-size:11px;color:#7c8ea6;font-weight:600;margin-top:8px;line-height:1.5"></div>
+      </div>
+      <div class="nlq-panel">
+        <label class="nlq-lbl">계획 성향 (은퇴 후 수익률 가정)</label>
+        <div style="display:flex;gap:8px">
+          <button class="nlq-pill nlq-scn-chip" data-scn="cons" onclick="nlqSelScn('cons')" style="flex:1">🛡️ 보수</button>
+          <button class="nlq-pill nlq-scn-chip" data-scn="base" onclick="nlqSelScn('base')" style="flex:1">⚖️ 기준</button>
+          <button class="nlq-pill nlq-scn-chip" data-scn="aggr" onclick="nlqSelScn('aggr')" style="flex:1">🚀 낙관</button>
+        </div>
+        <div style="font-size:10.5px;color:#7c8ea6;font-weight:600;margin-top:8px">보수적으로 잡을수록 더 안전한 계획입니다.</div>
+      </div>
+      <button class="nlq-cta" onclick="nlqGotoStep(3)">내 확보율 확인하기 →</button>
+    </div>
+
+    <!-- ───── STEP 3 : 확보율 ───── -->
+    <div id="nlq-step-3" class="nlq-step" style="display:none;padding:4px 22px 22px;flex-direction:column;gap:16px">
+      <div class="nlq-panel" style="text-align:center">
+        <div style="font-size:12.5px;color:#8fa0b8;font-weight:700;margin-bottom:6px">내 은퇴자금 확보율</div>
+        <div id="nlq-gauge-pct" style="font-size:40px;font-weight:900;line-height:1;color:#c9a24b">0%</div>
+        <div style="margin:12px 0 6px;height:12px;background:#0b1f33;border-radius:999px;overflow:hidden;border:1px solid #26456a">
+          <div id="nlq-gauge-fill" style="height:100%;width:0%;background:#c9a24b;transition:.35s"></div>
+        </div>
+        <div id="nlq-gauge-gap" style="font-size:12.5px;color:#c7d0dc;font-weight:700;margin-top:8px"></div>
+        <div id="nlq-gauge-delta" style="font-size:12px;color:#7fd6c4;font-weight:800;margin-top:6px;min-height:16px"></div>
+      </div>
+
+      <div class="nlq-panel">
+        <div style="font-size:11.5px;color:#8fa0b8;font-weight:700;margin-bottom:10px">해당하는 항목만 펼쳐 입력하세요 — 입력할수록 정확해집니다</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <button id="nlq-chip-fin" class="nlq-chipbtn" onclick="nlqToggleChip('fin')"><span>💰 보유 금융자산</span><span>＋</span></button>
+            <div id="nlq-row-fin" class="nlq-row" style="display:none"><input id="nlq-fin" class="nlq-input" type="number" placeholder="억 단위 (예: 3)" oninput="nlqOnChipInput()" /><div style="font-size:10.5px;color:#7c8ea6;margin-top:5px">예적금·주식·펀드·연금계좌 등 합계 (억원)</div></div>
+          </div>
+          <div>
+            <button id="nlq-chip-nps" class="nlq-chipbtn" onclick="nlqToggleChip('nps')"><span>🏛️ 공적연금 월 수령액</span><span>＋</span></button>
+            <div id="nlq-row-nps" class="nlq-row" style="display:none">
+              <div style="display:flex;gap:8px">
+                <select id="nlq-nps-type" class="nlq-input" style="flex:0 0 42%" onchange="nlqOnChipInput()"><option value="NPS">국민연금</option><option value="GOV">공무원·사학·군인</option></select>
+                <input id="nlq-nps" class="nlq-input" style="flex:1" type="number" placeholder="만원/월 (예: 120)" oninput="nlqOnChipInput()" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <button id="nlq-chip-priv" class="nlq-chipbtn" onclick="nlqToggleChip('priv')"><span>📈 개인·퇴직연금 월 수령액</span><span>＋</span></button>
+            <div id="nlq-row-priv" class="nlq-row" style="display:none"><input id="nlq-priv" class="nlq-input" type="number" placeholder="만원/월 (예: 50)" oninput="nlqOnChipInput()" /></div>
+          </div>
+          <div>
+            <button id="nlq-chip-life" class="nlq-chipbtn" onclick="nlqToggleChip('life')"><span>⏳ 기대수명 조정</span><span>＋</span></button>
+            <div id="nlq-row-life" class="nlq-row" style="display:none"><input id="nlq-life2" class="nlq-input" type="number" placeholder="세 (기본 90)" oninput="nlqOnChipInput()" /></div>
+          </div>
+        </div>
+      </div>
+      <button class="nlq-cta" onclick="nlqGotoStep(4)">내 해법 보기 →</button>
+    </div>
+
+    <!-- ───── STEP 4 : 해법 + 리포트 ───── -->
+    <div id="nlq-step-4" class="nlq-step" style="display:none;padding:4px 22px 22px;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div class="nlq-panel" style="padding:14px 8px;text-align:center"><div style="font-size:10.5px;color:#8fa0b8;font-weight:700">확보율</div><div id="nlq-sum-pct" style="font-size:22px;font-weight:900;color:#c9a24b;margin-top:4px">0%</div></div>
+        <div class="nlq-panel" style="padding:14px 8px;text-align:center"><div style="font-size:10.5px;color:#8fa0b8;font-weight:700">월 부족액</div><div id="nlq-sum-gap" style="font-size:18px;font-weight:900;color:#f0c9c9;margin-top:4px">–</div></div>
+        <div class="nlq-panel" style="padding:14px 8px;text-align:center"><div style="font-size:10.5px;color:#8fa0b8;font-weight:700">자산 전망</div><div id="nlq-sum-depl" style="font-size:15px;font-weight:900;color:#7fd6c4;margin-top:4px">–</div></div>
+      </div>
+      <div class="nlq-panel">
+        <div style="font-size:12.5px;color:#c9a24b;font-weight:800;margin-bottom:4px">🎯 오늘 할 한 가지</div>
+        <div id="nlq-today" style="font-size:14px;color:#fff;font-weight:800;line-height:1.5">–</div>
+        <div id="nlq-sol" style="margin-top:12px;display:flex;flex-direction:column;gap:9px"></div>
+      </div>
+      <button class="nlq-cta" onclick="nlqFinalize()">📄 종합 진단 보고서 만들기</button>
+      <button class="nlq-cta sub" onclick="nlqToFull()">정밀 모드로 자세히 설계하기 (9단계)</button>
+    </div>
+
+    <!-- 공통 푸터 -->
+    <div style="margin-top:auto;padding:10px 22px 22px;display:flex;align-items:center;justify-content:space-between">
+      <button id="nlq-back" onclick="nlqBack()" style="background:transparent;border:none;color:#7c8ea6;font-weight:700;font-size:13px;cursor:pointer">← 뒤로</button>
+      <label style="display:flex;align-items:center;gap:6px;color:#5f7994;font-size:11px;font-weight:700;cursor:pointer"><input id="nlq-autostart" type="checkbox" checked onchange="nlqToggleAutostart()" style="cursor:pointer"> 시작 시 간편 진단 자동 열기</label>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════ 간편 진단(NLQuick) — 기존 엔진(app.calcAll) 재사용, 신규 계산 로직 없음 ═══════════ */
+/* 생활수준 프리셋 — 국민연금연구원 국민노후보장패널 10차 부가조사(2024) 최소/적정 노후생활비 기반
+   (부부 최소 216.6 / 적정 298.1, 개인 최소 139.2 / 적정 197.6만원 → 반올림, 풍요=적정×1.5) */
+var NL_LIFESTYLE = [
+  { k:'basic',   ico:'🍚', lb:'기본', m:220, mSolo:140, d:'최소 생활비' },
+  { k:'comfort', ico:'🌿', lb:'여유', m:300, mSolo:200, d:'적정 생활비' },
+  { k:'rich',    ico:'✨', lb:'풍요', m:450, mSolo:300, d:'적정×1.5' }
+];
+var _nlqState = { step:1, hh:'couple', ls:'comfort', ret:60, scn:'base' };
+/* 계획 성향별 은퇴 후 수익률(%) — 물가는 2.5% 고정, 보수/기준/낙관 = 3.5/5.5/7.5 */
+var NLQ_SCN = { cons:3.5, base:5.5, aggr:7.5 };
+var _nlqPrevSnap = null;
+function _nlqG(id){ return document.getElementById(id); }
+function _nlqSet(id, v){ var e=document.getElementById(id); if(e){ e.value = v; } }
+function _nlqNum(id, d){ var e=document.getElementById(id); var v=e?parseFloat(e.value):NaN; return isNaN(v)?(d||0):v; }
+function _nlqFmt(won){ try { return Calc.formatKrwMixed(Math.round(won||0)); } catch(e){ return Math.round((won||0)/10000).toLocaleString()+'만원'; } }
+function _nlqKpi(){ return window._nlKpi || {}; }
+
+/* ── 라이프사이클 ── */
+function nlqOpen(){
+  var q=_nlqG('nl-quick'); if(!q) return;
+  // 프로필 프리필(정밀 모드에 값이 있으면)
+  var nm=(_nlqG('v_name')||{}).value; if(nm) _nlqSet('nlq-name', nm);
+  var bd=(_nlqG('v_birth')||{}).value; if(bd) { _nlqSet('nlq-birth', bd); nlqOnBirth(); }
+  nlqRenderLsCards(); nlqSelHHUI(); nlqSelRetUI();
+  try { var cb=_nlqG('nlq-autostart'); if(cb) cb.checked = (localStorage.getItem('nl_quick_autostart')!=='0'); } catch(e){}
+  q.style.display='block'; document.body.style.overflow='hidden';
+  nlqGotoStep(1);
+}
+function nlqClose(){ var q=_nlqG('nl-quick'); if(q) q.style.display='none'; document.body.style.overflow=''; }
+function nlqToFull(){ nlqClose(); try { if(window.app && app.showStep) app.showStep(1); } catch(e){} }
+function nlqBack(){ if(_nlqState.step>1) nlqGotoStep(_nlqState.step-1); else nlqClose(); }
+
+function nlqGotoStep(n){
+  _nlqState.step=n;
+  for(var i=1;i<=4;i++){ var s=_nlqG('nlq-step-'+i); if(s) s.style.display=(i===n)?'flex':'none'; }
+  // 진행바
+  var bars=document.querySelectorAll('#nlq-progress [data-nlqstep]');
+  bars.forEach(function(b){ var bi=parseInt(b.getAttribute('data-nlqstep')); var bar=b.querySelector('.nlq-bar'); if(bar) bar.style.background = (bi<=n)?'#c9a24b':'#26456a'; });
+  if(n===2){ nlqRenderStep2(); }
+  else if(n===3){ nlqApplyChips(); nlqRenderGauge(false); }
+  else if(n===4){ nlqApplyChips(); nlqRenderSummary(); }
+}
+
+/* ── STEP1 헬퍼 ── */
+function nlqOnBirth(){
+  var bd=(_nlqG('nlq-birth')||{}).value||''; bd=String(bd);
+  var chip=_nlqG('nlq-age-chip');
+  if(bd.length===8){
+    var by=parseInt(bd.substring(0,4)); var age=2026-by;
+    if(chip && age>0 && age<120){ chip.textContent='만 '+age+'세'; chip.style.display='block'; }
+  } else if(chip){ chip.style.display='none'; }
+}
+function nlqSelRet(v){ _nlqState.ret=v; nlqSelRetUI(); }
+function nlqSelRetUI(){ document.querySelectorAll('.nlq-ret-chip').forEach(function(c){ c.classList.toggle('on', parseInt(c.getAttribute('data-ret'))===_nlqState.ret); }); }
+function nlqSetHH(h){ _nlqState.hh=h; nlqSelHHUI(); nlqRenderLsCards(); }
+function nlqSelHHUI(){ var c=_nlqG('nlq-hh-couple'), s=_nlqG('nlq-hh-solo'); if(c) c.classList.toggle('on', _nlqState.hh==='couple'); if(s) s.classList.toggle('on', _nlqState.hh==='solo'); }
+function nlqRenderLsCards(){
+  var box=_nlqG('nlq-ls-cards'); if(!box) return;
+  box.innerHTML = NL_LIFESTYLE.map(function(x){
+    var mv = _nlqState.hh==='couple'? x.m : x.mSolo;
+    var on = _nlqState.ls===x.k ? ' on' : '';
+    return '<div class="nlq-card'+on+'" onclick="nlqSelLs(\''+x.k+'\')">'+
+      '<div style="font-size:18px">'+x.ico+'</div>'+
+      '<div style="font-size:12.5px;font-weight:800;color:#fff;margin-top:3px">'+x.lb+'</div>'+
+      '<div style="font-size:13px;font-weight:800;color:#c9a24b;margin-top:3px">'+mv+'만원</div>'+
+      '<div style="font-size:9.5px;color:#7c8ea6;margin-top:2px">'+x.d+'</div></div>';
+  }).join('');
+}
+function nlqSelLs(k){ _nlqState.ls=k; nlqRenderLsCards(); }
+
+/* ── 엔진 브릿지: 정밀 모드 필드에 써넣고 app.calcAll() ── */
+function nlqApplyProfile(){
+  var nm=(_nlqG('nlq-name')||{}).value||''; _nlqSet('v_name', nm);
+  var bd=String((_nlqG('nlq-birth')||{}).value||'');
+  if(bd.length===8){ _nlqSet('v_birth', bd); try { app.autoCalculateAgeV19(); } catch(e){} }
+  _nlqSet('v_retAge', _nlqState.ret);
+  var preset = NL_LIFESTYLE.filter(function(x){return x.k===_nlqState.ls;})[0] || NL_LIFESTYLE[1];
+  var monthly = _nlqState.hh==='couple'? preset.m : preset.mSolo;
+  _nlqSet('v_targetInc', monthly);
+  try { app.calcAll(); } catch(e){}
+}
+/* 자산·연금 기준선 0으로 — 확보율이 입력한 값만 반영하도록(store-app qmResetBaseline 대응) */
+function nlqResetBaseline(){
+  ['v_res_home','v_res_inv','v_res_bld','v_res_land','v_fin_cash','v_fin_stock','v_fin_pension','v_fin_ins','v_debt_mort','v_debt_cred','v_npsAmt','v_privAmt','v_extraSalary'].forEach(function(id){ _nlqSet(id,0); });
+  try { app.calcAll(); } catch(e){}
+}
+function nlqApplyChips(){
+  var eok=_nlqNum('nlq-fin',0); _nlqSet('v_fin_cash', eok*10);           // 억 → 천만원(×10)
+  var npsAmt=_nlqNum('nlq-nps',0); var type=(_nlqG('nlq-nps-type')||{}).value||'NPS';
+  _nlqSet('v_pensionType', type); _nlqSet('v_npsAmt', npsAmt);
+  _nlqSet('v_privAmt', _nlqNum('nlq-priv',0));
+  var life=_nlqNum('nlq-life2',0); if(life>0) _nlqSet('v_lifeExp', life);
+  try { app.calcAll(); } catch(e){}
+}
+
+/* ── 검증 + STEP2 진입 ── */
+function nlqShowResult(){
+  var bd=String((_nlqG('nlq-birth')||{}).value||'');
+  if(bd.length!==8){ alert('생년월일 8자리를 입력해 주세요 (예: 19680512)'); var e=_nlqG('nlq-birth'); if(e){ e.style.borderColor='#e08a8a'; e.focus(); } return; }
+  var e2=_nlqG('nlq-birth'); if(e2) e2.style.borderColor='#26456a';
+  nlqApplyProfile();
+  nlqResetBaseline();   // STEP2 필요자금은 프로필만으로 산출(자산·연금 0 기준선)
+  nlqApplyScn(_nlqState.scn||'base');  // 성향별 은퇴후 수익률 반영(기본 기준 5.5%)
+  nlqGotoStep(2);
+}
+
+/* ── STEP2 렌더 ── */
+function nlqRenderStep2(){
+  var k=_nlqKpi();
+  var needEl=_nlqG('nlq-needed'); if(needEl) needEl.textContent=_nlqFmt(k.targetCapital);
+  var amEl=_nlqG('nlq-asmonthly');
+  if(amEl){
+    if(k.isRetired){ amEl.textContent='이미 은퇴하셨다면, 보유 자산·연금으로 이 금액을 대체하게 됩니다.'; }
+    else { amEl.textContent='＝ 지금부터 매달 약 '+_nlqFmt(k.monthlyShort)+' 적립하는 것과 같아요'; }
+  }
+  var asEl=_nlqG('nlq-assump');
+  if(asEl){ asEl.textContent='물가 2.5% 반영 · 은퇴 후 수익률 '+((_nlqG('v_goalPostRet')||{}).value||'4.5')+'% 가정 · 만 '+(k.retAge||60)+'세 은퇴 · 월 생활비 '+(k.targetIncMan||0)+'만원 기준'; }
+  nlqScnUI();
+}
+function nlqApplyScn(t){
+  var v = NLQ_SCN[t]!=null ? NLQ_SCN[t] : NLQ_SCN.base;
+  _nlqState.scn=t;
+  _nlqSet('v_goalPostRet', v);
+  try { app.calcAll(); } catch(e){}
+}
+function nlqSelScn(t){
+  nlqApplyScn(t);
+  nlqRenderStep2();
+}
+function nlqScnUI(){ var cur=_nlqState.scn||'base'; document.querySelectorAll('.nlq-scn-chip').forEach(function(c){ c.classList.toggle('on', c.getAttribute('data-scn')===cur); }); }
+
+/* ── STEP3 칩 + 게이지 ── */
+function nlqToggleChip(key){
+  var row=_nlqG('nlq-row-'+key), btn=_nlqG('nlq-chip-'+key);
+  if(!row) return; var open=row.style.display!=='none';
+  row.style.display= open?'none':'block';
+  if(btn){ btn.classList.toggle('on', !open); var sp=btn.querySelector('span:last-child'); if(sp) sp.textContent= open?'＋':'－'; }
+  if(!open){ var inp=row.querySelector('input,select'); if(inp) inp.focus(); }
+}
+function nlqOnChipInput(){
+  var p=_nlqKpi(); _nlqPrevSnap={ pct:p.coverPct||0, gap:p.gapMonthlyMan||0 };
+  nlqApplyChips();
+  nlqRenderGauge(true);
+}
+function nlqRenderGauge(showDelta){
+  var k=_nlqKpi(); var pct=Math.round(k.coverPct||0);
+  var col = pct>=100? '#7fd6c4' : (pct>=70? '#c9a24b' : '#e08a8a');
+  var pEl=_nlqG('nlq-gauge-pct'); if(pEl){ pEl.textContent=pct+'%'; pEl.style.color=col; }
+  var fEl=_nlqG('nlq-gauge-fill'); if(fEl){ fEl.style.width=Math.min(100,pct)+'%'; fEl.style.background=col; }
+  var gEl=_nlqG('nlq-gauge-gap');
+  if(gEl){
+    var parts=[];
+    if((k.gapMonthlyMan||0)>0) parts.push('완전 은퇴 후 월 <b style="color:#f0c9c9">'+Math.round(k.gapMonthlyMan).toLocaleString()+'만원</b> 부족');
+    else parts.push('<b style="color:#7fd6c4">연금만으로 생활비 충당</b>');
+    if(k.depletionAge && k.depletionAge<=k.lifeExp) parts.push('자산 약 <b style="color:#f0c9c9">'+k.depletionAge+'세</b> 고갈 위험');
+    else parts.push('기대수명까지 <b style="color:#7fd6c4">유지</b>');
+    gEl.innerHTML=parts.join(' · ');
+  }
+  var dEl=_nlqG('nlq-gauge-delta');
+  if(dEl){
+    if(showDelta && _nlqPrevSnap){
+      var dPct=pct-(_nlqPrevSnap.pct||0); var dGap=(_nlqPrevSnap.gap||0)-(k.gapMonthlyMan||0);
+      var bits=[];
+      if(dPct!==0) bits.push('확보율 '+(dPct>0?'+':'')+dPct+'p');
+      if(Math.round(dGap)!==0) bits.push('부족액 '+(dGap>0?'−':'+')+Math.abs(Math.round(dGap))+'만원');
+      dEl.textContent = bits.length? '✨ 방금 입력으로 '+bits.join(' · ') : '';
+    } else { dEl.textContent=''; }
+  }
+}
+
+/* ── STEP4 요약 + 해법 ── */
+function nlqRenderSummary(){
+  var k=_nlqKpi(); var pct=Math.round(k.coverPct||0);
+  var col = pct>=100? '#7fd6c4' : (pct>=70? '#c9a24b' : '#e08a8a');
+  var pEl=_nlqG('nlq-sum-pct'); if(pEl){ pEl.textContent=pct+'%'; pEl.style.color=col; }
+  var gEl=_nlqG('nlq-sum-gap'); if(gEl) gEl.textContent = (k.gapMonthlyMan||0)>0 ? Math.round(k.gapMonthlyMan).toLocaleString()+'만' : '없음';
+  var dEl=_nlqG('nlq-sum-depl'); if(dEl) dEl.textContent = (k.depletionAge && k.depletionAge<=k.lifeExp) ? ('약 '+k.depletionAge+'세') : '유지';
+
+  var sols=nlqBuildSolutions(k);
+  var tEl=_nlqG('nlq-today'); if(tEl) tEl.textContent = sols.length? sols[0].t : '현재 계획이 안정적입니다 — 매년 점검만 유지하세요.';
+  var sEl=_nlqG('nlq-sol');
+  if(sEl){
+    sEl.innerHTML = sols.map(function(s,i){
+      return '<div style="display:flex;gap:9px;align-items:flex-start"><span style="color:#c9a24b;font-weight:900;font-size:12px;flex:0 0 auto">'+(i+1)+'.</span>'+
+        '<div><div style="font-size:12.5px;font-weight:800;color:#fff">'+s.t+'</div><div style="font-size:11px;color:#8fa0b8;font-weight:600;margin-top:2px;line-height:1.5">'+s.d+'</div></div></div>';
+    }).join('') + '<div style="font-size:10.5px;color:#5f7994;margin-top:4px">전체 실행 체크리스트는 아래 종합 보고서에서 확인하세요.</div>';
+  }
+}
+function nlqBuildSolutions(k){
+  var out=[];
+  if((k.monthlyShort||0)>0 && !k.isRetired){
+    out.push({ t:'매월 '+_nlqFmt(k.monthlyShort)+'을 연금저축→IRP→ISA 순으로 적립', d:'세액공제(연금저축·IRP 최대 900만원)와 비과세(ISA)를 활용하면 같은 저축도 실수령이 커집니다.' });
+  }
+  if(k.depletionAge && k.depletionAge<=k.lifeExp){
+    out.push({ t:'약 '+k.depletionAge+'세 자산 고갈 대비 — 주택연금·자산 유동화 준비', d:'거주주택을 주택연금으로 전환하거나 비거주 부동산을 유동화해 은퇴 후반 공백을 메웁니다.' });
+  }
+  if((k.gapMonthlyMan||0)>0){
+    out.push({ t:'국민연금 수령 시기 조정 + 건강보험 피부양자 관리', d:'수령 연기 시 연 7.2% 가산, 소득·재산 기준 관리로 피부양자 자격을 지키면 실수령이 늘어납니다.' });
+  }
+  if(!out.length){
+    out.push({ t:'현재 계획 유지 + 매년 재점검', d:'확보율이 충분합니다. 물가·수익률 변화에 맞춰 매년 저축·연금 구성을 점검하세요.' });
+  }
+  return out;
+}
+
+/* ── 리포트: 기존 buildPrintReport() 재사용 ── */
+function nlqFinalize(){
+  nlqApplyChips();
+  try { app.calcAll(); } catch(e){}
+  try { app.buildPrintReport(); } catch(e){ alert('보고서 생성 중 문제가 발생했습니다: '+(e&&e.message||e)); }
+}
+
+/* ── 자동 오픈 + 토글 ── */
+function nlqMaybeAutoOpen(){
+  if(window._nlqAutoOpened) return;
+  try { if(localStorage.getItem('nl_quick_autostart')==='0') return; } catch(e){}
+  window._nlqAutoOpened=true;
+  nlqOpen();
+}
+function nlqToggleAutostart(){
+  var c=_nlqG('nlq-autostart'); var on=c?c.checked:true;
+  try { localStorage.setItem('nl_quick_autostart', on?'1':'0'); } catch(e){}
+}
 </script>
 </body>
 </html>
