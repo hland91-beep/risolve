@@ -1637,7 +1637,9 @@ class NextLifeAdvisorApp {
     try {
       await new Promise(r => setTimeout(r, 60));
       const pageW = 210, pageH = 297;
-      const pageHpx = pageH * (800 / pageW); // A4 페이지 높이를 box 좌표계(800px=210mm)의 px로 환산
+      const footerH = 14;                       // 하단 푸터 영역 확보(mm) — 본문 문장과 푸터/페이지번호 겹침 방지
+      const contentH = pageH - footerH;         // 페이지당 실제 본문 높이
+      const pageHpx = contentH * (800 / pageW); // 페이지 나눔 기준을 '본문 높이'로 환산(블록이 푸터 영역에 걸치지 않게)
       this._avoidPageBreaks(box, pageHpx);
       const canvas = await html2canvas(box, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: 800 });
       const { jsPDF } = window.jspdf;
@@ -1645,19 +1647,16 @@ class NextLifeAdvisorApp {
       const imgW = pageW;
       const imgH = canvas.height * imgW / canvas.width;
       const imgData = canvas.toDataURL('image/jpeg', 0.92);
-      const totalPages = Math.max(1, Math.ceil(imgH / pageH - 1e-6));
+      const totalPages = Math.max(1, Math.ceil(imgH / contentH - 1e-6));
       const footerLabel = `NEXT LIFE EXECUTIVE REPORT  |  ${customerName || '고객'} 님`;
-      let heightLeft = imgH, position = 0, pageNum = 1;
-      pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-      this._drawPdfFooter(pdf, pageNum, totalPages, footerLabel);
-      heightLeft -= pageH;
-      while (heightLeft > 0) {
-        position = heightLeft - imgH;
-        pdf.addPage();
-        pageNum++;
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        if (pageNum > 1) pdf.addPage();
+        const position = -(pageNum - 1) * contentH; // 페이지마다 본문 높이만큼 위로 이동(연속 흐름, 내용 손실 없음)
         pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+        // 본문이 푸터 영역으로 새어들면 흰색으로 가림 — 가려진 부분은 다음 페이지 상단에서 이어짐
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, contentH, pageW, pageH - contentH, 'F');
         this._drawPdfFooter(pdf, pageNum, totalPages, footerLabel);
-        heightLeft -= pageH;
       }
       await smartDownload(pdf.output('blob'), filename);
     } catch (e) {
@@ -2519,7 +2518,10 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div class="nlq-panel">
-        <div style="font-size:11.5px;color:#8fa0b8;font-weight:700;margin-bottom:10px">해당하는 항목만 펼쳐 입력하세요 — 입력할수록 정확해집니다</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="font-size:11.5px;color:#8fa0b8;font-weight:700">해당하는 항목만 펼쳐 입력하세요 — 입력할수록 정확해집니다</div>
+          <button onclick="nlqResetChips()" style="flex:0 0 auto;background:transparent;border:1px solid #26456a;color:#8fa0b8;font-size:11px;font-weight:800;padding:6px 11px;border-radius:8px;cursor:pointer;white-space:nowrap">↺ 초기화</button>
+        </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <div>
             <button id="nlq-chip-fin" class="nlq-chipbtn" onclick="nlqToggleChip('fin')"><span>💰 보유 금융자산</span><span>＋</span></button>
@@ -2596,6 +2598,7 @@ function nlqOpen(){
   // 프로필 프리필(정밀 모드에 값이 있으면)
   var nm=(_nlqG('v_name')||{}).value; if(nm) _nlqSet('nlq-name', nm);
   var bd=(_nlqG('v_birth')||{}).value; if(bd) { _nlqSet('nlq-birth', bd); nlqOnBirth(); }
+  nlqClearChipBoxes();   // 재오픈 시 이전 세션 칩 입력 잔존 방지(확보율 stale 오표기 수정)
   nlqRenderLsCards(); nlqSelHHUI(); nlqSelRetUI();
   try { var cb=_nlqG('nlq-autostart'); if(cb) cb.checked = (localStorage.getItem('nl_quick_autostart')!=='0'); } catch(e){}
   q.style.display='block'; document.body.style.overflow='hidden';
@@ -2711,6 +2714,23 @@ function nlqToggleChip(key){
   row.style.display= open?'none':'block';
   if(btn){ btn.classList.toggle('on', !open); var sp=btn.querySelector('span:last-child'); if(sp) sp.textContent= open?'＋':'－'; }
   if(!open){ var inp=row.querySelector('input,select'); if(inp) inp.focus(); }
+}
+/* 칩 입력창 초기화(값·펼침·+/− 표시만 리셋, 모델은 건드리지 않음) — 재오픈 시 이전 입력 잔존 방지 */
+function nlqClearChipBoxes(){
+  ['nlq-fin','nlq-nps','nlq-priv','nlq-life2'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var t=document.getElementById('nlq-nps-type'); if(t) t.value='NPS';
+  ['fin','nps','priv','life'].forEach(function(key){
+    var row=document.getElementById('nlq-row-'+key); if(row) row.style.display='none';
+    var btn=document.getElementById('nlq-chip-'+key);
+    if(btn){ btn.classList.remove('on'); var sp=btn.querySelector('span:last-child'); if(sp) sp.textContent='＋'; }
+  });
+  _nlqPrevSnap=null;
+}
+/* 초기화 버튼(확보율 단계): 입력창 비우고 모델 자산·연금도 0으로 되돌린 뒤 게이지 갱신 */
+function nlqResetChips(){
+  nlqClearChipBoxes();
+  nlqApplyChips();            // v_fin_cash / v_npsAmt / v_privAmt = 0 재적용
+  nlqRenderGauge(false);
 }
 function nlqOnChipInput(){
   var p=_nlqKpi(); _nlqPrevSnap={ pct:p.coverPct||0, gap:p.gapMonthlyMan||0 };
