@@ -2366,9 +2366,11 @@ class NextLifeAdvisorApp {
     // ── 간편모드가 읽는 KPI 경계 (store-app window._calcKpiRaw 대응, 순수 스냅샷·로직 변경 없음) ──
     // 확보율(coverPct): targetCapital은 "연금 제외·자산만으로 목표소득 전액 충당"이라 연금 좋은 고객을 과소평가한다.
     // 대신 드로다운 시뮬 결과(고갈나이 vs 기대수명)로 정의 — monthlyGapMan이 이미 연금소득을 차감한 값이라 연금 인지형 지표.
-    // 확보율: 보유 금융자산이 '은퇴 후 연금 부족분(+간병비)'을 기대수명까지 대는 데 필요한 자산(현재가치) 대비 몇 %인가.
-    // 자산 0 → 0%, 자산이 충분해 소진 안 됨 → 100%. (gap이 이미 연금소득을 차감해 연금 인지형)
-    // ※ 기존 '소진연차/은퇴기간' 방식은 자산 0이어도 소진연차=은퇴+1이라 짧은 잔여수명(기대수명≈은퇴나이)에서 100%로 오표기되던 버그가 있어 교체.
+    // 확보율 = 목표 은퇴소득 대비 '확보된 소득' 비율(소득 준비율). 연금소득 + 보유 자산으로 메우는 부족분.
+    //  · 연금이 목표의 상당부분을 대면 자산이 0이어도 그만큼(예 300/450≈70%) 확보로 인정 → 0% 오표기 해소
+    //  · 부족분을 자산이 완전히 메우면(소진 안 됨) 100% (100% ↔ 기대수명까지 유지 일치)
+    //  · pvNeed = 은퇴후 부족분(+간병) 현재가치, _assetFrac = 부족분을 자산이 메우는 비율
+    //  ※ 과거 '소진연차/은퇴기간' 방식은 자산 0에서도 100% 폭주 버그가 있어 폐기.
     let _covPct;
     {
       const _N = Math.max(0, (lifeExp || 0) - (retAge || 0));
@@ -2379,7 +2381,10 @@ class NextLifeAdvisorApp {
         _pvNeed += _wd / Math.pow(1 + postRet / 100, _k + 1);
       }
       const _availAssets = Math.max(0, finAssetWon - lumpWon);
-      _covPct = (_pvNeed <= 0) ? 100 : Math.max(0, Math.min(100, Math.round(_availAssets / _pvNeed * 100)));
+      const _assetFrac = _pvNeed > 0 ? Math.min(1, _availAssets / _pvNeed) : 1;   // 부족분을 자산이 메우는 비율
+      const _targetMan = Math.max(0, targetIncMan || 0);
+      const _unmetMan = monthlyGapMan * (1 - _assetFrac);                          // 자산으로도 못 메우는 월 부족(만원)
+      _covPct = _targetMan > 0 ? Math.max(0, Math.min(100, Math.round((_targetMan - _unmetMan) / _targetMan * 100))) : 100;
     }
     window._nlKpi = {
       curAge, retAge, lifeExp, isRetired: curAge >= retAge,
@@ -2758,8 +2763,12 @@ function nlqRenderGauge(showDelta){
     var parts=[];
     if((k.gapMonthlyMan||0)>0) parts.push('완전 은퇴 후 월 <b style="color:#f0c9c9">'+Math.round(k.gapMonthlyMan).toLocaleString()+'만원</b> 부족');
     else parts.push('<b style="color:#7fd6c4">연금만으로 생활비 충당</b>');
-    if(k.depletionAge && k.depletionAge<=k.lifeExp) parts.push('자산 약 <b style="color:#f0c9c9">'+k.depletionAge+'세</b> 고갈 위험');
-    else parts.push('기대수명까지 <b style="color:#7fd6c4">유지</b>');
+    if((k.finAssetWon||0) >= 1e6){   // 유의미한 금융자산이 있을 때만 소진/유지 표기(자산 0인데 "고갈"은 오해)
+      if(k.depletionAge && k.depletionAge<=k.lifeExp) parts.push('자산 약 <b style="color:#f0c9c9">'+k.depletionAge+'세</b> 고갈 위험');
+      else parts.push('기대수명까지 <b style="color:#7fd6c4">유지</b>');
+    } else if((k.gapMonthlyMan||0)>0){
+      parts.push('부족분 메울 <b style="color:#f0c9c9">금융자산 없음</b>');
+    }
     gEl.innerHTML=parts.join(' · ');
   }
   var dEl=_nlqG('nlq-gauge-delta');
@@ -2780,7 +2789,9 @@ function nlqRenderSummary(){
   var col = pct>=100? '#7fd6c4' : (pct>=70? '#c9a24b' : '#e08a8a');
   var pEl=_nlqG('nlq-sum-pct'); if(pEl){ pEl.textContent=pct+'%'; pEl.style.color=col; }
   var gEl=_nlqG('nlq-sum-gap'); if(gEl) gEl.textContent = (k.gapMonthlyMan||0)>0 ? Math.round(k.gapMonthlyMan).toLocaleString()+'만' : '없음';
-  var dEl=_nlqG('nlq-sum-depl'); if(dEl) dEl.textContent = (k.depletionAge && k.depletionAge<=k.lifeExp) ? ('약 '+k.depletionAge+'세') : '유지';
+  var dEl=_nlqG('nlq-sum-depl');
+  if(dEl) dEl.textContent = ((k.finAssetWon||0) < 1e6) ? '자산 없음'
+    : ((k.depletionAge && k.depletionAge<=k.lifeExp) ? ('약 '+k.depletionAge+'세') : '유지');
 
   var sols=nlqBuildSolutions(k);
   var tEl=_nlqG('nlq-today'); if(tEl) tEl.textContent = sols.length? sols[0].t : '현재 계획이 안정적입니다 — 매년 점검만 유지하세요.';
