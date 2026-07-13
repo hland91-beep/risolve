@@ -2682,6 +2682,7 @@ function nlqApplyChips(){
   var eok=_nlqNum('nlq-fin',0); _nlqSet('v_fin_cash', eok*10);           // 억 → 천만원(×10)
   var npsAmt=_nlqNum('nlq-nps',0); var type=(_nlqG('nlq-nps-type')||{}).value||'NPS';
   _nlqSet('v_pensionType', type); _nlqSet('v_npsAmt', npsAmt);
+  try { app._updatePensionLabels(); } catch(e){}  // 정밀모드 3단계 라벨 동기화(⚠️syncNpsEstimate는 직접입력 연금액을 덮어쓰므로 호출 금지)
   _nlqSet('v_privAmt', _nlqNum('nlq-priv',0));
   var life=_nlqNum('nlq-life2',0); _nlqSet('v_lifeExp', (life>0 ? life : 90));  // 비우면 기본 90으로 리셋(stale 잔존 방지)
   try { app.calcAll(); } catch(e){}
