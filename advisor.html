@@ -1285,14 +1285,26 @@ class NextLifeAdvisorApp {
     this.calcAll();
   }
 
+  // 만 나이(생일 경과 반영, 시스템 날짜 기준). 연도 뺄셈(2026−출생년)은 생일 전 고객을 1세 많게 계산해
+  // store-app과 나이·필요자금이 어긋나던 원인 — 반드시 이 헬퍼를 사용할 것.
+  _manAgeFrom8(birthStr) {
+    const s = String(birthStr || '');
+    if (s.length !== 8) return null;
+    const by = parseInt(s.substring(0, 4)), bm = parseInt(s.substring(4, 6)) || 1, bd = parseInt(s.substring(6, 8)) || 1;
+    if (!by || by < 1900) return null;
+    const now = new Date();
+    let age = now.getFullYear() - by;
+    if ((now.getMonth() + 1) < bm || ((now.getMonth() + 1) === bm && now.getDate() < bd)) age--;
+    return Math.max(0, age);
+  }
+
   autoCalculateAgeV19() {
     const birthStr = this._val('v_birth');
     const pt = this._val('v_pensionType');
     if (birthStr && birthStr.length === 8) {
       const birthYear = parseInt(birthStr.substring(0, 4));
-      const currentYear = 2026;
-      let calculatedAge = currentYear - birthYear;
-      if (calculatedAge < 0) calculatedAge = 0;
+      let calculatedAge = this._manAgeFrom8(birthStr);
+      if (calculatedAge == null || calculatedAge < 0) calculatedAge = 0;
       const ageEl = document.getElementById('v_age');
       if (ageEl) ageEl.value = calculatedAge;
 
@@ -2508,6 +2520,7 @@ window.addEventListener('DOMContentLoaded', () => {
         <div id="nlq-needed" style="font-size:34px;font-weight:900;color:#c9a24b;line-height:1.1">–</div>
         <div id="nlq-asmonthly" style="font-size:12.5px;color:#c7d0dc;font-weight:700;margin-top:10px"></div>
         <div id="nlq-assump" style="font-size:11px;color:#7c8ea6;font-weight:600;margin-top:8px;line-height:1.5"></div>
+        <div id="nlq-spenddown" style="font-size:11.5px;color:#8fa0b8;font-weight:700;margin-top:10px;padding-top:10px;border-top:1px solid #1c3a57;line-height:1.5"></div>
       </div>
       <div class="nlq-panel">
         <label class="nlq-lbl">계획 성향 (은퇴 후 수익률 가정)</label>
@@ -2640,8 +2653,10 @@ function nlqOnBirth(){
   var bd=(_nlqG('nlq-birth')||{}).value||''; bd=String(bd);
   var chip=_nlqG('nlq-age-chip');
   if(bd.length===8){
-    var by=parseInt(bd.substring(0,4)); var age=2026-by;
-    if(chip && age>0 && age<120){ chip.textContent='만 '+age+'세'; chip.style.display='block'; }
+    var age=null;
+    try { age = window.app ? app._manAgeFrom8(bd) : null; } catch(e){}   // 만 나이 단일 소스(정밀모드와 동일 계산)
+    if(chip && age!=null && age>0 && age<120){ chip.textContent='만 '+age+'세'; chip.style.display='block'; }
+    else if(chip){ chip.style.display='none'; }
   } else if(chip){ chip.style.display='none'; }
 }
 function nlqSelRet(v){ _nlqState.ret=v; nlqSelRetUI(); }
@@ -2709,7 +2724,19 @@ function nlqRenderStep2(){
     else { amEl.textContent='＝ 지금부터 매달 약 '+_nlqFmt(k.monthlyShort)+' 적립하는 것과 같아요'; }
   }
   var asEl=_nlqG('nlq-assump');
-  if(asEl){ asEl.textContent='물가 2.5% 반영 · 은퇴 후 수익률 '+((_nlqG('v_goalPostRet')||{}).value||'4.5')+'% 가정 · 만 '+(k.retAge||60)+'세 은퇴 · 월 생활비 '+(k.targetIncMan||0)+'만원 기준'; }
+  if(asEl){ asEl.textContent='물가 2.5% 반영 · 은퇴 후 수익률 '+((_nlqG('v_goalPostRet')||{}).value||'4.5')+'% 가정 · 만 '+(k.retAge||60)+'세 은퇴 · 월 생활비 '+(k.targetIncMan||0)+'만원 기준 · 원금보존형(원금은 지키고 수익으로 생활)'; }
+  // 참고치: 자산 소진형(기대수명까지 원금까지 나눠 씀) — 전문가용 상담 앱(store-app)과 동일 산식(실질수익률 연금현가). 표시 전용, 엔진 무관.
+  var sdEl=_nlqG('nlq-spenddown');
+  if(sdEl){
+    var _infl=parseFloat((_nlqG('v_goalInfl')||{}).value); if(isNaN(_infl)) _infl=2.5;
+    var _pr=parseFloat((_nlqG('v_goalPostRet')||{}).value); if(isNaN(_pr)) _pr=5.5;
+    var _N=Math.max(0,(k.lifeExp||90)-(k.retAge||65));
+    var _annualFut=(k.targetCapital||0)*(_pr/100);           // targetCapital=연생활비/수익률 → 역산
+    var _real=(1+_pr/100)/(1+_infl/100)-1;
+    var _pv=(_N<=0)?0:(Math.abs(_real)>1e-9? _annualFut*(1-Math.pow(1+_real,-_N))/_real : _annualFut*_N);
+    sdEl.innerHTML=(_pv>0 && !k.isRetired)? '참고 · 원금까지 기대수명('+(k.lifeExp||90)+'세)에 맞춰 나눠 쓰는 기준이면 <b style="color:#e8dcc0">'+_nlqFmt(_pv)+'</b>' : '';
+    sdEl.style.display=(sdEl.innerHTML)?'block':'none';
+  }
   nlqScnUI();
 }
 function nlqApplyScn(t){
