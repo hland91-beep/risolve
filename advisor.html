@@ -36,6 +36,10 @@
       main div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
       main [style*="grid-column:span 3"], main [style*="grid-column: span 3"] { grid-column: auto !important; }
       main div[style*="display:flex"][style*="justify-content:space-between"] { flex-wrap: wrap; }
+      /* 스텝 이전/다음 버튼은 폰 폭에서도 한 줄 유지 — 다음 버튼이 남은 폭을 채움 */
+      main .nl-stepnav { flex-wrap: nowrap !important; }
+      main .nl-stepnav button:first-child { flex: 0 0 auto; padding: 13px 14px !important; }
+      main .nl-stepnav button:last-child { flex: 1 1 auto; min-width: 0; padding: 13px 10px !important; font-size: 12.5px !important; }
       main h1 { font-size: 22px !important; }
       main h2 { font-size: 19px !important; }
     }
@@ -315,7 +319,7 @@
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo1()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo3()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 3단계 수입·지출 분석 →</button>
         </div>
@@ -451,17 +455,19 @@
           <h3 style="font-size:16px;font-weight:800;color:#101828;margin:0">소득 부족분 해결 방법</h3>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
             <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px">
-              <h4 style="font-size:12.5px;font-weight:800;color:#0b1f33;display:flex;justify-content:space-between;border-bottom:1px solid #e2e1da;padding-bottom:10px;margin:0">
-                <span>재취업 소득 설정</span>
+              <h4 style="font-size:12.5px;font-weight:800;color:#0b1f33;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e1da;padding-bottom:10px;margin:0">
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" id="v_useExtra" checked onchange="app.handleCalc()" style="width:16px;height:16px;accent-color:#0f766e;cursor:pointer;margin:0" /><span>재취업 소득 설정</span></label>
                 <span id="o_extraTotal" style="color:#0f766e;font-weight:800">활동기간: 5년</span>
               </h4>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:6px">재취업 시작 나이</label><input type="number" id="v_extraStart" value="60" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;background:#fff;box-sizing:border-box" /></div>
-                <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:6px">재취업 그만할 나이</label><input type="number" id="v_extraEnd" value="65" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;background:#fff;box-sizing:border-box" /></div>
-              </div>
-              <div>
-                <label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:6px">재취업 예상 월 소득 (만원/월)</label>
-                <input type="number" id="v_extraSalary" value="150" onInput="app.handleCalc()" style="width:100%;padding:12px 14px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:800;font-size:16px;background:#fff;box-sizing:border-box" />
+              <div id="extraInputsWrap" style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:6px">재취업 시작 나이</label><input type="number" id="v_extraStart" value="60" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;background:#fff;box-sizing:border-box" /></div>
+                  <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:6px">재취업 그만할 나이</label><input type="number" id="v_extraEnd" value="65" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;background:#fff;box-sizing:border-box" /></div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:6px">재취업 예상 월 소득 (만원/월)</label>
+                  <input type="number" id="v_extraSalary" value="150" onInput="app.handleCalc()" style="width:100%;padding:12px 14px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:800;font-size:16px;background:#fff;box-sizing:border-box" />
+                </div>
               </div>
             </div>
 
@@ -469,20 +475,21 @@
               <div style="display:flex;flex-direction:column;gap:12px">
                 <h4 style="font-size:12.5px;font-weight:800;color:#0b1f33;border-bottom:1px solid #e2e1da;padding-bottom:10px;margin:0">자산으로 월 소득 만들기</h4>
                 <div style="background:#fff;padding:14px;border-radius:9px;border:1px solid #e2e1da;font-weight:700;font-size:13.5px;display:flex;flex-direction:column;gap:10px">
-                  <div style="display:flex;justify-content:space-between;align-items:center"><span>투자 부동산 예상 임대 수익 (<span id="lbl_ret" style="color:#0f766e">4.5%</span>)</span><span style="color:#0f766e;font-weight:800;font-size:15px">+ <span id="o_solA">0</span> 만원/월</span></div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eceae3;padding-top:8px"><span>주택연금 (집을 담보로 받는 연금)</span><span style="color:#0b1f33;font-weight:800;font-size:15px">+ <span id="o_solB">0</span> 만원/월</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:7px;cursor:pointer;min-width:0"><input type="checkbox" id="v_useSolA" checked onchange="app.handleCalc()" style="width:15px;height:15px;accent-color:#0f766e;cursor:pointer;margin:0;flex-shrink:0" /><span>투자 부동산 예상 임대 수익 (<span id="lbl_ret" style="color:#0f766e">4.5%</span>)</span></label><span id="o_solA_wrap" style="color:#0f766e;font-weight:800;font-size:15px;flex-shrink:0;white-space:nowrap">+ <span id="o_solA">0</span> 만원/월</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #eceae3;padding-top:8px"><label style="display:flex;align-items:center;gap:7px;cursor:pointer;min-width:0"><input type="checkbox" id="v_useSolB" checked onchange="app.handleCalc()" style="width:15px;height:15px;accent-color:#0b1f33;cursor:pointer;margin:0;flex-shrink:0" /><span>주택연금 (집을 담보로 받는 연금)</span></label><span id="o_solB_wrap" style="color:#0b1f33;font-weight:800;font-size:15px;flex-shrink:0;white-space:nowrap">+ <span id="o_solB">0</span> 만원/월</span></div>
                 </div>
               </div>
               <div style="padding:12px 14px;background:#fff;border:1px solid #e2e1da;border-radius:9px;font-size:11.5px;color:#475569;line-height:1.6;font-weight:600">
                 <p style="margin:0 0 4px;font-weight:800;color:#0b1f33">산출근거</p>
                 <p style="margin:0 0 4px">투자 부동산 임대수익: (투자용 아파트·오피스텔 + 상가·빌딩 + 토지 자산 합계) × 연 4.5% ÷ 12개월. 거주주택은 제외합니다.</p>
-                <p style="margin:0">주택연금: 거주 주택 가액 × 연령별 월지급률(은퇴연령 60세 이하 0.20% / 65세 0.25% / 70세 0.30% / 75세 이상 0.35%)로, 한국주택금융공사 종신지급방식을 근사한 금액입니다.</p>
+                <p style="margin:0 0 4px">주택연금: 거주 주택 가액 × 연령별 월지급률(은퇴연령 60세 이하 0.20% / 65세 0.25% / 70세 0.30% / 75세 이상 0.35%)로, 한국주택금융공사 종신지급방식을 근사한 금액입니다.</p>
+                <p style="margin:0;color:#8a6d1f">※ 체크를 해제한 항목(재취업·임대수익·주택연금)은 소득 합산과 부족분 해소 계산에서 제외됩니다.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo2()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo4()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 4단계 연금·세금 분석 →</button>
         </div>
@@ -555,7 +562,7 @@
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo3()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo5()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 5단계 목표자금 & 저축 로드맵 →</button>
         </div>
@@ -647,7 +654,7 @@
           <p style="font-size:9.5px;color:#94a3b8;font-weight:600;line-height:1.5;margin:0">※ 인출 대상은 <strong>금융자산(순자산 − 부동산)</strong> 기준입니다. 부동산은 <strong>주택연금</strong>으로 유동화하면 고갈 시점을 늦출 수 있습니다. 일시 대형지출은 은퇴 시점에 1회 차감으로 가정합니다.</p>
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo4()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo6()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 6단계 절세 계좌 솔루션 →</button>
         </div>
@@ -714,7 +721,7 @@
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo5()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo7()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 7단계 효과 검증 →</button>
         </div>
@@ -774,7 +781,7 @@
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo6()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo8()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 8단계 상속·증여 →</button>
         </div>
@@ -834,7 +841,7 @@
           <strong>안내:</strong> 위 상속·증여세는 일괄공제·금융재산공제·동거주택상속공제 등 다양한 공제항목과 사전증여 합산·세대생략 할증 등을 생략한 <strong>매우 단순화된 개략 추정치</strong>입니다. 실제 세액과 크게 다를 수 있으므로, 반드시 <strong>세무사 등 전문가와 상담·검토</strong>하신 후 의사결정하시기 바랍니다.
         </div>
 
-        <div style="display:flex;justify-content:space-between;padding-top:24px">
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
           <button onclick="app.goTo7()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
           <button onclick="app.goTo9()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 9단계 종합 보고서 →</button>
         </div>
@@ -1278,6 +1285,7 @@ class NextLifeAdvisorApp {
   _val(id) { const e = document.getElementById(id); return e ? e.value : ''; }
   _num(id, def) { const v = parseFloat(this._val(id)); return isNaN(v) ? (def || 0) : v; }
   _int(id, def) { const v = parseInt(this._val(id)); return isNaN(v) ? (def || 0) : v; }
+  _chkOn(id) { const e = document.getElementById(id); return e ? e.checked : true; }
 
   setRetireAge(age) {
     const el = document.getElementById('v_retAge');
@@ -1371,6 +1379,7 @@ class NextLifeAdvisorApp {
       'v_targetInc': 500, 'v_npsAmt': 180, 'v_privAmt': 50,
       'v_npsStart': 28, 'v_npsEnd': 60, 'v_npsB': 300,
       'v_extraStart': 60, 'v_extraEnd': 65, 'v_extraSalary': 150,
+      'v_useExtra': '1', 'v_useSolA': '1', 'v_useSolB': '1',
       'v_tax_rate': '0.165', 'v_taxSave': 600, 'v_taxIrp': 300, 'v_isaRoll': 3000,
       'v_isaType': '200', 'v_isaProfit': 500, 'v_taxBasic': 50, 'v_taxSpouse': 0, 'v_giftAmt': 20, 'v_giftTarget': '5',
       'v_goalInfl': 2.5, 'v_goalPostRet': 4.5, 'v_goalInvRet': 6.0,
@@ -1379,7 +1388,8 @@ class NextLifeAdvisorApp {
     };
     Object.keys(defaults).forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.value = defaults[id];
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = defaults[id] === '1'; else el.value = defaults[id];
     });
     this.npsAgeSetByUser = false;
     this._setTxt('o_legalAgeNum', '65');
@@ -1393,7 +1403,10 @@ class NextLifeAdvisorApp {
     const name = this._val('v_name').trim();
     if (!name) { alert('고객 성명을 기입하십시오.'); return; }
     const data = {};
-    document.querySelectorAll('input, select').forEach(el => { if (el.id) data[el.id] = el.value; });
+    document.querySelectorAll('input, select').forEach(el => {
+      if (!el.id) return;
+      data[el.id] = (el.type === 'checkbox' && el.id.indexOf('v_') === 0) ? (el.checked ? '1' : '0') : el.value;
+    });
     let db = localStorage.getItem('next_life_advisor_db_v1') ? JSON.parse(localStorage.getItem('next_life_advisor_db_v1')) : {};
     db[name] = { timestamp: new Date().toLocaleString('ko-KR'), payload: data };
     localStorage.setItem('next_life_advisor_db_v1', JSON.stringify(db));
@@ -1436,7 +1449,12 @@ class NextLifeAdvisorApp {
     const data = db[name].payload;
     Object.keys(data).forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.value = data[id];
+      if (!el) return;
+      if (el.type === 'checkbox' && id.indexOf('v_') === 0) el.checked = (data[id] === '1'); else el.value = data[id];
+    });
+    // 토글 도입 전 저장분에는 키가 없음 → 기본값(적용 ON)으로 복원
+    ['v_useExtra', 'v_useSolA', 'v_useSolB'].forEach(id => {
+      if (!(id in data)) { const el = document.getElementById(id); if (el) el.checked = true; }
     });
     this.npsAgeSetByUser = true;
     this._updatePensionLabels();
@@ -1808,11 +1826,16 @@ class NextLifeAdvisorApp {
     const privEndAge = this._num('v_privEndAge', 80);
     const targetInc = baseTargetInc;
 
+    const useExtra = this._chkOn('v_useExtra');
     const exStart = this._int('v_extraStart', 60);
     const exEnd = this._int('v_extraEnd', 65);
-    const exSal = this._num('v_extraSalary');
+    const exSal = useExtra ? this._num('v_extraSalary') : 0;
     const exYears = Math.max(0, exEnd - exStart);
-    this._setTxt('o_extraTotal', `활동기간: ${exYears}년`);
+    this._setTxt('o_extraTotal', useExtra ? `활동기간: ${exYears}년` : '적용 안 함');
+    const _exTotEl = document.getElementById('o_extraTotal');
+    if (_exTotEl) _exTotEl.style.color = useExtra ? '#0f766e' : '#94a3b8';
+    const _exWrapEl = document.getElementById('extraInputsWrap');
+    if (_exWrapEl) { _exWrapEl.style.opacity = useExtra ? '1' : '.45'; _exWrapEl.style.pointerEvents = useExtra ? 'auto' : 'none'; }
 
     const basePensionIncomeTotal = adjustedNpsAmt + privAmt + finalBasicPension;
 
@@ -1895,11 +1918,17 @@ class NextLifeAdvisorApp {
     })();
 
     const nonResAsset = resInv + resBld + resLand;
-    const solA_Inc = (nonResAsset * 1000 * (4.5 / 100)) / 12;
+    const useSolA = this._chkOn('v_useSolA');
+    const useSolB = this._chkOn('v_useSolB');
+    const _solA_pot = (nonResAsset * 1000 * (4.5 / 100)) / 12;
     const _solB_rate = baseRetAge <= 60 ? 0.0020 : (baseRetAge <= 65 ? 0.0025 : (baseRetAge <= 70 ? 0.0030 : 0.0035));
-    const solB_Inc = resHome * 1000 * _solB_rate;
-    this._setTxt('o_solA', Math.round(solA_Inc).toLocaleString());
-    this._setTxt('o_solB', Math.round(solB_Inc).toLocaleString());
+    const _solB_pot = resHome * 1000 * _solB_rate;
+    const solA_Inc = useSolA ? _solA_pot : 0;
+    const solB_Inc = useSolB ? _solB_pot : 0;
+    this._setTxt('o_solA', Math.round(_solA_pot).toLocaleString());
+    this._setTxt('o_solB', Math.round(_solB_pot).toLocaleString());
+    const _dimSol = (wid, on) => { const e = document.getElementById(wid); if (e) { e.style.opacity = on ? '1' : '.4'; e.style.textDecoration = on ? 'none' : 'line-through'; } };
+    _dimSol('o_solA_wrap', useSolA); _dimSol('o_solB_wrap', useSolB);
 
     if (_pensionType === 'NPS') {
       const lawEl = document.getElementById('o_basicPensionLaw');
