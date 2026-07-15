@@ -304,9 +304,10 @@ function clearAll(){
   ["trend","opinion"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("app").innerHTML=""; document.getElementById("err").style.display="none";
 }
-/* ===== 자동조회(선택) — 프록시 배포 시 종목번호로 폼 채우기 =====
-   배포 후: FUND_URL = "/.netlify/functions/quote-fundamentals?code={code}"; */
-const FUND_URL="";
+/* ===== 자동조회 — Netlify 배포본에서 종목번호로 실적·컨센서스 자동 채우기 =====
+   기본은 Yahoo(키 불필요). 국내 재무를 정확히 쓰려면 quote-dart 로 바꾸세요(DART 키 필요):
+     const FUND_URL="/.netlify/functions/quote-dart?code={code}"; */
+const FUND_URL="/.netlify/functions/quote-fundamentals?code={code}";
 function fillFromFund(d){
   const s=(id,v)=>{if(v!=null&&document.getElementById(id))document.getElementById(id).value=String(v);};
   if(d.fundamentals){const F=d.fundamentals;s("revG",F.revenueGrowth);s("epsG",F.earningsGrowth);s("opm",F.operatingMargin);s("debt",F.debtToEquity);
@@ -321,11 +322,12 @@ async function autoFetch(){
   const code=(document.getElementById("code").value||"").replace(/\D/g,"");
   const info=document.getElementById("autoInfo");
   if(!/^\d{6}$/.test(code)){info.className="parseinfo bad";info.textContent="6자리 종목번호를 입력하세요.";return;}
-  if(!FUND_URL){info.className="parseinfo bad";info.textContent="자동조회는 프록시 배포가 필요합니다(파일 상단 FUND_URL). 미배포 시 수기 입력을 쓰세요.";return;}
   info.className="parseinfo";info.textContent="조회 중…";
-  try{const r=await fetch(FUND_URL.replace("{code}",code));const j=await r.json();if(j.error)throw new Error(j.error);
+  try{const r=await fetch(FUND_URL.replace("{code}",code));
+    if(!r.ok)throw new Error("서버 "+r.status);
+    const j=await r.json();if(j.error)throw new Error(j.error);
     fillFromFund(j);info.className="parseinfo";info.textContent=`✅ ${(j.meta&&j.meta.name)||code} 반영 (결측 필드는 수기 보완) · 목표가 추이·서프라이즈는 자동 미제공`;analyze();
-  }catch(e){info.className="parseinfo bad";info.textContent="자동조회 실패: "+e.message;}
+  }catch(e){info.className="parseinfo bad";info.textContent=`자동조회 서버에 연결 안 됨(${e.message}). Netlify 배포본에서 동작하며, 그 외에는 수기 입력을 쓰세요.`;}
 }
 document.getElementById("autoBtn").onclick=autoFetch;
 

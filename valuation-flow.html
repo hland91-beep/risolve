@@ -430,12 +430,11 @@ function clearAll(){
   document.getElementById("app").innerHTML=""; showErr("");
 }
 
-/* ===== 자동조회(선택) — 프록시 배포 시 종목번호로 폼 채우기 =====
-   배포 후 아래 URL 설정:
-     FUND_URL = "/.netlify/functions/quote-fundamentals?code={code}";  // 밸류(PER/PBR/ROE/배당)
-     FLOW_URL = "/.netlify/functions/quote-kis-flow?code={code}";      // 수급(외국인/기관) */
-const FUND_URL="";
-const FLOW_URL="";
+/* ===== 자동조회 — Netlify 배포본에서 종목번호로 폼 자동 채우기 =====
+   Netlify 배포 시 상대경로로 동작. 밸류(Yahoo)는 키 불필요, 수급(KIS)은 환경변수 필요.
+   GitHub Pages·로컬 등 함수가 없는 곳에서는 아래 수기 입력을 쓰세요(자동 그레이스풀 처리). */
+const FUND_URL="/.netlify/functions/quote-fundamentals?code={code}"; // 밸류(PER/PBR/ROE/배당) · 키 불필요
+const FLOW_URL="/.netlify/functions/quote-kis-flow?code={code}";     // 수급(외국인/기관) · KIS 키 필요
 function fillVal(d){ const s=(id,v)=>{if(v!=null&&document.getElementById(id))document.getElementById(id).value=String(v);};
   if(d.meta&&d.meta.price!=null)s("px",Math.round(d.meta.price).toLocaleString("ko-KR"));
   if(d.valuation){const V=d.valuation;s("per",V.per);s("pbr",V.pbr);s("roe",V.roe);s("dy",V.dividendYield);} }
@@ -445,11 +444,19 @@ async function autoFetch(){
   const code=(document.getElementById("code").value||"").replace(/\D/g,"");
   const info=document.getElementById("autoInfo");
   if(!/^\d{6}$/.test(code)){info.className="parseinfo bad";info.textContent="6자리 종목번호를 입력하세요.";return;}
-  if(!FUND_URL&&!FLOW_URL){info.className="parseinfo bad";info.textContent="자동조회는 프록시 배포가 필요합니다(파일 상단 FUND_URL/FLOW_URL). 미배포 시 아래 수기 입력을 쓰세요.";return;}
-  info.className="parseinfo";info.textContent="조회 중…";const msgs=[];
-  if(FUND_URL){try{const r=await fetch(FUND_URL.replace("{code}",code));const j=await r.json();if(j.error)throw new Error(j.error);fillVal(j);msgs.push(`밸류 ${(j.meta&&j.meta.name)||code}`);}catch(e){msgs.push("밸류 실패: "+e.message);}}
-  if(FLOW_URL){try{const r=await fetch(FLOW_URL.replace("{code}",code));const j=await r.json();if(j.error)throw new Error(j.error);fillFlowAuto(j);msgs.push("수급 반영");}catch(e){msgs.push("수급 실패: "+e.message);}}
-  info.className="parseinfo";info.textContent="✅ "+msgs.join(" · ");analyze();
+  info.className="parseinfo";info.textContent="조회 중…";
+  const okMsgs=[], errMsgs=[];
+  async function pull(url,fill,label){
+    try{ const r=await fetch(url.replace("{code}",code));
+      if(!r.ok){ errMsgs.push(`${label} ${r.status}`); return; }
+      const j=await r.json(); if(j.error){ errMsgs.push(`${label}: ${j.error}`); return; }
+      fill(j); okMsgs.push(label);
+    }catch(e){ errMsgs.push(`${label} 연결불가`); }
+  }
+  if(FUND_URL) await pull(FUND_URL, fillVal, "밸류");
+  if(FLOW_URL) await pull(FLOW_URL, fillFlowAuto, "수급");
+  if(okMsgs.length){ info.className="parseinfo"; info.textContent=`✅ ${okMsgs.join(" · ")} 자동 반영`+(errMsgs.length?` · 미반영: ${errMsgs.join(", ")}`:""); analyze(); }
+  else { info.className="parseinfo bad"; info.textContent=`자동조회 서버에 연결 안 됨(${errMsgs.join(", ")}). Netlify 배포본에서 동작하며, 그 외에는 수기 입력을 쓰세요.`; }
 }
 document.getElementById("autoBtn").onclick=autoFetch;
 

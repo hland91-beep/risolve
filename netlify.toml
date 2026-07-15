@@ -1,0 +1,11 @@
+# Netlify 설정 — 정적 HTML + 서버리스 함수(자동조회 프록시)
+# 연결만 하면 동작하도록 함수 디렉터리·번들러 지정. 빌드 스텝 없음(정적).
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"                 # require("./corp-map.json") 인라인 번들
+  included_files = ["netlify/functions/corp-map.json"]
+
+# 함수 기본 경로는 /.netlify/functions/<name> (HTML 의 FUND_URL/FLOW_URL 이 이 경로를 사용)
