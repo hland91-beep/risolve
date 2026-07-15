@@ -21,6 +21,10 @@
   .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:600;margin-bottom:6px;}
   h1.title{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;}
   .lede{font-size:13px;color:var(--sub);margin-bottom:18px;}
+  .navrow{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .navrow a{font-size:12px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;background:var(--card2);}
+  .navrow a:hover{border-color:var(--gold);color:var(--gold);}
+  .navrow a.here{border-color:var(--gold);color:var(--gold);background:rgba(212,169,78,.10);}
 
   /* 입력 폼 (zone-analyzer 토큰 그대로) */
   .form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
@@ -116,6 +120,11 @@
   <div class="eyebrow">VALUATION × FLOW ANALYZER</div>
   <h1 class="title">밸류·수급 분석기</h1>
   <p class="lede">MTS·네이버에서 5초면 보이는 <b>밸류에이션</b>과 <b>수급</b>을 넣으면 스코어·적정가 밴드·<b>밸류×수급 매트릭스</b>로 매매 방향을 구조화합니다. 오프라인 100% 동작.</p>
+  <div class="navrow">
+    <a href="valuation-flow.html" class="here">밸류·수급</a>
+    <a href="fundamentals-flow.html">펀더멘털·컨센서스</a>
+    <a href="scorecard.html">종합 스코어카드</a>
+  </div>
 
   <!-- 밸류에이션 입력 -->
   <div class="form">
