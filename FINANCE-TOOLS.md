@@ -35,8 +35,13 @@
 | 프록시 | 얻는 것 | 키 | 상태 |
 |---|---|---|---|
 | `quote-fundamentals.js` | PER·PBR·배당·ROE·성장·마진·목표주가·투자의견 (Yahoo quoteSummary) | 불필요 | 초안 — Yahoo 한국 재무 결측 잦음 |
+| `quote-dart.js` | 부채비율·영업이익률·ROE·매출/이익 성장·FCF (DART 국내 정의) | DART 무료키(env) | 초안 — corp_code(8자리) 필요 |
 | `quote-kis-flow.js` | 외국인·기관 순매수(수급) (KIS 투자자별) | KIS 앱키(env) | 초안 — **tr_id/필드 검증 필요** |
 | `quote-yahoo.js` / `quote.js` | 일봉(대응존용) | 없음 / KIS | 기존 |
+
+`quote-dart.js`·`quote-fundamentals.js` 는 반환 스키마가 같아(`fundamentals.*`, `valuation.roe`)
+`fundamentals-flow.html` 의 `FUND_URL` 에 어느 쪽이든 꽂을 수 있습니다. DART 는 국내 소형주 재무가
+정확하지만 종목코드(6자리)→고유번호(8자리) 매핑이 필요합니다(예: 삼성전자 005930→00126380).
 
 - Yahoo `quoteSummary` 는 **크럼+쿠키**가 필요해 브라우저 직접 호출 불가 → 서버 프록시 필수.
   `quote-fundamentals.js` 가 ①쿠키 ②크럼 ③quoteSummary 순서로 처리.
@@ -44,18 +49,21 @@
   배포 전 본인 앱키 문서로 tr_id(`FHKST01010900` 후보)·output 필드 확인·보정.
 - 환경변수: `KIS_APP_KEY`, `KIS_APP_SECRET`, `KIS_BASE`. 코드에 하드코딩 금지.
 
-### HTML 에서 자동 채우기 배선(선택)
-각 HTML 상단에 URL 상수를 두고 종목번호로 `fetch` → 반환 필드를 폼 input 에 채우면 됨
-(예: `quote-fundamentals` → `valuation`/`fundamentals`/`consensus` 필드, `quote-kis-flow` → `summary`의 f5/i5/... ).
-현재 HTML 은 manual-first 로만 배포되어 있으며, 배선은 다음 단계.
+### HTML 에서 자동 채우기 배선 ✅
+`valuation-flow.html`·`fundamentals-flow.html` 상단에 "종목번호로 자동 채우기" 패널이 있고,
+파일 상단 URL 상수만 설정하면 종목번호로 폼이 채워집니다(미설정 시 안내 후 수기 유지 = manual-first 불변).
+- `valuation-flow.html`: `FUND_URL`(밸류) + `FLOW_URL`(수급)
+- `fundamentals-flow.html`: `FUND_URL`(실적·컨센서스; Yahoo 또는 DART)
+자동 미제공 필드(업종평균 PER/PBR, 목표가 추이, 어닝 서프라이즈)는 수기 보완.
 
 ## 로드맵 상태
 
 - **Phase 1 ✅**: 수급 + 밸류에이션 (`valuation-flow.html`)
 - **Phase 2 ✅**: 펀더멘털·실적 + 컨센서스·목표주가 (`fundamentals-flow.html`)
 - **Phase 3 ✅**: 매크로·RS + 5축 종합 스코어카드 (`scorecard.html`)
-- **자동조회 초안 ✅**: `quote-fundamentals.js`, `quote-kis-flow.js`
-- **다음(선택)**: HTML↔프록시 자동채우기 배선, KIS tr_id 실계정 검증, DART 재무 보강
+- **자동조회 초안 ✅**: `quote-fundamentals.js`(Yahoo), `quote-kis-flow.js`(KIS 수급), `quote-dart.js`(DART 재무)
+- **자동채우기 배선 ✅**: valuation-flow·fundamentals-flow 종목번호 자동조회
+- **다음(선택)**: KIS tr_id 실계정 검증, 종목코드→DART 고유번호 매핑 파일, 배포 후 end-to-end 확인
 
 > 참고: 이 도구들은 기술적 대응존(zone-analyzer)과 짝을 이룹니다. 대응존은 "언제·어디서"(타이밍),
 > 본 스위트는 "왜·살 만한가"(가치·실적·수급·기대)에 답합니다.
