@@ -126,6 +126,19 @@
     <a href="scorecard.html">종합 스코어카드</a>
   </div>
 
+  <!-- 자동조회(선택) -->
+  <details class="adv" id="autoPanel">
+    <summary>종목번호로 자동 채우기 (프록시 배포 시) — 선택</summary>
+    <div class="body">
+      <p class="hint">프록시 배포 후 파일 상단 <b>FUND_URL</b>(밸류)·<b>FLOW_URL</b>(수급)을 설정하면 종목번호만으로 아래 칸이 채워집니다. 미배포면 아래 수기 입력을 쓰세요.</p>
+      <div class="advctl">
+        <input id="code" placeholder="005930" inputmode="numeric" style="flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--txt);font-family:var(--mono);outline:none;">
+        <button class="btn ghost" id="autoBtn">자동조회 → 채우기</button>
+      </div>
+      <div class="parseinfo" id="autoInfo"></div>
+    </div>
+  </details>
+
   <!-- 밸류에이션 입력 -->
   <div class="form">
     <div class="cap">밸류에이션 <span>MTS/네이버에서 조회 · 값 없는 칸은 비워도 됨</span></div>
@@ -414,6 +427,29 @@ function clearAll(){
   document.getElementById("flowInfo").textContent="";
   document.getElementById("app").innerHTML=""; showErr("");
 }
+
+/* ===== 자동조회(선택) — 프록시 배포 시 종목번호로 폼 채우기 =====
+   배포 후 아래 URL 설정:
+     FUND_URL = "/.netlify/functions/quote-fundamentals?code={code}";  // 밸류(PER/PBR/ROE/배당)
+     FLOW_URL = "/.netlify/functions/quote-kis-flow?code={code}";      // 수급(외국인/기관) */
+const FUND_URL="";
+const FLOW_URL="";
+function fillVal(d){ const s=(id,v)=>{if(v!=null&&document.getElementById(id))document.getElementById(id).value=String(v);};
+  if(d.meta&&d.meta.price!=null)s("px",Math.round(d.meta.price).toLocaleString("ko-KR"));
+  if(d.valuation){const V=d.valuation;s("per",V.per);s("pbr",V.pbr);s("roe",V.roe);s("dy",V.dividendYield);} }
+function fillFlowAuto(d){ if(!d.summary)return; const f=d.summary,s=(id,v)=>{document.getElementById(id).value=v==null?"":String(v);};
+  s("f5",f.f5);s("i5",f.i5);s("f20",f.f20);s("i20",f.i20);s("fStreak",f.fStreak);s("iStreak",f.iStreak); }
+async function autoFetch(){
+  const code=(document.getElementById("code").value||"").replace(/\D/g,"");
+  const info=document.getElementById("autoInfo");
+  if(!/^\d{6}$/.test(code)){info.className="parseinfo bad";info.textContent="6자리 종목번호를 입력하세요.";return;}
+  if(!FUND_URL&&!FLOW_URL){info.className="parseinfo bad";info.textContent="자동조회는 프록시 배포가 필요합니다(파일 상단 FUND_URL/FLOW_URL). 미배포 시 아래 수기 입력을 쓰세요.";return;}
+  info.className="parseinfo";info.textContent="조회 중…";const msgs=[];
+  if(FUND_URL){try{const r=await fetch(FUND_URL.replace("{code}",code));const j=await r.json();if(j.error)throw new Error(j.error);fillVal(j);msgs.push(`밸류 ${(j.meta&&j.meta.name)||code}`);}catch(e){msgs.push("밸류 실패: "+e.message);}}
+  if(FLOW_URL){try{const r=await fetch(FLOW_URL.replace("{code}",code));const j=await r.json();if(j.error)throw new Error(j.error);fillFlowAuto(j);msgs.push("수급 반영");}catch(e){msgs.push("수급 실패: "+e.message);}}
+  info.className="parseinfo";info.textContent="✅ "+msgs.join(" · ");analyze();
+}
+document.getElementById("autoBtn").onclick=autoFetch;
 
 document.getElementById("go").onclick=analyze;
 document.getElementById("demo").onclick=demo;
