@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>펀더멘털·컨센서스 분석기</title>
+<style>
+  :root{
+    --bg:#0B1220; --card:#121B2E; --card2:#0E1626;
+    --line:#22304A; --gold:#D4A94E; --teal:#3FBFB2;
+    --buy:#E06565; --buy-bg:rgba(224,101,101,.14);
+    --sell:#5B9BD5; --sell-bg:rgba(91,155,213,.14);
+    --neu:#8B97AB; --neu-bg:rgba(139,151,171,.14);
+    --txt:#E8ECF4; --sub:#93A0B8; --mut:#5D6B84;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--txt);
+    font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;
+    padding:20px 14px 48px;max-width:760px;margin:0 auto;line-height:1.5;}
+  .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:600;margin-bottom:6px;}
+  h1.title{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;}
+  .lede{font-size:13px;color:var(--sub);margin-bottom:18px;}
+  .navrow{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .navrow a{font-size:12px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;background:var(--card2);}
+  .navrow a:hover{border-color:var(--gold);color:var(--gold);}
+  .navrow a.here{border-color:var(--gold);color:var(--gold);background:rgba(212,169,78,.10);}
+  details.adv{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-bottom:12px;}
+  details.adv summary{cursor:pointer;padding:12px 0;font-size:13px;color:var(--sub);font-weight:600;list-style:none;}
+  details.adv summary::-webkit-details-marker{display:none;}
+  details.adv summary::before{content:"▸ ";color:var(--gold);}
+  details.adv[open] summary::before{content:"▾ ";}
+  details.adv .body{padding:4px 0 14px;}
+  details.adv p.hint{font-size:12px;color:var(--mut);margin-bottom:10px;line-height:1.6;}
+  .advctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .parseinfo{font-size:12px;color:var(--teal);margin-top:8px;} .parseinfo.bad{color:var(--buy);}
+
+  .form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .form .cap{font-size:12px;letter-spacing:.06em;color:var(--gold);font-weight:700;margin-bottom:10px;text-transform:uppercase;}
+  .form .cap span{color:var(--mut);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .frow.three{grid-template-columns:1fr 1fr 1fr;}
+  .frow:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:11px;color:var(--sub);margin-bottom:4px;letter-spacing:.04em;}
+  .field label b{color:var(--gold);} .field label i{color:var(--mut);font-style:normal;}
+  .field input,.field select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:9px 11px;color:var(--txt);font-size:15px;font-family:var(--mono);outline:none;}
+  .field select{font-family:inherit;font-size:14px;}
+  .field input:focus,.field select:focus{border-color:var(--gold);}
+  .field input::placeholder{color:var(--mut);font-family:inherit;}
+  .btnrow{display:flex;gap:8px;margin-top:2px;flex-wrap:wrap;}
+  .btn{background:var(--gold);color:#0B1220;border:none;border-radius:9px;padding:12px 18px;font-weight:700;font-size:15px;cursor:pointer;flex:1;min-width:130px;}
+  .btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);flex:none;min-width:auto;font-weight:600;font-size:13px;padding:12px 14px;}
+  .btn:active{transform:translateY(1px);}
+  .err{color:var(--buy);font-size:13px;margin-top:10px;display:none;}
+
+  h2{font-size:14px;letter-spacing:.08em;color:var(--sub);font-weight:600;margin:26px 0 12px;text-transform:uppercase;}
+  h2 span{color:var(--mut);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px;margin-left:8px;}
+  .callout{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--sub);margin-bottom:14px;}
+  .callout b{color:var(--txt);} .callout .hot{color:var(--gold);font-family:var(--mono);}
+
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .shead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .shead .ttl{font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.04em;}
+  .shead .grade{font-size:19px;font-weight:800;letter-spacing:-.01em;}
+  .shead .sc{font-family:var(--mono);font-size:13px;color:var(--mut);}
+  .gauge{margin:2px 0;}
+  .gtrack{position:relative;height:12px;border-radius:7px;background:linear-gradient(90deg,var(--sell) 0%,#2b3653 44%,#2b3653 56%,var(--buy) 100%);}
+  .gzero{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--mut);opacity:.6;}
+  .gmark{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;border:3px solid var(--bg);transform:translate(-50%,-50%);transition:left .25s ease;box-shadow:0 0 0 1px var(--line),0 2px 8px rgba(0,0,0,.5);}
+  .gmark.buy{background:var(--buy);} .gmark.sell{background:var(--sell);} .gmark.neu{background:var(--neu);}
+  .gticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px;padding:0 1px;}
+  .gticks b{color:var(--sub);font-weight:600;}
+  .gends{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px;}
+  .gends .l{color:var(--sell);} .gends .r{color:var(--buy);}
+  .metrics{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+  .metric{flex:1;min-width:120px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+  .metric .k{font-size:11px;color:var(--mut);margin-bottom:3px;}
+  .metric .v{font-size:15px;font-weight:700;}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:4px;}
+  th{font-size:11px;color:var(--mut);font-weight:600;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);letter-spacing:.06em;}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px;}
+  tr:last-child td{border-bottom:none;}
+  td.val{font-family:var(--mono);font-size:13px;color:var(--sub);text-align:right;}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;}
+  .tag.b{color:var(--buy);background:var(--buy-bg);} .tag.s{color:var(--sell);background:var(--sell-bg);} .tag.n{color:var(--neu);background:var(--neu-bg);}
+  td.chipcell{text-align:right;width:96px;}
+  .chip{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;}
+  .chip.buy{color:var(--buy);background:var(--buy-bg);} .chip.sell{color:var(--sell);background:var(--sell-bg);}
+  .chip.neu{color:var(--neu);background:var(--neu-bg);} .chip.gold{color:var(--gold);background:rgba(212,169,78,.12);}
+  .matrix{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:16px 16px 14px;margin-bottom:4px;}
+  .matrix .mt{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px;}
+  .matrix .ma{font-size:14px;color:var(--txt);line-height:1.55;}
+  .matrix .mn{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.55;} .matrix .mn b{color:var(--sub);}
+  .foot{margin-top:24px;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px;}
+  @media(max-width:480px){.frow.three{grid-template-columns:1fr 1fr;}.metric{min-width:calc(50% - 4px);}}
+</style>
+</head>
+<body>
+  <div class="eyebrow">FUNDAMENTALS × CONSENSUS ANALYZER</div>
+  <h1 class="title">펀더멘털·컨센서스 분석기</h1>
+  <p class="lede"><b>사업이 좋아지나</b>(실적·성장·수익성)와 <b>시장 기대치</b>(목표주가·투자의견)를 각각 −2~+2로 점수화합니다. DART·네이버·증권사 리포트 값을 수기로 넣으면 오프라인 100% 동작.</p>
+  <div class="navrow">
+    <a href="valuation-flow.html">밸류·수급</a>
+    <a href="fundamentals-flow.html" class="here">펀더멘털·컨센서스</a>
+    <a href="scorecard.html">종합 스코어카드</a>
+  </div>
+
+  <!-- 자동조회(선택) -->
+  <details class="adv" id="autoPanel">
+    <summary>종목번호로 자동 채우기 (프록시 배포 시) — 선택</summary>
+    <div class="body">
+      <p class="hint">프록시 배포 후 파일 상단 <b>FUND_URL</b>을 설정하면 종목번호만으로 실적·컨센서스 칸이 채워집니다(Yahoo quoteSummary). 결측 필드는 비고 수기 보완하세요.</p>
+      <div class="advctl">
+        <input id="code" placeholder="005930" inputmode="numeric" style="flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--txt);font-family:var(--mono);outline:none;">
+        <button class="btn ghost" id="autoBtn">자동조회 → 채우기</button>
+      </div>
+      <div class="parseinfo" id="autoInfo"></div>
+    </div>
+  </details>
+
+  <!-- 펀더멘털·실적 -->
+  <div class="form">
+    <div class="cap">펀더멘털 · 실적 <span>DART/네이버 · 값 없는 칸은 비워도 됨</span></div>
+    <div class="frow">
+      <div class="field"><label>업종 프리셋 <i>(임계값 보정)</i></label>
+        <select id="preset">
+          <option value="general">일반 · 제조</option>
+          <option value="growth">IT · 성장주</option>
+          <option value="finance">금융 · 지주 (마진·부채 제외)</option>
+          <option value="bio">바이오 · 제약 (적자 완화)</option>
+          <option value="utility">유틸 · 배당 (저성장·자본집약)</option>
+        </select></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">업종별로 <b style="color:var(--sub)">±판정 임계값</b>이 달라집니다(금융은 영업이익률·부채비율 제외).</span></div>
+    </div>
+    <div class="frow three">
+      <div class="field"><label>매출성장 YoY <i>(%)</i></label><input id="revG" placeholder="12" inputmode="decimal"></div>
+      <div class="field"><label>EPS성장 YoY <i>(%)</i></label><input id="epsG" placeholder="20" inputmode="decimal"></div>
+      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="15" inputmode="decimal"></div>
+    </div>
+    <div class="frow three">
+      <div class="field"><label>영업이익률 <i>(%)</i></label><input id="opm" placeholder="18" inputmode="decimal"></div>
+      <div class="field"><label>부채비율 <i>(%)</i></label><input id="debt" placeholder="80" inputmode="decimal"></div>
+      <div class="field"><label>FCF <i>(억, +/−)</i></label><input id="fcf" placeholder="+3,000" inputmode="decimal"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>어닝 서프라이즈 <i>(컨센 대비 %)</i></label><input id="surprise" placeholder="+8" inputmode="decimal"></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">각 지표는 <b style="color:var(--sub)">일반 기준(rule-of-thumb)</b>으로 ±판정합니다. 업종 특성이 크면 참고치로만 보세요.</span></div>
+    </div>
+  </div>
+
+  <!-- 컨센서스·목표주가 -->
+  <div class="form">
+    <div class="cap">컨센서스 · 목표주가 <span>증권사 리포트/네이버 목표가</span></div>
+    <div class="frow three">
+      <div class="field"><label>현재가</label><input id="px" placeholder="70,000" inputmode="decimal"></div>
+      <div class="field"><label>평균 목표주가</label><input id="tp" placeholder="90,000" inputmode="decimal"></div>
+      <div class="field"><label>목표가 추이</label>
+        <select id="trend"><option value="">— 선택 —</option><option value="1">상향</option><option value="0">유지</option><option value="-1">하향</option></select></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>투자의견 우위</label>
+        <select id="opinion"><option value="">— 선택 —</option><option value="1">매수 우위</option><option value="0">중립</option><option value="-1">매도 우위</option></select></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">상단여력 = (목표가 − 현재가) / 현재가. <b style="color:var(--sub)">+15% 이상 우호</b>, 0% 이하 비우호.</span></div>
+    </div>
+  </div>
+
+  <div class="btnrow">
+    <button class="btn" id="go">분석</button>
+    <button class="btn ghost" id="demo">예시 채우기</button>
+    <button class="btn ghost" id="clear">초기화</button>
+  </div>
+  <div class="err" id="err"></div>
+  <div id="app"></div>
+
+<script>
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const num=v=>Number(String(v).replace(/[,\s%]/g,""));
+const fmt=n=>(n==null||!isFinite(n))?"–":Math.round(n).toLocaleString("ko-KR");
+const fnum=id=>{const el=document.getElementById(id);if(!el)return null;const r=el.value.trim();if(r==="")return null;const n=num(r);return isFinite(n)?n:null;};
+const fsel=id=>{const el=document.getElementById(id);if(!el||el.value==="")return null;return Number(el.value);};
+const sgnTxt=x=>x>0?("+"+x):(""+x);
+
+/* ===== 실적(펀더멘털) 스코어 — 7개 신호 net 집계 → −2~+2 =====
+   업종 프리셋별 임계값 [상단(+1), 하단(−1)]. null 이면 해당 신호 판정 제외. */
+const PRESETS={
+  general:{revG:[10,0], epsG:[15,0], roe:[15,5], opm:[15,5], debt:[100,200]},
+  growth: {revG:[20,5], epsG:[25,0], roe:[12,3], opm:[12,3], debt:[120,250]},
+  finance:{revG:[8,0],  epsG:[10,0], roe:[10,5], opm:null,   debt:null},        // 마진·부채비율 개념 상이 → 제외
+  bio:    {revG:[30,0], epsG:[20,-9e9], roe:[8,-9e9], opm:[0,-30], debt:[100,200]}, // 적자 흔함 → 감점 완화
+  utility:{revG:[5,-5], epsG:[8,-10], roe:[8,3], opm:[10,3], debt:[200,350]},    // 저성장·자본집약 정상
+};
+function scoreFund(x,T){ // x:{revG,epsG,roe,opm,debt,fcf,surprise}, T:프리셋 임계값
+  const R=[]; let net=0;
+  const add=(d,msg)=>{net+=d;R.push([d>0?"b":d<0?"s":"n",msg]);};
+  const sig=(v,th,unit,hi,lo,mid)=>{ if(v==null||!th)return; v>=th[0]?add(1,`${hi} (기준 ≥${th[0]}${unit})`):v<th[1]?add(-1,`${lo} (기준 <${th[1]}${unit})`):add(0,mid); };
+  sig(x.revG,T.revG,"%",`매출성장 ${x.revG}% 고성장`,`매출성장 ${x.revG}% 부진`,`매출성장 ${x.revG}% 보통`);
+  sig(x.epsG,T.epsG,"%",`EPS성장 ${x.epsG}% 이익 개선`,`EPS성장 ${x.epsG}% 이익 감소`,`EPS성장 ${x.epsG}% 보통`);
+  sig(x.roe, T.roe, "%",`ROE ${x.roe}% 고수익성`,`ROE ${x.roe}% 저수익성`,`ROE ${x.roe}% 보통`);
+  if(T.opm) sig(x.opm,T.opm,"%",`영업이익률 ${x.opm}% 우수`,`영업이익률 ${x.opm}% 박함`,`영업이익률 ${x.opm}% 보통`);
+  else if(x.opm!=null) R.push(["n",`영업이익률 ${x.opm}% (업종 특성상 판정 제외)`]);
+  if(T.debt){ if(x.debt!=null){ x.debt<0?add(-1,`부채비율 ${x.debt}% — 음수(자본잠식) 위험`):x.debt<=T.debt[0]?add(1,`부채비율 ${x.debt}% 안정 (≤${T.debt[0]}%)`):x.debt>=T.debt[1]?add(-1,`부채비율 ${x.debt}% 부담 (≥${T.debt[1]}%)`):add(0,`부채비율 ${x.debt}% 보통`);} }
+  else if(x.debt!=null) R.push(["n",`부채비율 ${x.debt}% (업종 특성상 판정 제외)`]);
+  if(x.fcf!=null){ x.fcf>0?add(1,`FCF 흑자 ${sgnTxt(x.fcf)}`):x.fcf<0?add(-1,`FCF 적자 ${x.fcf}`):add(0,`FCF 0`);}
+  if(x.surprise!=null){ x.surprise>=5?add(1,`어닝 서프라이즈 +${x.surprise}%`):x.surprise<=-5?add(-1,`어닝 쇼크 ${x.surprise}%`):add(0,`컨센 부합 ${x.surprise>=0?"+":""}${x.surprise}%`);}
+  const score=net>=4?2:net>=1?1:net<=-4?-2:net<=-1?-1:0;
+  const grade=score>=2?"우수":score==1?"양호":score==0?"중립":score==-1?"부진":"취약";
+  return {score,grade,net,reasons:R};
+}
+
+/* ===== 컨센서스 스코어 — 상단여력·투자의견·목표가 추이 → −2~+2 ===== */
+function scoreCons(c){ // {px,tp,opinion,trend}
+  const R=[]; let net=0, upside=null;
+  if(c.px>0&&c.tp>0){ upside=(c.tp-c.px)/c.px*100;
+    if(upside>=15){net++;R.push(["b",`목표가 ${fmt(c.tp)} · 상단여력 +${upside.toFixed(1)}%`]);}
+    else if(upside<=0){net--;R.push(["s",`목표가 ${fmt(c.tp)} · 현재가 하회 ${upside.toFixed(1)}%`]);}
+    else R.push(["n",`상단여력 +${upside.toFixed(1)}% 제한적`]);}
+  if(c.opinion!=null){ c.opinion>0?(net++,R.push(["b","투자의견 매수 우위"])):c.opinion<0?(net--,R.push(["s","투자의견 매도 우위"])):R.push(["n","투자의견 중립"]);}
+  if(c.trend!=null){ c.trend>0?(net++,R.push(["b","목표가 상향 추세"])):c.trend<0?(net--,R.push(["s","목표가 하향 추세"])):R.push(["n","목표가 유지"]);}
+  const score=clamp(net,-2,2);
+  const grade=score>=2?"매우 우호":score==1?"우호":score==0?"중립":score==-1?"비우호":"부정적";
+  return {score,grade,upside,reasons:R};
+}
+
+/* ===== 실적×컨센서스 융합 ===== */
+function fcMatrix(f,c){
+  if(f>0&&c>0)return["실적개선 + 기대상향","추세 추종 — 트림 늦추고 보유 유지·확대 여지","b"];
+  if(f>0&&c<=0)return["실적개선 + 기대낮음","저평가 기회일 수 있음 — 목표가 상향 여부 관찰하며 눌림 매수","n"];
+  if(f<=0&&c>0)return["실적부진 + 기대선반영","기대 과열 위험 — 다음 실적 확인 전 관망/트림","n"];
+  if(f<0&&c<0)return["실적부진 + 비우호","회피·축소 — 반등 시 비중 축소","s"];
+  return["혼조","개별 지표·대응존(기술적)으로 판단","n"];
+}
+
+/* ===== 렌더 ===== */
+function gauge(score){
+  const pos=(clamp(score,-2,2)+2)/4*100, cls=score>0?"buy":score<0?"sell":"neu";
+  return `<div class="gauge"><div class="gtrack"><div class="gzero"></div><div class="gmark ${cls}" style="left:${pos}%;"></div></div>
+    <div class="gticks"><span>−2</span><span>−1</span><b>0</b><span>+1</span><span>+2</span></div></div>`;
+}
+const tagWord=c=>c==="b"?"긍정":c==="s"?"부정":"중립";
+function reasonTable(reasons){
+  let h=`<table><tr><th>근거</th><th style="text-align:right;">판정</th></tr>`;
+  reasons.forEach(([c,r])=>h+=`<tr><td>${r}</td><td class="chipcell"><span class="tag ${c}">${tagWord(c)}</span></td></tr>`);
+  return h+`</table>`;
+}
+function scoreCard(title,left,right,res){
+  const col=res.score>0?"var(--buy)":res.score<0?"var(--sell)":"var(--neu)";
+  return `<div class="scard"><div class="shead"><span class="ttl">${title}</span>
+    <span class="grade" style="color:${col}">${res.grade} <span class="sc">${sgnTxt(res.score)}</span></span></div>
+    ${gauge(res.score)}<div class="gends"><span class="l">${left}</span><span class="r">${right}</span></div></div>`;
+}
+
+function analyze(){
+  const x={revG:fnum("revG"),epsG:fnum("epsG"),roe:fnum("roe"),opm:fnum("opm"),debt:fnum("debt"),fcf:fnum("fcf"),surprise:fnum("surprise")};
+  const c={px:fnum("px"),tp:fnum("tp"),opinion:fsel("opinion"),trend:fsel("trend")};
+  const hasFund=Object.values(x).some(v=>v!=null);
+  const hasCons=(c.px!=null&&c.tp!=null)||c.opinion!=null||c.trend!=null;
+  const err=document.getElementById("err");
+  if(!hasFund&&!hasCons){ err.textContent="펀더멘털(실적 지표) 이나 컨센서스(목표주가/투자의견) 중 하나 이상을 입력하세요."; err.style.display="block"; document.getElementById("app").innerHTML=""; return; }
+  err.style.display="none";
+
+  let html=`<div class="eyebrow" style="margin-top:22px;">RESULT</div>`;
+  let fRes=null, cRes=null;
+  const preset=PRESETS[document.getElementById("preset").value]||PRESETS.general;
+  if(hasFund){ fRes=scoreFund(x,preset);
+    html+=`<h2>펀더멘털 · 실적 <span>스코어 −2~+2</span></h2>`;
+    html+=scoreCard("사업 체력",`취약 (net ${fRes.net})`,`우수 (net ${fRes.net})`,fRes);
+    html+=`<h2>실적 근거 <span>지표별 판정</span></h2>`+reasonTable(fRes.reasons);
+  }
+  if(hasCons){ cRes=scoreCons(c);
+    html+=`<h2>컨센서스 · 목표주가 <span>스코어 −2~+2</span></h2>`;
+    html+=scoreCard("시장 기대치","부정적","매우 우호",cRes);
+    if(cRes.upside!=null){
+      const uc=cRes.upside>=15?"var(--buy)":cRes.upside<=0?"var(--sell)":"var(--sub)";
+      html+=`<div class="callout">상단여력 <b class="hot" style="color:${uc}">${(cRes.upside>=0?"+":"")+cRes.upside.toFixed(1)}%</b> (목표 ${fmt(c.tp)} vs 현재 ${fmt(c.px)}) — 애널리스트 추정치이며 확정이 아닙니다.</div>`;
+    }
+    html+=`<h2>컨센 근거 <span>지표별 판정</span></h2>`+reasonTable(cRes.reasons);
+  }
+  if(fRes&&cRes){
+    const [t,a,cls]=fcMatrix(fRes.score,cRes.score);
+    const col=cls==="b"?"var(--buy)":cls==="s"?"var(--sell)":"var(--gold)";
+    html+=`<h2>실적 × 컨센서스 <span>융합 해석</span></h2>
+      <div class="matrix" style="border-left-color:${col}">
+      <div class="mt" style="color:${col}">${t} <span class="tag ${cls}" style="margin-left:6px;vertical-align:middle;">실적 ${sgnTxt(fRes.score)} · 컨센 ${sgnTxt(cRes.score)}</span></div>
+      <div class="ma">${a}</div>
+      <div class="mn">※ 이 두 축은 <b>종합 스코어카드</b>의 실적·컨센서스 입력으로 그대로 넣어 5축 종합 판단에 반영하세요.</div></div>`;
+  } else {
+    html+=`<div class="callout" style="margin-top:14px;">실적·컨센서스를 <b>모두</b> 입력하면 융합 해석이 표시됩니다. ${fRes?"현재 컨센서스 미입력":"현재 실적 미입력"}.</div>`;
+  }
+  html+=`<p class="foot">본 도구는 투자 판단을 <b style="color:var(--sub)">구조화</b>하는 참고 자료이며 <b style="color:var(--sub)">투자 권유가 아닙니다</b>. 실적 임계값은 범용 기준으로 업종별 편차를 반영하지 않으며, 목표주가·투자의견은 애널리스트 추정으로 실현을 보장하지 않습니다. 값의 시점·정확성은 사용자가 확인해야 합니다.</p>`;
+  const app=document.getElementById("app"); app.innerHTML=html; app.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* 예시: 성장·수익성 양호 + 목표가 상단여력 큰 케이스 */
+function demo(){
+  const s=(id,v)=>document.getElementById(id).value=v;
+  s("revG","12"); s("epsG","20"); s("roe","15"); s("opm","18"); s("debt","80"); s("fcf","+3,000"); s("surprise","+8");
+  s("px","70,000"); s("tp","90,000"); document.getElementById("trend").value="1"; document.getElementById("opinion").value="1";
+  analyze();
+}
+function clearAll(){
+  ["revG","epsG","roe","opm","debt","fcf","surprise","px","tp"].forEach(id=>document.getElementById(id).value="");
+  ["trend","opinion"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("app").innerHTML=""; document.getElementById("err").style.display="none";
+}
+/* ===== 자동조회(선택) — 프록시 배포 시 종목번호로 폼 채우기 =====
+   배포 후: FUND_URL = "/.netlify/functions/quote-fundamentals?code={code}"; */
+const FUND_URL="";
+function fillFromFund(d){
+  const s=(id,v)=>{if(v!=null&&document.getElementById(id))document.getElementById(id).value=String(v);};
+  if(d.fundamentals){const F=d.fundamentals;s("revG",F.revenueGrowth);s("epsG",F.earningsGrowth);s("opm",F.operatingMargin);s("debt",F.debtToEquity);
+    if(F.freeCashflow!=null)s("fcf",Math.round(F.freeCashflow).toLocaleString("ko-KR"));}
+  if(d.valuation)s("roe",d.valuation.roe);
+  if(d.meta&&d.meta.price!=null)s("px",Math.round(d.meta.price).toLocaleString("ko-KR"));
+  if(d.consensus){const C=d.consensus;
+    if(C.targetMean!=null)s("tp",Math.round(C.targetMean).toLocaleString("ko-KR"));
+    if(C.recommendationMean!=null){const rm=C.recommendationMean;document.getElementById("opinion").value=rm<=2.5?"1":rm>=3.5?"-1":"0";}}
+}
+async function autoFetch(){
+  const code=(document.getElementById("code").value||"").replace(/\D/g,"");
+  const info=document.getElementById("autoInfo");
+  if(!/^\d{6}$/.test(code)){info.className="parseinfo bad";info.textContent="6자리 종목번호를 입력하세요.";return;}
+  if(!FUND_URL){info.className="parseinfo bad";info.textContent="자동조회는 프록시 배포가 필요합니다(파일 상단 FUND_URL). 미배포 시 수기 입력을 쓰세요.";return;}
+  info.className="parseinfo";info.textContent="조회 중…";
+  try{const r=await fetch(FUND_URL.replace("{code}",code));const j=await r.json();if(j.error)throw new Error(j.error);
+    fillFromFund(j);info.className="parseinfo";info.textContent=`✅ ${(j.meta&&j.meta.name)||code} 반영 (결측 필드는 수기 보완) · 목표가 추이·서프라이즈는 자동 미제공`;analyze();
+  }catch(e){info.className="parseinfo bad";info.textContent="자동조회 실패: "+e.message;}
+}
+document.getElementById("autoBtn").onclick=autoFetch;
+
+document.getElementById("go").onclick=analyze;
+document.getElementById("demo").onclick=demo;
+document.getElementById("clear").onclick=clearAll;
+document.querySelectorAll(".form input").forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter")analyze();}));
+</script>
+</body>
+</html>

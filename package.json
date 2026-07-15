@@ -1,0 +1,12 @@
+{
+  "name": "finance-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "밸류·수급·펀더멘털·컨센서스·종합 스코어카드 분석 도구 스위트",
+  "scripts": {
+    "test": "node test/proxies.test.mjs && node test/ui.test.cjs",
+    "test:proxies": "node test/proxies.test.mjs",
+    "test:ui": "node test/ui.test.cjs",
+    "build:corpmap": "node tools/build-corp-map.mjs"
+  }
+}
