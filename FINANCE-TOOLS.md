@@ -51,12 +51,13 @@
   배포 전 본인 앱키 문서로 tr_id(`FHKST01010900` 후보)·output 필드 확인·보정.
 - 환경변수: `KIS_APP_KEY`, `KIS_APP_SECRET`, `KIS_BASE`. 코드에 하드코딩 금지.
 
-### HTML 에서 자동 채우기 배선 ✅
-`valuation-flow.html`·`fundamentals-flow.html` 상단에 "종목번호로 자동 채우기" 패널이 있고,
-파일 상단 URL 상수만 설정하면 종목번호로 폼이 채워집니다(미설정 시 안내 후 수기 유지 = manual-first 불변).
-- `valuation-flow.html`: `FUND_URL`(밸류) + `FLOW_URL`(수급)
-- `fundamentals-flow.html`: `FUND_URL`(실적·컨센서스; Yahoo 또는 DART)
-자동 미제공 필드(업종평균 PER/PBR, 목표가 추이, 어닝 서프라이즈)는 수기 보완.
+### HTML 에서 자동 채우기 배선 ✅ (Netlify 배포 시 즉시 동작)
+`valuation-flow.html`·`fundamentals-flow.html` 상단 "종목번호로 자동 채우기" 패널의 URL 상수가
+**Netlify 함수 상대경로로 미리 배선**되어 있습니다. `netlify.toml` 포함 → **저장소 연결 + 키 입력**만 하면
+종목번호로 폼이 채워집니다. 함수가 없는 곳(GitHub Pages·로컬)에서는 "연결 안 됨" 안내 후 수기 유지(manual-first 불변).
+- `valuation-flow.html`: `FUND_URL`(밸류·Yahoo·키불필요) + `FLOW_URL`(수급·KIS)
+- `fundamentals-flow.html`: `FUND_URL`(실적·컨센서스; Yahoo 기본, DART 로 교체 가능)
+- 배포 절차: **`DEPLOY-NETLIFY.md`** 참고. 자동 미제공 필드(업종평균 PER/PBR, 목표가 추이, 어닝 서프라이즈)는 수기 보완.
 
 ## 로드맵 상태
 

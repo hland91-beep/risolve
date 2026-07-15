@@ -54,6 +54,10 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     // 빈칸 → 에러
     await p.click('#clear'); await p.click('#go'); await p.waitForTimeout(80);
     ok('val.empty.err', await p.locator('#err').isVisible());
+    // 자동조회: 함수 없는 환경(file://) → 크래시 없이 그레이스풀 안내
+    await p.evaluate(() => document.getElementById('autoPanel').open = true);
+    await p.fill('#code', '005930'); await p.click('#autoBtn'); await p.waitForTimeout(400);
+    ok('val.auto.graceful', /연결 안 됨|수기 입력/.test(await p.locator('#autoInfo').innerText()));
     await p.close();
   }
 
