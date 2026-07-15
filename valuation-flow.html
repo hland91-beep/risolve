@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>밸류·수급 분석기</title>
+<style>
+  :root{
+    --bg:#0B1220; --card:#121B2E; --card2:#0E1626;
+    --line:#22304A; --gold:#D4A94E; --teal:#3FBFB2;
+    --buy:#E06565; --buy-bg:rgba(224,101,101,.14);
+    --sell:#5B9BD5; --sell-bg:rgba(91,155,213,.14);
+    --neu:#8B97AB; --neu-bg:rgba(139,151,171,.14);
+    --txt:#E8ECF4; --sub:#93A0B8; --mut:#5D6B84;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--txt);
+    font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;
+    padding:20px 14px 48px;max-width:760px;margin:0 auto;line-height:1.5;}
+  .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:600;margin-bottom:6px;}
+  h1.title{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;}
+  .lede{font-size:13px;color:var(--sub);margin-bottom:18px;}
+
+  /* 입력 폼 (zone-analyzer 토큰 그대로) */
+  .form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .form .cap{font-size:12px;letter-spacing:.06em;color:var(--gold);font-weight:700;margin-bottom:10px;text-transform:uppercase;}
+  .form .cap span{color:var(--mut);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .frow.three{grid-template-columns:1fr 1fr 1fr;}
+  .frow:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:11px;color:var(--sub);margin-bottom:4px;letter-spacing:.04em;}
+  .field label b{color:var(--gold);}
+  .field label i{color:var(--mut);font-style:normal;}
+  .field input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:9px 11px;color:var(--txt);font-size:15px;font-family:var(--mono);outline:none;}
+  .field input:focus{border-color:var(--gold);}
+  .field input::placeholder{color:var(--mut);font-family:inherit;}
+  .btnrow{display:flex;gap:8px;margin-top:2px;flex-wrap:wrap;}
+  .btn{background:var(--gold);color:#0B1220;border:none;border-radius:9px;padding:12px 18px;
+    font-weight:700;font-size:15px;cursor:pointer;flex:1;min-width:130px;}
+  .btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);flex:none;min-width:auto;font-weight:600;font-size:13px;padding:12px 14px;}
+  .btn:active{transform:translateY(1px);}
+  .err{color:var(--buy);font-size:13px;margin-top:10px;display:none;}
+
+  details.adv{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin:-2px 0 12px;}
+  details.adv summary{cursor:pointer;padding:12px 0;font-size:13px;color:var(--sub);font-weight:600;list-style:none;}
+  details.adv summary::-webkit-details-marker{display:none;}
+  details.adv summary::before{content:"▸ ";color:var(--gold);}
+  details.adv[open] summary::before{content:"▾ ";}
+  details.adv .body{padding:4px 0 14px;}
+  details.adv p.hint{font-size:12px;color:var(--mut);margin-bottom:8px;line-height:1.6;}
+  details.adv textarea{width:100%;height:118px;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:10px;color:var(--txt);font-size:12px;font-family:var(--mono);resize:vertical;outline:none;}
+  details.adv textarea:focus{border-color:var(--gold);}
+  .advctl{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+  .advctl select{background:var(--card);border:1px solid var(--line);border-radius:7px;color:var(--txt);padding:8px 10px;font-size:12px;}
+  .parseinfo{font-size:12px;color:var(--teal);margin-top:8px;line-height:1.5;}
+  .parseinfo.warn{color:var(--gold);} .parseinfo.bad{color:var(--buy);}
+
+  /* 결과 */
+  h2{font-size:14px;letter-spacing:.08em;color:var(--sub);font-weight:600;margin:26px 0 12px;text-transform:uppercase;}
+  h2 span{color:var(--mut);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px;margin-left:8px;}
+
+  .callout{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--sub);margin-bottom:14px;}
+  .callout b{color:var(--txt);} .callout .hot{color:var(--gold);font-family:var(--mono);}
+
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .shead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .shead .ttl{font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.04em;}
+  .shead .grade{font-size:19px;font-weight:800;letter-spacing:-.01em;}
+  .shead .sc{font-family:var(--mono);font-size:13px;color:var(--mut);}
+
+  /* −2~+2 게이지 */
+  .gauge{margin:2px 0 2px;}
+  .gtrack{position:relative;height:12px;border-radius:7px;
+    background:linear-gradient(90deg,var(--sell) 0%,#2b3653 44%,#2b3653 56%,var(--buy) 100%);}
+  .gzero{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--mut);opacity:.6;}
+  .gmark{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;
+    border:3px solid var(--bg);transform:translate(-50%,-50%);transition:left .25s ease;
+    box-shadow:0 0 0 1px var(--line),0 2px 8px rgba(0,0,0,.5);}
+  .gmark.buy{background:var(--buy);} .gmark.sell{background:var(--sell);} .gmark.neu{background:var(--neu);}
+  .gticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px;padding:0 1px;}
+  .gticks b{color:var(--sub);font-weight:600;}
+  .gends{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px;}
+  .gends .l{color:var(--sell);} .gends .r{color:var(--buy);}
+
+  .metrics{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+  .metric{flex:1;min-width:120px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+  .metric .k{font-size:11px;color:var(--mut);margin-bottom:3px;}
+  .metric .v{font-size:15px;font-weight:700;}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:4px;}
+  th{font-size:11px;color:var(--mut);font-weight:600;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);letter-spacing:.06em;}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px;}
+  tr:last-child td{border-bottom:none;}
+  td.val{font-family:var(--mono);font-size:13px;color:var(--sub);text-align:right;}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;}
+  .tag.b{color:var(--buy);background:var(--buy-bg);} .tag.s{color:var(--sell);background:var(--sell-bg);} .tag.n{color:var(--neu);background:var(--neu-bg);}
+  td.chipcell{text-align:right;width:110px;}
+  .chip{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;}
+  .chip.buy{color:var(--buy);background:var(--buy-bg);} .chip.sell{color:var(--sell);background:var(--sell-bg);}
+  .chip.neu{color:var(--neu);background:var(--neu-bg);} .chip.gold{color:var(--gold);background:rgba(212,169,78,.12);}
+
+  .matrix{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:16px 16px 14px;margin-bottom:4px;}
+  .matrix .mt{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px;}
+  .matrix .ma{font-size:14px;color:var(--txt);line-height:1.55;}
+  .matrix .mn{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.55;}
+  .matrix .mn b{color:var(--sub);}
+
+  .foot{margin-top:24px;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px;}
+  @media(max-width:480px){.frow.three{grid-template-columns:1fr 1fr;}.metric{min-width:calc(50% - 4px);}}
+</style>
+</head>
+<body>
+  <div class="eyebrow">VALUATION × FLOW ANALYZER</div>
+  <h1 class="title">밸류·수급 분석기</h1>
+  <p class="lede">MTS·네이버에서 5초면 보이는 <b>밸류에이션</b>과 <b>수급</b>을 넣으면 스코어·적정가 밴드·<b>밸류×수급 매트릭스</b>로 매매 방향을 구조화합니다. 오프라인 100% 동작.</p>
+
+  <!-- 밸류에이션 입력 -->
+  <div class="form">
+    <div class="cap">밸류에이션 <span>MTS/네이버에서 조회 · 값 없는 칸은 비워도 됨</span></div>
+    <div class="frow three">
+      <div class="field"><label>현재가</label><input id="px" placeholder="263,000" inputmode="decimal"></div>
+      <div class="field"><label>PER <i>(배)</i></label><input id="per" placeholder="11" inputmode="decimal"></div>
+      <div class="field"><label>PBR <i>(배)</i></label><input id="pbr" placeholder="1.1" inputmode="decimal"></div>
+    </div>
+    <div class="frow three">
+      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="9" inputmode="decimal"></div>
+      <div class="field"><label>배당수익률 <i>(%)</i></label><input id="dy" placeholder="2.5" inputmode="decimal"></div>
+      <div class="field"><label>업종평균 PER <i>(선택)</i></label><input id="sPer" placeholder="13" inputmode="decimal"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>업종평균 PBR <i>(선택)</i></label><input id="sPbr" placeholder="비우면 ROE/8 추정" inputmode="decimal"></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">업종 PBR을 비우면 <b style="color:var(--sub)">적정PBR ≈ ROE/8</b>(요구수익률 8% 가정)로 대체합니다.</span></div>
+    </div>
+  </div>
+
+  <!-- 수급 입력 -->
+  <div class="form">
+    <div class="cap">수급 <span>외국인·기관 순매수 · 부호(순매수/순매도)로 판단</span></div>
+    <div class="frow">
+      <div class="field"><label><b>외국인 5일</b> 순매수</label><input id="f5" placeholder="+1,200" inputmode="decimal"></div>
+      <div class="field"><label><b>기관 5일</b> 순매수</label><input id="i5" placeholder="+300" inputmode="decimal"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>외국인 20일 <i>(선택)</i></label><input id="f20" placeholder="추세 판단용" inputmode="decimal"></div>
+      <div class="field"><label>기관 20일 <i>(선택)</i></label><input id="i20" placeholder="추세 판단용" inputmode="decimal"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>외국인 연속일수 <i>(+매수/−매도)</i></label><input id="fStreak" placeholder="예: 5 또는 -3" inputmode="decimal"></div>
+      <div class="field"><label>기관 연속일수 <i>(+매수/−매도)</i></label><input id="iStreak" placeholder="예: 5 또는 -3" inputmode="decimal"></div>
+    </div>
+  </div>
+
+  <!-- 수급 상세(붙여넣기) -->
+  <details class="adv" id="advFlow">
+    <summary>수급 상세 붙여넣기 — 5·20일 누적·연속일수 자동 계산</summary>
+    <div class="body">
+      <p class="hint">일자별 투자자 순매수를 <b>날짜 외국인 기관</b> 순서로 붙여넣으세요(공백/탭 구분). 천단위 쉼표·부호(+/−) 자동 처리. 위 수급 칸이 자동으로 채워집니다.</p>
+      <textarea id="flowText" placeholder="2026-07-08  +820  -140&#10;2026-07-09  +150  +90&#10;2026-07-10  +300  +120&#10;2026-07-11  +410  +30&#10;2026-07-14  +1,200  +300"></textarea>
+      <div class="advctl">
+        <label style="font-size:12px;color:var(--sub)">날짜 없을 때 정렬</label>
+        <select id="flowOrder"><option value="asc">과거→최신 (위가 오래된 것)</option><option value="desc">최신→과거 (위가 최신)</option></select>
+        <button class="btn ghost" id="flowCalc">누적 계산 → 채우기</button>
+      </div>
+      <div class="parseinfo" id="flowInfo"></div>
+    </div>
+  </details>
+
+  <div class="btnrow">
+    <button class="btn" id="go">분석</button>
+    <button class="btn ghost" id="demo">예시 채우기</button>
+    <button class="btn ghost" id="clear">초기화</button>
+  </div>
+  <div class="err" id="err"></div>
+
+  <div id="app"></div>
+
+<script>
+/* ===== 공통 유틸 ===== */
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const num=v=>Number(String(v).replace(/[,\s]/g,""));
+const fmt=n=>n==null?"–":Math.round(n).toLocaleString("ko-KR");
+const fnum=id=>{const el=document.getElementById(id);if(!el)return null;const r=el.value.trim();if(r==="")return null;const n=num(r);return isFinite(n)?n:null;};
+const sgnTxt=x=>x>0?("+"+x):(""+x);
+
+/* ===== 검증된 스코어·매트릭스 로직 (HANDOFF §5 그대로 이식) ===== */
+function scoreVal(v){ // v:{px,per,pbr,roe,dy,sPer,sPbr}
+  let s=0;const R=[];
+  const impliedPbr=(v.sPbr!=null)?v.sPbr:(v.roe!=null?clamp(v.roe/8,0.4,4):1.0); // 요구수익률 8% 가정: 적정PBR≈ROE/8
+  const basis=v.sPbr!=null?"업종PBR":(v.roe!=null?"ROE/8":"기준1.0");
+  if(v.pbr!=null){ if(v.pbr<impliedPbr*0.85){s++;R.push(`PBR ${v.pbr}<적정 ${impliedPbr.toFixed(2)}(${basis}) 저평가`);}
+    else if(v.pbr>impliedPbr*1.15){s--;R.push(`PBR ${v.pbr}>적정 ${impliedPbr.toFixed(2)} 고평가`);}
+    else R.push(`PBR ${v.pbr}≈적정 ${impliedPbr.toFixed(2)} 적정`);}
+  if(v.per!=null&&v.sPer!=null){ if(v.per<v.sPer*0.85){s++;R.push(`PER ${v.per}<업종 ${v.sPer} 저평가`);}
+    else if(v.per>v.sPer*1.15){s--;R.push(`PER ${v.per}>업종 ${v.sPer} 고평가`);} else R.push(`PER ${v.per}≈업종 적정`);}
+  if(v.dy!=null&&v.dy>=3){s++;R.push(`배당 ${v.dy}%≥3% 우호`);}
+  s=clamp(s,-2,2);
+  const grade=s>=2?"저평가":s==1?"다소 저평가":s==0?"적정":s==-1?"다소 고평가":"고평가";
+  const T=[];
+  if(v.px!=null&&v.per!=null&&v.sPer!=null)T.push(["PER재평가",Math.round(v.px*v.sPer/v.per)]);
+  if(v.px!=null&&v.pbr!=null)T.push([`PBR적정(${basis})`,Math.round(v.px*impliedPbr/v.pbr)]);
+  return {score:s,grade,reasons:R,targets:T};
+}
+
+const sign=x=>x==null?0:x>0?1:x<0?-1:0;
+function streak(a){ // a: 순매수 배열(과거→최신). 반환: 부호×연속일수
+  if(!a.length)return 0;const s=Math.sign(a.at(-1));if(!s)return 0;
+  let n=0;for(let i=a.length-1;i>=0;i--){if(Math.sign(a[i])===s)n++;else break;}return s*n;}
+
+function scoreFlow(f){ // f:{f5,i5,f20,i20,fStreak,iStreak}
+  const base=sign(f.f5)+sign(f.i5);
+  let trend="";
+  if(f.f20!=null&&f.i20!=null){const s5=sign(f.f5)+sign(f.i5),s20=sign(f.f20)+sign(f.i20);
+    trend=(s5>0&&s20>0)?"추세적 유입":(s5<0&&s20<0)?"추세적 이탈":(s5>0&&s20<=0)?"단기 유입":(s5<0&&s20>=0)?"단기 이탈":"혼조";}
+  const mx=Math.max(Math.abs(f.fStreak||0),Math.abs(f.iStreak||0));
+  const strength=mx>=5?"강":mx>=3?"중":mx>0?"약":"보통";
+  const dir=base>0?"동반 유입":base<0?"동반 이탈":((f.f5||f.i5)&&sign(f.f5)!==sign(f.i5))?"엇갈림":"중립";
+  return {score:clamp(base,-2,2),dir,trend,strength};
+}
+
+function matrix(v,f){ // v,f: 각 스코어 → [제목, 대응, 색클래스(b/s/n)]
+  if(v>0&&f>0)return["저평가+유입","강한 분할매수 — 기술적 지지 확인 후 존 하단 적극 집행","b"];
+  if(v>0&&f<0)return["저평가+이탈","가치함정 경계 — 수급 반전·기술적 반등 후 소량","n"];
+  if(v>0&&f===0)return["저평가+중립","분할매수 유효 — 대응존 타이밍에 맞춰 집행","b"];
+  if(v<0&&f>0)return["고평가+유입","모멘텀 — 추격금지·소량, 보유는 트림 늦추되 이탈 감시","n"];
+  if(v<0&&f<0)return["고평가+이탈","회피·축소 — 반등 시 비중 축소","s"];
+  if(v<0&&f===0)return["고평가+중립","관망/축소 우선","s"];
+  return["밸류 적정",f>0?"수급 유입 — 기술적 신호 따라 매수":f<0?"수급 이탈 — 관망/축소":"중립 — 대응존(기술적)이 주 판단축","n"];
+}
+
+/* ===== 수급 상세 붙여넣기 파서: 날짜 외국인 기관 → 5/20 누적·연속 ===== */
+function splitFlowLine(ln){
+  if(ln.includes("\t")) return ln.split("\t").map(s=>s.trim()).filter(Boolean);
+  const bySpace=ln.split(/\s+/).filter(Boolean);      // "1,200" 은 num()에서 콤마 제거
+  if(bySpace.length>=3) return bySpace;
+  return ln.split(",").map(s=>s.trim()).filter(Boolean); // 순수 CSV 폴백
+}
+function parseFlow(text,order){
+  const rows=[];
+  String(text).replace(/\r/g,"").split("\n").forEach(ln=>{
+    ln=ln.trim(); if(!ln) return;
+    const c=splitFlowLine(ln); if(c.length<3) return;
+    const inst=num(c[c.length-1]), fore=num(c[c.length-2]);
+    if(!isFinite(fore)||!isFinite(inst)) return;
+    const ds=c.slice(0,c.length-2).join(" ");
+    const t=Date.parse(ds.replace(/[.\/]/g,"-"));
+    rows.push({d:ds,t:isFinite(t)?t:null,fore,inst});
+  });
+  if(!rows.length) return null;
+  const haveDates=rows.every(r=>r.t!=null);
+  let seq = haveDates ? rows.slice().sort((a,b)=>a.t-b.t)
+                      : (order==="desc"? rows.slice().reverse() : rows.slice()); // 과거→최신
+  const foreArr=seq.map(r=>r.fore), instArr=seq.map(r=>r.inst);
+  const sumLast=(a,n)=>a.slice(-n).reduce((x,y)=>x+y,0);
+  const out={
+    n:seq.length, haveDates,
+    f5:sumLast(foreArr,5), i5:sumLast(instArr,5),
+    f20:seq.length>=6?sumLast(foreArr,20):null, i20:seq.length>=6?sumLast(instArr,20):null,
+    fStreak:streak(foreArr), iStreak:streak(instArr)
+  };
+  return out;
+}
+
+/* ===== 렌더 헬퍼 ===== */
+function gauge(score){ // −2~+2
+  const pos=(clamp(score,-2,2)+2)/4*100;
+  const cls=score>0?"buy":score<0?"sell":"neu";
+  return `<div class="gauge">
+    <div class="gtrack"><div class="gzero"></div><div class="gmark ${cls}" style="left:${pos}%;"></div></div>
+    <div class="gticks"><span>−2</span><span>−1</span><b>0</b><span>+1</span><span>+2</span></div>
+  </div>`;
+}
+function reasonTag(r){ return /저평가|우호/.test(r)?"b":/고평가/.test(r)?"s":"n"; }
+function tagWord(cls){ return cls==="b"?"매수우호":cls==="s"?"매도경계":"적정"; }
+
+function valSection(res,v){
+  const gCls=res.score>0?"var(--buy)":res.score<0?"var(--sell)":"var(--neu)";
+  let h=`<h2>밸류에이션 <span>스코어 −2~+2</span></h2>`;
+  h+=`<div class="scard">
+    <div class="shead">
+      <span class="ttl">가치 평가</span>
+      <span class="grade" style="color:${gCls}">${res.grade} <span class="sc">${sgnTxt(res.score)}</span></span>
+    </div>
+    ${gauge(res.score)}
+    <div class="gends"><span class="l">고평가 (매도)</span><span class="r">저평가 (매수)</span></div>
+  </div>`;
+
+  if(res.targets.length){
+    const vals=res.targets.map(t=>t[1]);
+    const lo=Math.min(...vals), hi=Math.max(...vals);
+    const band=lo===hi?`${fmt(lo)}원`:`${fmt(lo)} ~ ${fmt(hi)}원`;
+    const gapTxt=(v.px!=null)?(()=>{const mid=(lo+hi)/2;const g=(mid-v.px)/v.px*100;return `현재가 대비 중앙값 ${(g>=0?"+":"")+g.toFixed(1)}%`;})():"";
+    h+=`<div class="callout">적정가 밴드 <b class="hot">${band}</b>${gapTxt?` · <b>${gapTxt}</b>`:""} — 재평가 방식별 참고치이며 확정가가 아닙니다.</div>`;
+    h+=`<h2>적정가 산출 <span>재평가 방식별</span></h2><table>
+      <tr><th>방식</th><th style="text-align:right;">적정가</th><th style="text-align:right;">현재가 대비</th></tr>`;
+    res.targets.forEach(([nm,val])=>{
+      const p=v.px!=null?(val-v.px)/v.px*100:null;
+      const pc=p==null?"—":(p>=0?"+":"")+p.toFixed(1)+"%";
+      h+=`<tr><td>${nm}</td><td class="val">${fmt(val)}</td><td class="val" style="color:${p==null?'var(--sub)':p>=0?'var(--buy)':'var(--sell)'}">${pc}</td></tr>`;
+    });
+    h+=`</table>`;
+  }
+
+  if(res.reasons.length){
+    h+=`<h2>근거 <span>지표별 판정</span></h2><table>
+      <tr><th>근거</th><th style="text-align:right;">판정</th></tr>`;
+    res.reasons.forEach(r=>{const c=reasonTag(r);h+=`<tr><td>${r}</td><td class="chipcell"><span class="tag ${c}">${tagWord(c)}</span></td></tr>`;});
+    h+=`</table>`;
+  }
+  return h;
+}
+
+function flowSection(res){
+  const gCls=res.score>0?"var(--buy)":res.score<0?"var(--sell)":"var(--neu)";
+  const dCls=res.dir.includes("유입")?"buy":res.dir.includes("이탈")?"sell":res.dir==="엇갈림"?"gold":"neu";
+  let h=`<h2>수급 <span>스코어 −2~+2</span></h2>`;
+  h+=`<div class="scard">
+    <div class="shead">
+      <span class="ttl">투자자 순매수</span>
+      <span class="grade" style="color:${gCls}">${res.dir} <span class="sc">${sgnTxt(res.score)}</span></span>
+    </div>
+    ${gauge(res.score)}
+    <div class="gends"><span class="l">이탈</span><span class="r">유입</span></div>
+    <div class="metrics">
+      <div class="metric"><div class="k">방향</div><div class="v"><span class="chip ${dCls}">${res.dir}</span></div></div>
+      <div class="metric"><div class="k">추세성 <i style="color:var(--mut);font-style:normal">(5일 vs 20일)</i></div><div class="v">${res.trend||"<span style='color:var(--mut);font-size:13px;'>20일 미입력</span>"}</div></div>
+      <div class="metric"><div class="k">강도 <i style="color:var(--mut);font-style:normal">(연속일수)</i></div><div class="v">${res.strength}</div></div>
+    </div>
+  </div>`;
+  return h;
+}
+
+function matrixSection(vS,fS){
+  const [title,action,cls]=matrix(vS,fS);
+  const col=cls==="b"?"var(--buy)":cls==="s"?"var(--sell)":"var(--gold)";
+  let h=`<h2>밸류 × 수급 매트릭스 <span>종합 해석 · 대응</span></h2>`;
+  h+=`<div class="matrix" style="border-left-color:${col}">
+    <div class="mt" style="color:${col}">${title}
+      <span class="tag ${cls}" style="margin-left:6px;vertical-align:middle;">밸류 ${sgnTxt(vS)} · 수급 ${sgnTxt(fS)}</span></div>
+    <div class="ma">${action}</div>
+    <div class="mn">※ <b>방향은 밸류·수급, 진입가는 대응존(기술적)</b>. 집행 타이밍은 <b>종목 대응존 분석기(zone-analyzer)</b>의 지지/저항 레벨에 맞춰 확정하세요.</div>
+  </div>`;
+  return h;
+}
+
+/* ===== 실행 ===== */
+function showErr(m){const e=document.getElementById("err");e.textContent=m;e.style.display=m?"block":"none";}
+
+function analyze(){
+  const v={px:fnum("px"),per:fnum("per"),pbr:fnum("pbr"),roe:fnum("roe"),dy:fnum("dy"),sPer:fnum("sPer"),sPbr:fnum("sPbr")};
+  const f={f5:fnum("f5"),i5:fnum("i5"),f20:fnum("f20"),i20:fnum("i20"),fStreak:fnum("fStreak"),iStreak:fnum("iStreak")};
+
+  const hasVal = (v.pbr!=null) || (v.per!=null&&v.sPer!=null) || (v.dy!=null);
+  const hasFlow = (f.f5!=null) || (f.i5!=null);
+
+  if(!hasVal && !hasFlow){
+    showErr("밸류에이션(PBR 또는 PER+업종PER 또는 배당) 이나 수급(외국인/기관 5일) 중 하나 이상을 입력하세요.");
+    document.getElementById("app").innerHTML="";
+    return;
+  }
+  showErr("");
+
+  let html=`<div class="eyebrow" style="margin-top:22px;">RESULT</div>`;
+  let vRes=null, fRes=null;
+  if(hasVal){ vRes=scoreVal(v); html+=valSection(vRes,v); }
+  if(hasFlow){ fRes=scoreFlow(f); html+=flowSection(fRes); }
+  if(vRes&&fRes){ html+=matrixSection(vRes.score,fRes.score); }
+  else {
+    html+=`<div class="callout" style="margin-top:14px;">밸류·수급을 <b>모두</b> 입력하면 종합 매트릭스가 자동 표시됩니다. ${vRes?"현재 수급 미입력":"현재 밸류 미입력"}.</div>`;
+  }
+
+  html+=`<p class="foot">본 도구는 투자 판단을 <b style="color:var(--sub)">구조화</b>하는 참고 자료이며 <b style="color:var(--sub)">투자 권유가 아닙니다</b>. 스코어는 부호·상대비교 기반의 규칙 산출값으로 실적·컨센서스·매크로는 반영하지 않습니다. 입력값(PER/PBR/수급)의 시점·정확성은 사용자가 확인해야 합니다. 매매 결정과 그 결과의 책임은 전적으로 이용자 본인에게 있습니다.</p>`;
+
+  const app=document.getElementById("app");
+  app.innerHTML=html;
+  app.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* 수급 상세 → 간편 칸 채우기 */
+function fillFlow(){
+  const box=document.getElementById("flowInfo");
+  const res=parseFlow(document.getElementById("flowText").value, document.getElementById("flowOrder").value);
+  if(!res){ box.className="parseinfo bad"; box.textContent="유효한 줄이 없습니다. 형식: 날짜 외국인 기관 (예: 2026-07-14  +1,200  +300)"; return; }
+  const S=(id,val)=>{document.getElementById(id).value = val==null?"":String(val);};
+  S("f5",res.f5); S("i5",res.i5); S("f20",res.f20); S("i20",res.i20); S("fStreak",res.fStreak); S("iStreak",res.iStreak);
+  const sp=v=>v>0?("+"+v):(""+v);
+  box.className="parseinfo";
+  box.innerHTML=`✅ ${res.n}일 파싱${res.haveDates?" · 날짜순 정렬":" · 입력순"} → 5일 외국인 ${sp(res.f5)}·기관 ${sp(res.i5)}`
+    +(res.f20!=null?` · 20일 외국인 ${sp(res.f20)}·기관 ${sp(res.i20)}`:"")
+    +` · 연속 외국인 ${sp(res.fStreak)}·기관 ${sp(res.iStreak)}`;
+  analyze();
+}
+
+/* 예시: HANDOFF §5 검증 케이스(삼성풍) — 밸류 다소 저평가 +1, 밴드 269k~311k / 수급 동반 유입 +2·추세적·강 → 강한 분할매수 */
+function demo(){
+  const set=(id,v)=>document.getElementById(id).value=v;
+  set("px","263,000"); set("per","11"); set("pbr","1.1"); set("roe","9"); set("dy","2.5"); set("sPer","13"); set("sPbr","");
+  set("f5","+1,200"); set("i5","+300"); set("f20","+3,000"); set("i20","+700"); set("fStreak","5"); set("iStreak","5");
+  analyze();
+}
+function clearAll(){
+  ["px","per","pbr","roe","dy","sPer","sPbr","f5","i5","f20","i20","fStreak","iStreak","flowText"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  document.getElementById("flowInfo").textContent="";
+  document.getElementById("app").innerHTML=""; showErr("");
+}
+
+document.getElementById("go").onclick=analyze;
+document.getElementById("demo").onclick=demo;
+document.getElementById("clear").onclick=clearAll;
+document.getElementById("flowCalc").onclick=fillFlow;
+/* Enter 로 분석 */
+document.querySelectorAll(".form input").forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter")analyze();}));
+</script>
+</body>
+</html>
