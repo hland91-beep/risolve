@@ -10,10 +10,11 @@
 //    2) Netlify 환경변수: DART_API_KEY (opendart.fss.or.kr 무료 발급)
 //    3) fundamentals-flow.html:  const FUND_URL = "/.netlify/functions/quote-dart?corp={corp}";
 //
-//  쿼리: ?corp=00126380 (DART 고유번호 8자리, 필수) &year=2025(선택) &fs=CFS|OFS(선택)
-//    ※ 종목코드(6자리)→고유번호(8자리) 매핑은 DART corpCode.xml(zip) 1회 다운로드로
-//      만들어 두거나, DART 기업검색에서 확인. 예) 삼성전자 005930 → 00126380.
-//      (매핑 파일 파싱은 이 초안 범위 밖 — corp 파라미터로 직접 전달)
+//  쿼리: ?corp=00126380 (고유번호 8자리) 또는 ?code=005930 (종목코드 6자리; corp-map.json 조회)
+//        &year=2025(선택; 기본 전년) &fs=CFS|OFS(선택; CFS 실패 시 OFS 자동 폴백)
+//    ※ 종목코드→고유번호 매핑: tools/build-corp-map.mjs 로 DART corpCode.xml 을 받아
+//      corp-map.json 을 생성해 이 폴더에 두면 code 파라미터로 바로 조회됩니다.
+//      (번들 corp-map.json 에는 검증된 예시 몇 종목이 들어 있음)
 //  반환(quote-fundamentals 와 동일 형태):
 //    { meta:{name,corp,year,fs}, valuation:{roe},
 //      fundamentals:{revenueGrowth,earningsGrowth,operatingMargin,debtToEquity,freeCashflow},
@@ -36,16 +37,8 @@ function pick(list, sjs, names) {
   return { th: null, fr: null };
 }
 
-async function fetchDart(corp, year, fs) {
-  const url = `https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json`
-    + `?crtfc_key=${KEY}&corp_code=${corp}&bsns_year=${year}&reprt_code=11011&fs_div=${fs}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`DART 조회 실패 ${r.status}`);
-  const j = await r.json();
-  if (j.status && j.status !== "000") throw new Error(`DART: ${j.message || j.status} (연도/고유번호/연결구분 확인)`);
-  const list = j.list || [];
-  if (!list.length) throw new Error("재무제표 항목 없음 (해당 연도 미공시일 수 있음)");
-
+// list(fnlttSinglAcntAll.list) → 폼 매핑 스키마 (순수, 테스트에서 import)
+function computeDart(list, meta) {
   const rev = pick(list, ["IS", "CIS"], ["매출액", "수익(매출액)", "영업수익"]);
   const op = pick(list, ["IS", "CIS"], ["영업이익"]);
   const ni = pick(list, ["IS", "CIS"], ["당기순이익", "당기순손익", "분기순이익"]);
@@ -53,10 +46,9 @@ async function fetchDart(corp, year, fs) {
   const eq = pick(list, "BS", ["자본총계"]);
   const ocf = pick(list, "CF", ["영업활동현금흐름", "영업활동으로인한현금흐름"]);
   const capex = pick(list, "CF", ["유형자산의취득", "유형자산의증가"]);
-
   const fcf = ocf.th != null ? ocf.th - Math.abs(capex.th || 0) : null;
   return {
-    meta: { name: null, corp, year: +year, fs },
+    meta: meta || {},
     valuation: { roe: pctOf(ni.th, eq.th) },
     fundamentals: {
       revenueGrowth: growth(rev.th, rev.fr),
@@ -67,6 +59,31 @@ async function fetchDart(corp, year, fs) {
     },
     raw: { revenue: rev.th, operatingIncome: op.th, netIncome: ni.th, liabilities: liab.th, equity: eq.th, ocf: ocf.th, capex: capex.th },
   };
+}
+module.exports.computeDart = computeDart;
+
+// 종목코드(6자리) → DART 고유번호(8자리). 번들 corp-map.json 조회(있으면).
+function resolveCorp(codeOrCorp) {
+  const s = String(codeOrCorp || "").replace(/\D/g, "");
+  if (/^\d{8}$/.test(s)) return s;                 // 이미 고유번호
+  if (/^\d{6}$/.test(s)) {                          // 종목코드 → 매핑
+    try { const map = require("./corp-map.json"); if (map[s]) return map[s]; } catch (e) {}
+    return null;
+  }
+  return null;
+}
+module.exports.resolveCorp = resolveCorp;
+
+async function fetchDart(corp, year, fs) {
+  const url = `https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json`
+    + `?crtfc_key=${KEY}&corp_code=${corp}&bsns_year=${year}&reprt_code=11011&fs_div=${fs}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`DART 조회 실패 ${r.status}`);
+  const j = await r.json();
+  if (j.status && j.status !== "000") throw new Error(`DART: ${j.message || j.status} (연도/고유번호/연결구분 확인)`);
+  const list = j.list || [];
+  if (!list.length) throw new Error("재무제표 항목 없음 (해당 연도 미공시일 수 있음)");
+  return computeDart(list, { name: null, corp, year: +year, fs });
 }
 
 exports.handler = async (event) => {
@@ -80,8 +97,8 @@ exports.handler = async (event) => {
   try {
     if (!KEY) throw new Error("환경변수 DART_API_KEY 미설정 (opendart.fss.or.kr 무료 발급)");
     const p = event.queryStringParameters || {};
-    const corp = String(p.corp || "").replace(/\D/g, "");
-    if (!/^\d{8}$/.test(corp)) throw new Error("corp는 DART 고유번호 8자리여야 합니다 (예: 삼성전자 00126380)");
+    const corp = resolveCorp(p.corp || p.code);
+    if (!corp) throw new Error("corp(8자리) 또는 corp-map.json 에 등록된 code(6자리)를 넣으세요. 매핑은 tools/build-corp-map.mjs 로 생성.");
     const year = /^\d{4}$/.test(p.year || "") ? p.year : String(new Date().getFullYear() - 1);
     const fs = (p.fs === "OFS") ? "OFS" : "CFS";
     let data;

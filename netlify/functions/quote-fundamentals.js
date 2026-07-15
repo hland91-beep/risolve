@@ -45,19 +45,13 @@ async function getSession() {
   return { cookie, crumb };
 }
 
+// ── 순수 로직(테스트에서 import) ─────────────────────────────────────────────
 const raw = x => (x && typeof x === "object" && "raw" in x) ? x.raw : (typeof x === "number" ? x : null);
 const pct = x => { const v = raw(x); return v == null ? null : +(v * 100).toFixed(2); };   // 소수배율 → %
 const rnd = x => { const v = raw(x); return v == null ? null : Math.round(v); };
 
-async function fetchOne(code, sfx, sess) {
-  const modules = "price,summaryDetail,defaultKeyStatistics,financialData";
-  const url = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${code}.${sfx}`
-            + `?modules=${modules}&crumb=${encodeURIComponent(sess.crumb)}`;
-  const r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json", ...(sess.cookie ? { Cookie: sess.cookie } : {}) } });
-  if (!r.ok) return null;
-  const j = await r.json();
-  const res = j && j.quoteSummary && j.quoteSummary.result && j.quoteSummary.result[0];
-  if (!res) return null;
+// quoteSummary.result[0] → 폼 매핑 스키마 (Yahoo 값은 {raw,fmt} 또는 숫자)
+function mapQuoteSummary(res, code, sfx) {
   const P = res.price || {}, S = res.summaryDetail || {}, K = res.defaultKeyStatistics || {}, F = res.financialData || {};
   const price = raw(P.regularMarketPrice);
   const target = raw(F.targetMeanPrice);
@@ -86,8 +80,22 @@ async function fetchOne(code, sfx, sess) {
     },
   };
 }
+module.exports.mapQuoteSummary = mapQuoteSummary;
+// ─────────────────────────────────────────────────────────────────────────────
 
-exports.handler = async (event) => {
+async function fetchOne(code, sfx, sess) {
+  const modules = "price,summaryDetail,defaultKeyStatistics,financialData";
+  const url = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${code}.${sfx}`
+            + `?modules=${modules}&crumb=${encodeURIComponent(sess.crumb)}`;
+  const r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json", ...(sess.cookie ? { Cookie: sess.cookie } : {}) } });
+  if (!r.ok) return null;
+  const j = await r.json();
+  const res = j && j.quoteSummary && j.quoteSummary.result && j.quoteSummary.result[0];
+  if (!res) return null;
+  return mapQuoteSummary(res, code, sfx);
+}
+
+module.exports.handler = async (event) => {
   const cors = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
