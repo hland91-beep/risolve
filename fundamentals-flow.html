@@ -176,8 +176,8 @@
 
 <script>
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const num=v=>Number(String(v).replace(/[,\s]/g,""));
-const fmt=n=>n==null?"–":Math.round(n).toLocaleString("ko-KR");
+const num=v=>Number(String(v).replace(/[,\s%]/g,""));
+const fmt=n=>(n==null||!isFinite(n))?"–":Math.round(n).toLocaleString("ko-KR");
 const fnum=id=>{const el=document.getElementById(id);if(!el)return null;const r=el.value.trim();if(r==="")return null;const n=num(r);return isFinite(n)?n:null;};
 const fsel=id=>{const el=document.getElementById(id);if(!el||el.value==="")return null;return Number(el.value);};
 const sgnTxt=x=>x>0?("+"+x):(""+x);
@@ -200,7 +200,7 @@ function scoreFund(x,T){ // x:{revG,epsG,roe,opm,debt,fcf,surprise}, T:프리셋
   sig(x.roe, T.roe, "%",`ROE ${x.roe}% 고수익성`,`ROE ${x.roe}% 저수익성`,`ROE ${x.roe}% 보통`);
   if(T.opm) sig(x.opm,T.opm,"%",`영업이익률 ${x.opm}% 우수`,`영업이익률 ${x.opm}% 박함`,`영업이익률 ${x.opm}% 보통`);
   else if(x.opm!=null) R.push(["n",`영업이익률 ${x.opm}% (업종 특성상 판정 제외)`]);
-  if(T.debt){ if(x.debt!=null){ x.debt<=T.debt[0]?add(1,`부채비율 ${x.debt}% 안정 (≤${T.debt[0]}%)`):x.debt>=T.debt[1]?add(-1,`부채비율 ${x.debt}% 부담 (≥${T.debt[1]}%)`):add(0,`부채비율 ${x.debt}% 보통`);} }
+  if(T.debt){ if(x.debt!=null){ x.debt<0?add(-1,`부채비율 ${x.debt}% — 음수(자본잠식) 위험`):x.debt<=T.debt[0]?add(1,`부채비율 ${x.debt}% 안정 (≤${T.debt[0]}%)`):x.debt>=T.debt[1]?add(-1,`부채비율 ${x.debt}% 부담 (≥${T.debt[1]}%)`):add(0,`부채비율 ${x.debt}% 보통`);} }
   else if(x.debt!=null) R.push(["n",`부채비율 ${x.debt}% (업종 특성상 판정 제외)`]);
   if(x.fcf!=null){ x.fcf>0?add(1,`FCF 흑자 ${sgnTxt(x.fcf)}`):x.fcf<0?add(-1,`FCF 적자 ${x.fcf}`):add(0,`FCF 0`);}
   if(x.surprise!=null){ x.surprise>=5?add(1,`어닝 서프라이즈 +${x.surprise}%`):x.surprise<=-5?add(-1,`어닝 쇼크 ${x.surprise}%`):add(0,`컨센 부합 ${x.surprise>=0?"+":""}${x.surprise}%`);}
@@ -212,7 +212,7 @@ function scoreFund(x,T){ // x:{revG,epsG,roe,opm,debt,fcf,surprise}, T:프리셋
 /* ===== 컨센서스 스코어 — 상단여력·투자의견·목표가 추이 → −2~+2 ===== */
 function scoreCons(c){ // {px,tp,opinion,trend}
   const R=[]; let net=0, upside=null;
-  if(c.px!=null&&c.tp!=null){ upside=(c.tp-c.px)/c.px*100;
+  if(c.px>0&&c.tp>0){ upside=(c.tp-c.px)/c.px*100;
     if(upside>=15){net++;R.push(["b",`목표가 ${fmt(c.tp)} · 상단여력 +${upside.toFixed(1)}%`]);}
     else if(upside<=0){net--;R.push(["s",`목표가 ${fmt(c.tp)} · 현재가 하회 ${upside.toFixed(1)}%`]);}
     else R.push(["n",`상단여력 +${upside.toFixed(1)}% 제한적`]);}

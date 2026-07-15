@@ -202,8 +202,8 @@
 <script>
 /* ===== 공통 유틸 ===== */
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const num=v=>Number(String(v).replace(/[,\s]/g,""));
-const fmt=n=>n==null?"–":Math.round(n).toLocaleString("ko-KR");
+const num=v=>Number(String(v).replace(/[,\s%]/g,""));
+const fmt=n=>(n==null||!isFinite(n))?"–":Math.round(n).toLocaleString("ko-KR");
 const fnum=id=>{const el=document.getElementById(id);if(!el)return null;const r=el.value.trim();if(r==="")return null;const n=num(r);return isFinite(n)?n:null;};
 const sgnTxt=x=>x>0?("+"+x):(""+x);
 
@@ -212,17 +212,20 @@ function scoreVal(v){ // v:{px,per,pbr,roe,dy,sPer,sPbr}
   let s=0;const R=[];
   const impliedPbr=(v.sPbr!=null)?v.sPbr:(v.roe!=null?clamp(v.roe/8,0.4,4):1.0); // 요구수익률 8% 가정: 적정PBR≈ROE/8
   const basis=v.sPbr!=null?"업종PBR":(v.roe!=null?"ROE/8":"기준1.0");
-  if(v.pbr!=null){ if(v.pbr<impliedPbr*0.85){s++;R.push(`PBR ${v.pbr}<적정 ${impliedPbr.toFixed(2)}(${basis}) 저평가`);}
-    else if(v.pbr>impliedPbr*1.15){s--;R.push(`PBR ${v.pbr}>적정 ${impliedPbr.toFixed(2)} 고평가`);}
-    else R.push(`PBR ${v.pbr}≈적정 ${impliedPbr.toFixed(2)} 적정`);}
-  if(v.per!=null&&v.sPer!=null){ if(v.per<v.sPer*0.85){s++;R.push(`PER ${v.per}<업종 ${v.sPer} 저평가`);}
-    else if(v.per>v.sPer*1.15){s--;R.push(`PER ${v.per}>업종 ${v.sPer} 고평가`);} else R.push(`PER ${v.per}≈업종 적정`);}
-  if(v.dy!=null&&v.dy>=3){s++;R.push(`배당 ${v.dy}%≥3% 우호`);}
+  if(v.pbr!=null){ if(v.pbr<=0){R.push(["n",`PBR ${v.pbr} — 자본잠식 등 비정상, 판정 보류`]);}
+    else if(v.pbr<impliedPbr*0.85){s++;R.push(["b",`PBR ${v.pbr}<적정 ${impliedPbr.toFixed(2)}(${basis}) 저평가`]);}
+    else if(v.pbr>impliedPbr*1.15){s--;R.push(["s",`PBR ${v.pbr}>적정 ${impliedPbr.toFixed(2)} 고평가`]);}
+    else R.push(["n",`PBR ${v.pbr}≈적정 ${impliedPbr.toFixed(2)} 적정`]);}
+  if(v.per!=null&&v.sPer!=null){ if(v.per<=0){s--;R.push(["s",`PER ${v.per} — 적자(음수 PER), 저평가 아님`]);}
+    else if(v.sPer<=0){R.push(["n",`업종 PER ${v.sPer} 비정상, PER 판정 보류`]);}
+    else if(v.per<v.sPer*0.85){s++;R.push(["b",`PER ${v.per}<업종 ${v.sPer} 저평가`]);}
+    else if(v.per>v.sPer*1.15){s--;R.push(["s",`PER ${v.per}>업종 ${v.sPer} 고평가`]);} else R.push(["n",`PER ${v.per}≈업종 적정`]);}
+  if(v.dy!=null&&v.dy>=3){s++;R.push(["b",`배당 ${v.dy}%≥3% 우호`]);}
   s=clamp(s,-2,2);
   const grade=s>=2?"저평가":s==1?"다소 저평가":s==0?"적정":s==-1?"다소 고평가":"고평가";
   const T=[];
-  if(v.px!=null&&v.per!=null&&v.sPer!=null)T.push(["PER재평가",Math.round(v.px*v.sPer/v.per)]);
-  if(v.px!=null&&v.pbr!=null)T.push([`PBR적정(${basis})`,Math.round(v.px*impliedPbr/v.pbr)]);
+  if(v.px>0&&v.per>0&&v.sPer>0)T.push(["PER재평가",Math.round(v.px*v.sPer/v.per)]);
+  if(v.px>0&&v.pbr>0)T.push([`PBR적정(${basis})`,Math.round(v.px*impliedPbr/v.pbr)]);
   return {score:s,grade,reasons:R,targets:T};
 }
 
@@ -294,7 +297,6 @@ function gauge(score){ // −2~+2
     <div class="gticks"><span>−2</span><span>−1</span><b>0</b><span>+1</span><span>+2</span></div>
   </div>`;
 }
-function reasonTag(r){ return /저평가|우호/.test(r)?"b":/고평가/.test(r)?"s":"n"; }
 function tagWord(cls){ return cls==="b"?"매수우호":cls==="s"?"매도경계":"적정"; }
 
 function valSection(res,v){
@@ -328,7 +330,7 @@ function valSection(res,v){
   if(res.reasons.length){
     h+=`<h2>근거 <span>지표별 판정</span></h2><table>
       <tr><th>근거</th><th style="text-align:right;">판정</th></tr>`;
-    res.reasons.forEach(r=>{const c=reasonTag(r);h+=`<tr><td>${r}</td><td class="chipcell"><span class="tag ${c}">${tagWord(c)}</span></td></tr>`;});
+    res.reasons.forEach(([c,r])=>{h+=`<tr><td>${r}</td><td class="chipcell"><span class="tag ${c}">${tagWord(c)}</span></td></tr>`;});
     h+=`</table>`;
   }
   return h;

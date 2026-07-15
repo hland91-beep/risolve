@@ -157,7 +157,7 @@
 
 <script>
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const num=v=>Number(String(v).replace(/[,\s]/g,""));
+const num=v=>Number(String(v).replace(/[,\s%]/g,""));
 const fnum=id=>{const el=document.getElementById(id);if(!el)return null;const r=el.value.trim();if(r==="")return null;const n=num(r);return isFinite(n)?n:null;};
 const sgnTxt=x=>x>0?("+"+x):(""+x);
 
@@ -185,7 +185,7 @@ const WDEF={val:25,flow:20,fund:25,cons:15,tech:15,macro:10};
 })();
 
 const axVal=k=>{const el=document.getElementById("ax_"+k);return el&&el.value!==""?Number(el.value):null;};
-const weight=k=>{const v=fnum("w_"+k);return v==null?WDEF[k]:v;};
+const weight=k=>{const v=fnum("w_"+k);return v==null?WDEF[k]:Math.max(0,v);};
 
 /* 매크로·RS 간이 계산 → 매크로 축 채우기 */
 function macroCalc(){
@@ -233,6 +233,7 @@ function analyze(){
 
   let W=0, comp=0;
   const rows=entered.map(k=>{const w=weight(k); W+=w; comp+=w*ax[k]; return {k,w,s:ax[k]};});
+  if(W<=0){ err.textContent="가중치 합이 0입니다. 입력한 축 중 최소 하나는 0보다 큰 가중치가 필요합니다."; err.style.display="block"; document.getElementById("app").innerHTML=""; return; }
   const avg=comp/W;
   const [gLabel,gCol,gCls]=grade(avg);
   const pos=(clamp(avg,-2,2)+2)/4*100;
@@ -283,6 +284,7 @@ function demo(){
 function clearAll(){
   AXES.forEach(([k])=>document.getElementById("ax_"+k).value="");
   ["rStock","rIdx","rSec","beta","fx","sox"].forEach(id=>document.getElementById(id).value="");
+  AXES.forEach(([k])=>{const el=document.getElementById("w_"+k);if(el)el.value=WDEF[k];}); // 가중치 기본값 복원
   document.getElementById("macroInfo").textContent="";
   document.getElementById("app").innerHTML=""; document.getElementById("err").style.display="none";
 }
