@@ -25,6 +25,20 @@
   .navrow a{font-size:12px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;background:var(--card2);}
   .navrow a:hover{border-color:var(--gold);color:var(--gold);}
   .navrow a.here{border-color:var(--gold);color:var(--gold);background:rgba(212,169,78,.10);}
+  .fhint{display:block;font-size:10.5px;color:var(--mut);margin-top:5px;line-height:1.4;}
+  .help{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-bottom:12px;}
+  .help summary{cursor:pointer;padding:13px 0;font-size:14px;color:var(--gold);font-weight:700;list-style:none;}
+  .help summary::-webkit-details-marker{display:none;}
+  .help summary::before{content:"💡 ";}
+  .help .body{padding:2px 0 14px;font-size:13px;color:var(--sub);line-height:1.7;}
+  .help .body b{color:var(--txt);}
+  .help .g{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:8px 0;}
+  .help .g dt{color:var(--gold);font-weight:600;white-space:nowrap;}
+  .help .g dd{color:var(--sub);}
+  .plain{background:linear-gradient(135deg,rgba(212,169,78,.14),rgba(63,191,178,.08));border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:16px 16px 14px;margin-bottom:16px;}
+  .plain .pl-t{font-size:16px;font-weight:800;color:var(--txt);margin-bottom:6px;line-height:1.4;}
+  .plain .pl-b{font-size:13.5px;color:var(--sub);line-height:1.6;}
+  .plain .pl-b b{color:var(--txt);}
 
   /* 입력 폼 (zone-analyzer 토큰 그대로) */
   .form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
@@ -117,14 +131,34 @@
 </style>
 </head>
 <body>
-  <div class="eyebrow">VALUATION × FLOW ANALYZER</div>
-  <h1 class="title">밸류·수급 분석기</h1>
-  <p class="lede">MTS·네이버에서 5초면 보이는 <b>밸류에이션</b>과 <b>수급</b>을 넣으면 스코어·적정가 밴드·<b>밸류×수급 매트릭스</b>로 매매 방향을 구조화합니다. 오프라인 100% 동작.</p>
+  <div class="eyebrow">싼지 비싼지 · 큰손이 사는지</div>
+  <h1 class="title">주식 싸다·비싸다 체크</h1>
+  <p class="lede"><b>네이버 금융</b>에서 종목을 검색하면 나오는 숫자 몇 개만 넣으면, <b>지금 사도 될지</b>를 쉬운 말로 알려드려요. 다 넣지 않아도 됩니다.</p>
   <div class="navrow">
-    <a href="valuation-flow.html" class="here">밸류·수급</a>
-    <a href="fundamentals-flow.html">펀더멘털·컨센서스</a>
-    <a href="scorecard.html">종합 스코어카드</a>
+    <a href="valuation-flow.html" class="here">싸다·비싸다</a>
+    <a href="fundamentals-flow.html">회사 실적</a>
+    <a href="scorecard.html">종합 점수</a>
   </div>
+
+  <!-- 처음이세요? 쉬운 설명 -->
+  <details class="help">
+    <summary>처음이세요? 30초 사용법 · 용어 쉽게 보기</summary>
+    <div class="body">
+      <b>이렇게 쓰세요</b><br>
+      ① 네이버 금융(또는 증권사 앱)에서 종목 검색 → ② 아래 화면에 보이는 숫자를 그대로 입력 → ③ <b>분석</b> 버튼.
+      숫자를 모르면 그 칸은 <b>비워도 됩니다</b>. 딱 감이 안 오면 <b>예시 채우기</b>를 눌러 보세요.
+      <div class="g">
+        <dt>현재가</dt><dd>지금 이 주식 1주 가격.</dd>
+        <dt>PER</dt><dd>주가가 <b>이익</b>의 몇 배인가. <b>낮을수록 싸다</b>는 뜻.</dd>
+        <dt>PBR</dt><dd>주가가 <b>회사 자산</b>의 몇 배인가. <b>낮을수록 싸다</b>.</dd>
+        <dt>ROE</dt><dd>회사가 돈을 얼마나 잘 버는지(%). <b>높을수록 좋다</b>.</dd>
+        <dt>배당수익률</dt><dd>1년에 받는 배당이 주가의 몇 %인지.</dd>
+        <dt>외국인·기관<br>순매수</dt><dd>큰손들이 최근 며칠간 <b>산 양(+)·판 양(−)</b>. 사면 보통 좋은 신호.</dd>
+      </div>
+      <b>결과는</b> "싼 편/비싼 편", "큰손이 사는 중/파는 중"처럼 <b>쉬운 한 줄</b>로 먼저 알려드리고, 그 아래 자세한 근거를 보여줍니다.
+      <br><span style="color:var(--mut)">※ 이 앱은 참고용 판단 도구예요. "무조건 사라/팔라"가 아니라, 나눠서 사고파는 기준을 잡는 데 쓰세요.</span>
+    </div>
+  </details>
 
   <!-- 자동조회(선택) -->
   <details class="adv" id="autoPanel">
@@ -141,37 +175,37 @@
 
   <!-- 밸류에이션 입력 -->
   <div class="form">
-    <div class="cap">밸류에이션 <span>MTS/네이버에서 조회 · 값 없는 칸은 비워도 됨</span></div>
+    <div class="cap">① 싼지 비싸지 <span>네이버 금융 종목 화면의 숫자 · 모르면 비워도 됨</span></div>
     <div class="frow three">
-      <div class="field"><label>현재가</label><input id="px" placeholder="263,000" inputmode="decimal"></div>
-      <div class="field"><label>PER <i>(배)</i></label><input id="per" placeholder="11" inputmode="decimal"></div>
-      <div class="field"><label>PBR <i>(배)</i></label><input id="pbr" placeholder="1.1" inputmode="decimal"></div>
+      <div class="field"><label>현재가 <i>(원)</i></label><input id="px" placeholder="263,000" inputmode="decimal"><span class="fhint">지금 1주 가격</span></div>
+      <div class="field"><label>PER <i>(배)</i></label><input id="per" placeholder="11" inputmode="decimal"><span class="fhint">낮을수록 이익 대비 쌈</span></div>
+      <div class="field"><label>PBR <i>(배)</i></label><input id="pbr" placeholder="1.1" inputmode="decimal"><span class="fhint">낮을수록 자산 대비 쌈</span></div>
     </div>
     <div class="frow three">
-      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="9" inputmode="decimal"></div>
-      <div class="field"><label>배당수익률 <i>(%)</i></label><input id="dy" placeholder="2.5" inputmode="decimal"></div>
-      <div class="field"><label>업종평균 PER <i>(선택)</i></label><input id="sPer" placeholder="13" inputmode="decimal"></div>
+      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="9" inputmode="decimal"><span class="fhint">높을수록 돈 잘 벰</span></div>
+      <div class="field"><label>배당수익률 <i>(%)</i></label><input id="dy" placeholder="2.5" inputmode="decimal"><span class="fhint">배당이 주가의 몇 %</span></div>
+      <div class="field"><label>같은 업종 PER <i>(선택)</i></label><input id="sPer" placeholder="13" inputmode="decimal"><span class="fhint">업종 평균과 비교용</span></div>
     </div>
     <div class="frow">
-      <div class="field"><label>업종평균 PBR <i>(선택)</i></label><input id="sPbr" placeholder="비우면 ROE/8 추정" inputmode="decimal"></div>
-      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">업종 PBR을 비우면 <b style="color:var(--sub)">적정PBR ≈ ROE/8</b>(요구수익률 8% 가정)로 대체합니다.</span></div>
+      <div class="field"><label>같은 업종 PBR <i>(선택)</i></label><input id="sPbr" placeholder="모르면 비우세요" inputmode="decimal"><span class="fhint">비우면 ROE로 자동 추정</span></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">잘 모르겠으면 <b style="color:var(--sub)">현재가·PER·PBR·ROE</b> 4개만 넣어도 충분해요.</span></div>
     </div>
   </div>
 
   <!-- 수급 입력 -->
   <div class="form">
-    <div class="cap">수급 <span>외국인·기관 순매수 · 부호(순매수/순매도)로 판단</span></div>
+    <div class="cap">② 큰손이 사는지 <span>외국인·기관이 산 양(+)·판 양(−) · 네이버 금융 '외국인·기관' 탭</span></div>
     <div class="frow">
-      <div class="field"><label><b>외국인 5일</b> 순매수</label><input id="f5" placeholder="+1,200" inputmode="decimal"></div>
-      <div class="field"><label><b>기관 5일</b> 순매수</label><input id="i5" placeholder="+300" inputmode="decimal"></div>
+      <div class="field"><label><b>외국인</b> 최근 5일</label><input id="f5" placeholder="+1,200" inputmode="decimal"><span class="fhint">+면 순매수(사는 중), −면 순매도(파는 중)</span></div>
+      <div class="field"><label><b>기관</b> 최근 5일</label><input id="i5" placeholder="+300" inputmode="decimal"><span class="fhint">+면 순매수, −면 순매도</span></div>
     </div>
     <div class="frow">
-      <div class="field"><label>외국인 20일 <i>(선택)</i></label><input id="f20" placeholder="추세 판단용" inputmode="decimal"></div>
-      <div class="field"><label>기관 20일 <i>(선택)</i></label><input id="i20" placeholder="추세 판단용" inputmode="decimal"></div>
+      <div class="field"><label>외국인 최근 20일 <i>(선택)</i></label><input id="f20" placeholder="모르면 비우세요" inputmode="decimal"><span class="fhint">추세(계속 사는지) 판단용</span></div>
+      <div class="field"><label>기관 최근 20일 <i>(선택)</i></label><input id="i20" placeholder="모르면 비우세요" inputmode="decimal"><span class="fhint">추세 판단용</span></div>
     </div>
     <div class="frow">
-      <div class="field"><label>외국인 연속일수 <i>(+매수/−매도)</i></label><input id="fStreak" placeholder="예: 5 또는 -3" inputmode="decimal"></div>
-      <div class="field"><label>기관 연속일수 <i>(+매수/−매도)</i></label><input id="iStreak" placeholder="예: 5 또는 -3" inputmode="decimal"></div>
+      <div class="field"><label>외국인 연속일수 <i>(선택)</i></label><input id="fStreak" placeholder="예: 5 (또는 -3)" inputmode="decimal"><span class="fhint">며칠 연속 샀나(+)/팔았나(−)</span></div>
+      <div class="field"><label>기관 연속일수 <i>(선택)</i></label><input id="iStreak" placeholder="예: 5 (또는 -3)" inputmode="decimal"><span class="fhint">연속 매수(+)/매도(−) 일수</span></div>
     </div>
   </div>
 
@@ -191,9 +225,9 @@
   </details>
 
   <div class="btnrow">
-    <button class="btn" id="go">분석</button>
-    <button class="btn ghost" id="demo">예시 채우기</button>
-    <button class="btn ghost" id="clear">초기화</button>
+    <button class="btn" id="go">결과 보기</button>
+    <button class="btn ghost" id="demo">예시로 해보기</button>
+    <button class="btn ghost" id="clear">지우기</button>
   </div>
   <div class="err" id="err"></div>
 
@@ -301,10 +335,10 @@ function tagWord(cls){ return cls==="b"?"매수우호":cls==="s"?"매도경계":
 
 function valSection(res,v){
   const gCls=res.score>0?"var(--buy)":res.score<0?"var(--sell)":"var(--neu)";
-  let h=`<h2>밸류에이션 <span>스코어 −2~+2</span></h2>`;
+  let h=`<h2>자세히 · 가격 <span>싼지 비싼지</span></h2>`;
   h+=`<div class="scard">
     <div class="shead">
-      <span class="ttl">가치 평가</span>
+      <span class="ttl">가격 평가</span>
       <span class="grade" style="color:${gCls}">${res.grade} <span class="sc">${sgnTxt(res.score)}</span></span>
     </div>
     ${gauge(res.score)}
@@ -316,8 +350,8 @@ function valSection(res,v){
     const lo=Math.min(...vals), hi=Math.max(...vals);
     const band=lo===hi?`${fmt(lo)}원`:`${fmt(lo)} ~ ${fmt(hi)}원`;
     const gapTxt=(v.px!=null)?(()=>{const mid=(lo+hi)/2;const g=(mid-v.px)/v.px*100;return `현재가 대비 중앙값 ${(g>=0?"+":"")+g.toFixed(1)}%`;})():"";
-    h+=`<div class="callout">적정가 밴드 <b class="hot">${band}</b>${gapTxt?` · <b>${gapTxt}</b>`:""} — 재평가 방식별 참고치이며 확정가가 아닙니다.</div>`;
-    h+=`<h2>적정가 산출 <span>재평가 방식별</span></h2><table>
+    h+=`<div class="callout"><b>적당한 가격대</b>(적정가 밴드) <b class="hot">${band}</b>${gapTxt?` · <b>${gapTxt}</b>`:""} — 이 정도면 비싸지 않다는 참고 범위예요(확정가 아님).</div>`;
+    h+=`<h2>적당한 가격 계산 <span>계산 방식별</span></h2><table>
       <tr><th>방식</th><th style="text-align:right;">적정가</th><th style="text-align:right;">현재가 대비</th></tr>`;
     res.targets.forEach(([nm,val])=>{
       const p=v.px!=null?(val-v.px)/v.px*100:null;
@@ -339,10 +373,10 @@ function valSection(res,v){
 function flowSection(res){
   const gCls=res.score>0?"var(--buy)":res.score<0?"var(--sell)":"var(--neu)";
   const dCls=res.dir.includes("유입")?"buy":res.dir.includes("이탈")?"sell":res.dir==="엇갈림"?"gold":"neu";
-  let h=`<h2>수급 <span>스코어 −2~+2</span></h2>`;
+  let h=`<h2>자세히 · 큰손 <span>사는지 파는지</span></h2>`;
   h+=`<div class="scard">
     <div class="shead">
-      <span class="ttl">투자자 순매수</span>
+      <span class="ttl">외국인·기관 매매</span>
       <span class="grade" style="color:${gCls}">${res.dir} <span class="sc">${sgnTxt(res.score)}</span></span>
     </div>
     ${gauge(res.score)}
@@ -359,14 +393,43 @@ function flowSection(res){
 function matrixSection(vS,fS){
   const [title,action,cls]=matrix(vS,fS);
   const col=cls==="b"?"var(--buy)":cls==="s"?"var(--sell)":"var(--gold)";
-  let h=`<h2>밸류 × 수급 매트릭스 <span>종합 해석 · 대응</span></h2>`;
+  let h=`<h2>종합 판단 <span>가격 + 큰손 합쳐서</span></h2>`;
   h+=`<div class="matrix" style="border-left-color:${col}">
     <div class="mt" style="color:${col}">${title}
-      <span class="tag ${cls}" style="margin-left:6px;vertical-align:middle;">밸류 ${sgnTxt(vS)} · 수급 ${sgnTxt(fS)}</span></div>
+      <span class="tag ${cls}" style="margin-left:6px;vertical-align:middle;">가격 ${sgnTxt(vS)} · 큰손 ${sgnTxt(fS)}</span></div>
     <div class="ma">${action}</div>
-    <div class="mn">※ <b>방향은 밸류·수급, 진입가는 대응존(기술적)</b>. 집행 타이밍은 <b>종목 대응존 분석기(zone-analyzer)</b>의 지지/저항 레벨에 맞춰 확정하세요.</div>
+    <div class="mn">※ <b>"살지 말지"는 이 화면, "얼마에 살지"는 차트</b>로 정하세요. 최종 매수·매도 가격은 차트의 지지·저항선을 함께 보는 게 좋아요.</div>
   </div>`;
   return h;
+}
+
+/* ===== 쉬운 말 한 줄 요약 ===== */
+function plainAction(vs,fs){
+  if(vs>0&&fs>0) return "👉 <b>싸고 + 큰손도 사는 중</b> — 가장 좋은 조합이에요. 한 번에 다 사지 말고 <b>여러 번 나눠서 매수</b>하기 좋은 구간. (정확한 매수 가격·타이밍은 차트로 확인하세요)";
+  if(vs>0&&fs<0) return "👉 싸 보이지만 <b>큰손은 파는 중</b> — '싸 보이는 함정'일 수 있어요. 큰손이 다시 살 때까지 <b>조금만·천천히</b>.";
+  if(vs>0&&fs===0) return "👉 <b>가격은 싼 편</b>이고 큰손 움직임은 잔잔해요. <b>나눠서 매수</b>를 검토하되 서두르지 마세요.";
+  if(vs<0&&fs>0) return "👉 <b>비싸졌는데 큰손이 사는 중</b> — 오르는 힘은 있지만 지금 뛰어들긴 위험. <b>소량</b>만, 이미 갖고 있다면 급히 팔 필요는 없어요.";
+  if(vs<0&&fs<0) return "👉 <b>비싸고 + 큰손도 파는 중</b> — 위험 신호예요. <b>비중을 줄이거나 관망</b>하는 게 편합니다.";
+  if(vs<0&&fs===0) return "👉 <b>가격이 비싼 편</b>이에요. 새로 사기보다 <b>관망하거나 비중을 줄이는</b> 쪽을 권해요.";
+  return fs>0?"👉 가격은 보통인데 <b>큰손이 사는 중</b> — 흐름을 보며 접근해 보세요.":fs<0?"👉 가격은 보통인데 <b>큰손이 파는 중</b> — 관망이 편해요.":"👉 특별히 싸지도 비싸지도 않고, 큰손 움직임도 잔잔해요. <b>서두를 이유가 없습니다</b>. 차트 타이밍을 기다리세요.";
+}
+function plainSummary(vRes,fRes){
+  const vWord = vRes ? (vRes.score>=1?"싼 편":vRes.score<=-1?"비싼 편":"보통 수준") : null;
+  const vEmoji = vRes ? (vRes.score>=1?"🟢":vRes.score<=-1?"🔴":"🟡") : "";
+  const fWord = fRes ? (fRes.score>0?"큰손(외국인·기관)이 사는 중":fRes.score<0?"큰손이 파는 중":(fRes.dir==="엇갈림"?"외국인·기관 방향이 엇갈림":"큰손 움직임은 잔잔함")) : null;
+  const fEmoji = fRes ? (fRes.score>0?"🟢":fRes.score<0?"🔴":"🟡") : "";
+  let title, body;
+  if(vRes&&fRes){
+    title = `${vEmoji} 지금은 <b>${vWord}</b>, 그리고 <b>${fWord}</b>이에요.`;
+    body = plainAction(vRes.score,fRes.score);
+  } else if(vRes){
+    title = `${vEmoji} 지금 이 주식은 <b>${vWord}</b>이에요.`;
+    body = vRes.score>=1?"가격만 보면 살 만한 구간. '큰손이 사는지'(수급)도 넣으면 훨씬 정확해져요.":vRes.score<=-1?"가격이 부담스러운 편이에요. 서두르지 마세요.":"가격은 무난해요. 큰손 매매(수급)를 같이 넣어 보세요.";
+  } else {
+    title = `${fEmoji} <b>${fWord}</b>.`;
+    body = fRes.score>0?"큰손이 사는 신호예요. 가격(PER·PBR)도 넣으면 매수 판단이 쉬워져요.":fRes.score<0?"큰손이 파는 신호예요. 조심하세요.":"큰손 움직임이 뚜렷하지 않아요. 가격 지표도 같이 보세요.";
+  }
+  return `<div class="plain"><div class="pl-t">${title}</div><div class="pl-b">${body}</div></div>`;
 }
 
 /* ===== 실행 ===== */
@@ -380,22 +443,22 @@ function analyze(){
   const hasFlow = (f.f5!=null) || (f.i5!=null);
 
   if(!hasVal && !hasFlow){
-    showErr("밸류에이션(PBR 또는 PER+업종PER 또는 배당) 이나 수급(외국인/기관 5일) 중 하나 이상을 입력하세요.");
+    showErr("숫자를 몇 개 넣어주세요. 잘 모르면 아래 '예시 채우기'를 눌러 보세요. (현재가·PER·PBR만 넣어도 됩니다)");
     document.getElementById("app").innerHTML="";
     return;
   }
   showErr("");
 
-  let html=`<div class="eyebrow" style="margin-top:22px;">RESULT</div>`;
-  let vRes=null, fRes=null;
-  if(hasVal){ vRes=scoreVal(v); html+=valSection(vRes,v); }
-  if(hasFlow){ fRes=scoreFlow(f); html+=flowSection(fRes); }
-  if(vRes&&fRes){ html+=matrixSection(vRes.score,fRes.score); }
-  else {
-    html+=`<div class="callout" style="margin-top:14px;">밸류·수급을 <b>모두</b> 입력하면 종합 매트릭스가 자동 표시됩니다. ${vRes?"현재 수급 미입력":"현재 밸류 미입력"}.</div>`;
-  }
+  let vRes = hasVal ? scoreVal(v) : null;
+  let fRes = hasFlow ? scoreFlow(f) : null;
 
-  html+=`<p class="foot">본 도구는 투자 판단을 <b style="color:var(--sub)">구조화</b>하는 참고 자료이며 <b style="color:var(--sub)">투자 권유가 아닙니다</b>. 스코어는 부호·상대비교 기반의 규칙 산출값으로 실적·컨센서스·매크로는 반영하지 않습니다. 입력값(PER/PBR/수급)의 시점·정확성은 사용자가 확인해야 합니다. 매매 결정과 그 결과의 책임은 전적으로 이용자 본인에게 있습니다.</p>`;
+  let html=`<div class="eyebrow" style="margin-top:22px;">한눈에 보기</div>`;
+  html+=plainSummary(vRes,fRes);
+  if(vRes){ html+=valSection(vRes,v); }
+  if(fRes){ html+=flowSection(fRes); }
+  if(vRes&&fRes){ html+=matrixSection(vRes.score,fRes.score); }
+
+  html+=`<p class="foot">이 앱은 판단을 <b style="color:var(--sub)">정리해 주는 참고 도구</b>일 뿐 <b style="color:var(--sub)">"사라/팔라"는 권유가 아닙니다</b>. 넣으신 숫자와 규칙으로만 계산하며, 실적·시장 전체 흐름 등은 반영하지 않습니다. 숫자가 최신인지 확인은 본인이 하시고, 매매 결정·결과의 책임은 본인에게 있습니다.</p>`;
 
   const app=document.getElementById("app");
   app.innerHTML=html;

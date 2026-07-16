@@ -25,6 +25,16 @@
   .navrow a{font-size:12px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;background:var(--card2);}
   .navrow a:hover{border-color:var(--gold);color:var(--gold);}
   .navrow a.here{border-color:var(--gold);color:var(--gold);background:rgba(212,169,78,.10);}
+  .fhint{display:block;font-size:10.5px;color:var(--mut);margin-top:5px;line-height:1.4;}
+  .help{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-bottom:12px;}
+  .help summary{cursor:pointer;padding:13px 0;font-size:14px;color:var(--gold);font-weight:700;list-style:none;}
+  .help summary::-webkit-details-marker{display:none;} .help summary::before{content:"💡 ";}
+  .help .body{padding:2px 0 14px;font-size:13px;color:var(--sub);line-height:1.7;} .help .body b{color:var(--txt);}
+  .help .g{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:8px 0;}
+  .help .g dt{color:var(--gold);font-weight:600;white-space:nowrap;} .help .g dd{color:var(--sub);}
+  .plain{background:linear-gradient(135deg,rgba(212,169,78,.14),rgba(63,191,178,.08));border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:16px 16px 14px;margin-bottom:16px;}
+  .plain .pl-t{font-size:16px;font-weight:800;color:var(--txt);margin-bottom:6px;line-height:1.4;}
+  .plain .pl-b{font-size:13.5px;color:var(--sub);line-height:1.6;} .plain .pl-b b{color:var(--txt);}
   details.adv{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-bottom:12px;}
   details.adv summary{cursor:pointer;padding:12px 0;font-size:13px;color:var(--sub);font-weight:600;list-style:none;}
   details.adv summary::-webkit-details-marker{display:none;}
@@ -98,14 +108,31 @@
 </style>
 </head>
 <body>
-  <div class="eyebrow">FUNDAMENTALS × CONSENSUS ANALYZER</div>
-  <h1 class="title">펀더멘털·컨센서스 분석기</h1>
-  <p class="lede"><b>사업이 좋아지나</b>(실적·성장·수익성)와 <b>시장 기대치</b>(목표주가·투자의견)를 각각 −2~+2로 점수화합니다. DART·네이버·증권사 리포트 값을 수기로 넣으면 오프라인 100% 동작.</p>
+  <div class="eyebrow">회사가 잘 벌고 있나 · 시장 기대는</div>
+  <h1 class="title">회사 실적 체크</h1>
+  <p class="lede"><b>이 회사가 돈을 잘 벌고 좋아지고 있는지</b>, 그리고 <b>증권사들이 얼마나 기대하는지</b>를 쉬운 말로 알려드려요. 아는 숫자만 넣어도 됩니다.</p>
   <div class="navrow">
-    <a href="valuation-flow.html">밸류·수급</a>
-    <a href="fundamentals-flow.html" class="here">펀더멘털·컨센서스</a>
-    <a href="scorecard.html">종합 스코어카드</a>
+    <a href="valuation-flow.html">싸다·비싸다</a>
+    <a href="fundamentals-flow.html" class="here">회사 실적</a>
+    <a href="scorecard.html">종합 점수</a>
   </div>
+
+  <details class="help">
+    <summary>처음이세요? 용어 쉽게 보기</summary>
+    <div class="body">
+      숫자는 <b>네이버 금융</b> 종목 화면(또는 증권사 리포트)에서 찾을 수 있어요. 모르는 칸은 <b>비워도</b> 됩니다.
+      <div class="g">
+        <dt>매출성장</dt><dd>작년보다 매출이 몇 % 늘었나. <b>+면 성장</b>.</dd>
+        <dt>EPS성장</dt><dd>1주당 이익이 작년보다 몇 % 늘었나.</dd>
+        <dt>ROE</dt><dd>돈 버는 효율(%). <b>높을수록 좋음</b>.</dd>
+        <dt>영업이익률</dt><dd>매출 중 이익으로 남는 비율(%).</dd>
+        <dt>부채비율</dt><dd>빚이 자본의 몇 %. <b>낮을수록 안전</b>.</dd>
+        <dt>목표주가</dt><dd>증권사가 예상한 적정 주가. 지금보다 높으면 기대가 큰 것.</dd>
+        <dt>업종 선택</dt><dd>은행·바이오 등은 기준이 달라서, 업종을 고르면 더 정확해져요.</dd>
+      </div>
+      결과는 <b>"실적 좋음/부진", "시장 기대 높음/낮음"</b>처럼 쉬운 한 줄로 먼저 보여드려요.
+    </div>
+  </details>
 
   <!-- 자동조회(선택) -->
   <details class="adv" id="autoPanel">
@@ -122,54 +149,54 @@
 
   <!-- 펀더멘털·실적 -->
   <div class="form">
-    <div class="cap">펀더멘털 · 실적 <span>DART/네이버 · 값 없는 칸은 비워도 됨</span></div>
+    <div class="cap">① 회사가 잘 벌고 있나 <span>네이버 금융/증권사 리포트 숫자 · 모르면 비워도 됨</span></div>
     <div class="frow">
-      <div class="field"><label>업종 프리셋 <i>(임계값 보정)</i></label>
+      <div class="field"><label>어떤 업종인가요?</label>
         <select id="preset">
-          <option value="general">일반 · 제조</option>
+          <option value="general">일반 · 제조업</option>
           <option value="growth">IT · 성장주</option>
-          <option value="finance">금융 · 지주 (마진·부채 제외)</option>
-          <option value="bio">바이오 · 제약 (적자 완화)</option>
-          <option value="utility">유틸 · 배당 (저성장·자본집약)</option>
-        </select></div>
-      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">업종별로 <b style="color:var(--sub)">±판정 임계값</b>이 달라집니다(금융은 영업이익률·부채비율 제외).</span></div>
+          <option value="finance">은행 · 금융 · 지주</option>
+          <option value="bio">바이오 · 제약</option>
+          <option value="utility">전기·가스 등 · 배당주</option>
+        </select><span class="fhint">업종마다 기준이 달라요(은행은 부채·이익률 기준 제외)</span></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">잘 모르면 <b style="color:var(--sub)">매출성장·ROE·부채비율</b> 정도만 넣어도 돼요.</span></div>
     </div>
     <div class="frow three">
-      <div class="field"><label>매출성장 YoY <i>(%)</i></label><input id="revG" placeholder="12" inputmode="decimal"></div>
-      <div class="field"><label>EPS성장 YoY <i>(%)</i></label><input id="epsG" placeholder="20" inputmode="decimal"></div>
-      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="15" inputmode="decimal"></div>
+      <div class="field"><label>매출성장 <i>(%)</i></label><input id="revG" placeholder="12" inputmode="decimal"><span class="fhint">작년보다 매출 +몇%</span></div>
+      <div class="field"><label>이익성장(EPS) <i>(%)</i></label><input id="epsG" placeholder="20" inputmode="decimal"><span class="fhint">작년보다 이익 +몇%</span></div>
+      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="15" inputmode="decimal"><span class="fhint">높을수록 잘 벰</span></div>
     </div>
     <div class="frow three">
-      <div class="field"><label>영업이익률 <i>(%)</i></label><input id="opm" placeholder="18" inputmode="decimal"></div>
-      <div class="field"><label>부채비율 <i>(%)</i></label><input id="debt" placeholder="80" inputmode="decimal"></div>
-      <div class="field"><label>FCF <i>(억, +/−)</i></label><input id="fcf" placeholder="+3,000" inputmode="decimal"></div>
+      <div class="field"><label>영업이익률 <i>(%)</i></label><input id="opm" placeholder="18" inputmode="decimal"><span class="fhint">매출 중 남는 이익</span></div>
+      <div class="field"><label>부채비율 <i>(%)</i></label><input id="debt" placeholder="80" inputmode="decimal"><span class="fhint">낮을수록 빚 적어 안전</span></div>
+      <div class="field"><label>현금흐름(FCF) <i>(억)</i></label><input id="fcf" placeholder="+3,000" inputmode="decimal"><span class="fhint">+면 현금 남김(좋음)</span></div>
     </div>
     <div class="frow">
-      <div class="field"><label>어닝 서프라이즈 <i>(컨센 대비 %)</i></label><input id="surprise" placeholder="+8" inputmode="decimal"></div>
-      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">각 지표는 <b style="color:var(--sub)">일반 기준(rule-of-thumb)</b>으로 ±판정합니다. 업종 특성이 크면 참고치로만 보세요.</span></div>
+      <div class="field"><label>어닝 서프라이즈 <i>(%, 선택)</i></label><input id="surprise" placeholder="+8" inputmode="decimal"><span class="fhint">예상보다 실적이 +면 좋음</span></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">각 기준은 <b style="color:var(--sub)">일반적인 눈대중</b>이에요. 업종 특성이 크면 참고로만.</span></div>
     </div>
   </div>
 
   <!-- 컨센서스·목표주가 -->
   <div class="form">
-    <div class="cap">컨센서스 · 목표주가 <span>증권사 리포트/네이버 목표가</span></div>
+    <div class="cap">② 증권사 기대는 <span>증권사 리포트·네이버의 목표주가</span></div>
     <div class="frow three">
-      <div class="field"><label>현재가</label><input id="px" placeholder="70,000" inputmode="decimal"></div>
-      <div class="field"><label>평균 목표주가</label><input id="tp" placeholder="90,000" inputmode="decimal"></div>
-      <div class="field"><label>목표가 추이</label>
-        <select id="trend"><option value="">— 선택 —</option><option value="1">상향</option><option value="0">유지</option><option value="-1">하향</option></select></div>
+      <div class="field"><label>현재가 <i>(원)</i></label><input id="px" placeholder="70,000" inputmode="decimal"><span class="fhint">지금 1주 가격</span></div>
+      <div class="field"><label>목표주가 <i>(원)</i></label><input id="tp" placeholder="90,000" inputmode="decimal"><span class="fhint">증권사 예상 적정가(평균)</span></div>
+      <div class="field"><label>목표가 방향</label>
+        <select id="trend"><option value="">— 모르면 비움 —</option><option value="1">올리는 중(상향)</option><option value="0">그대로(유지)</option><option value="-1">내리는 중(하향)</option></select><span class="fhint">최근 목표가를 올리나 내리나</span></div>
     </div>
     <div class="frow">
-      <div class="field"><label>투자의견 우위</label>
-        <select id="opinion"><option value="">— 선택 —</option><option value="1">매수 우위</option><option value="0">중립</option><option value="-1">매도 우위</option></select></div>
-      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">상단여력 = (목표가 − 현재가) / 현재가. <b style="color:var(--sub)">+15% 이상 우호</b>, 0% 이하 비우호.</span></div>
+      <div class="field"><label>증권사 의견</label>
+        <select id="opinion"><option value="">— 모르면 비움 —</option><option value="1">매수 많음</option><option value="0">중립</option><option value="-1">매도·보류 많음</option></select><span class="fhint">리포트 다수 의견</span></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><span style="font-size:11px;color:var(--mut);line-height:1.5;">목표주가가 현재가보다 <b style="color:var(--sub)">15% 이상 높으면</b> 기대가 큰 편이에요.</span></div>
     </div>
   </div>
 
   <div class="btnrow">
-    <button class="btn" id="go">분석</button>
-    <button class="btn ghost" id="demo">예시 채우기</button>
-    <button class="btn ghost" id="clear">초기화</button>
+    <button class="btn" id="go">결과 보기</button>
+    <button class="btn ghost" id="demo">예시로 해보기</button>
+    <button class="btn ghost" id="clear">지우기</button>
   </div>
   <div class="err" id="err"></div>
   <div id="app"></div>
@@ -225,11 +252,29 @@ function scoreCons(c){ // {px,tp,opinion,trend}
 
 /* ===== 실적×컨센서스 융합 ===== */
 function fcMatrix(f,c){
-  if(f>0&&c>0)return["실적개선 + 기대상향","추세 추종 — 트림 늦추고 보유 유지·확대 여지","b"];
-  if(f>0&&c<=0)return["실적개선 + 기대낮음","저평가 기회일 수 있음 — 목표가 상향 여부 관찰하며 눌림 매수","n"];
-  if(f<=0&&c>0)return["실적부진 + 기대선반영","기대 과열 위험 — 다음 실적 확인 전 관망/트림","n"];
-  if(f<0&&c<0)return["실적부진 + 비우호","회피·축소 — 반등 시 비중 축소","s"];
-  return["혼조","개별 지표·대응존(기술적)으로 판단","n"];
+  if(f>0&&c>0)return["실적 좋음 + 기대 높음","좋은 흐름이에요. 급하게 팔 필요 없이 <b>보유·추가</b>를 검토할 만해요.","b"];
+  if(f>0&&c<=0)return["실적 좋음 + 기대 낮음","실적은 좋은데 아직 덜 알려진 편. <b>목표가가 오르는지 지켜보며 조금씩</b>.","n"];
+  if(f<=0&&c>0)return["실적 부진 + 기대 높음","기대가 앞서간 편일 수 있어요. <b>다음 실적 확인 전엔 신중히</b>.","n"];
+  if(f<0&&c<0)return["실적 부진 + 기대 낮음","<b>피하거나 비중을 줄이는</b> 게 편해요.","s"];
+  return["섞임","한쪽만으로 판단하기 애매해요. 가격·차트도 같이 보세요.","n"];
+}
+/* ===== 쉬운 말 한 줄 요약 ===== */
+function plainSummaryFC(fRes,cRes){
+  const fWord=fRes?(fRes.score>=1?"실적이 좋은 편":fRes.score<=-1?"실적이 부진한 편":"실적은 보통"):null;
+  const cWord=cRes?(cRes.score>0?"증권사 기대도 높아요":cRes.score<0?"증권사 기대는 낮아요":"증권사 기대는 보통"):null;
+  const emoji=(s)=>s>=1?"🟢":s<=-1?"🔴":"🟡";
+  let title, body;
+  if(fRes&&cRes){
+    title=`${emoji(fRes.score)} <b>${fWord}</b>, 그리고 <b>${cWord}</b>.`;
+    body=fcMatrix(fRes.score,cRes.score)[1];
+  } else if(fRes){
+    title=`${emoji(fRes.score)} 이 회사는 <b>${fWord}</b>이에요.`;
+    body=fRes.score>=1?"돈을 잘 벌고 있어요. '증권사 기대(목표주가)'도 넣으면 더 또렷해져요.":fRes.score<=-1?"실적이 약한 편이라 신중하게 보세요.":"실적은 무난해요. 다른 지표도 같이 보세요.";
+  } else {
+    title=`${cRes.score>0?"🟢":cRes.score<0?"🔴":"🟡"} <b>${cWord}</b>.`;
+    body=cRes.score>0?"증권사들이 기대하는 편. 실제 실적도 넣어 확인해 보세요.":cRes.score<0?"기대가 낮은 편이에요.":"기대는 무난해요.";
+  }
+  return `<div class="plain"><div class="pl-t">${title}</div><div class="pl-b">${body}</div></div>`;
 }
 
 /* ===== 렌더 ===== */
@@ -257,38 +302,43 @@ function analyze(){
   const hasFund=Object.values(x).some(v=>v!=null);
   const hasCons=(c.px!=null&&c.tp!=null)||c.opinion!=null||c.trend!=null;
   const err=document.getElementById("err");
-  if(!hasFund&&!hasCons){ err.textContent="펀더멘털(실적 지표) 이나 컨센서스(목표주가/투자의견) 중 하나 이상을 입력하세요."; err.style.display="block"; document.getElementById("app").innerHTML=""; return; }
+  if(!hasFund&&!hasCons){ err.textContent="숫자를 몇 개 넣어주세요. 잘 모르면 '예시로 해보기'를 눌러 보세요."; err.style.display="block"; document.getElementById("app").innerHTML=""; return; }
   err.style.display="none";
 
-  let html=`<div class="eyebrow" style="margin-top:22px;">RESULT</div>`;
   let fRes=null, cRes=null;
   const preset=PRESETS[document.getElementById("preset").value]||PRESETS.general;
-  if(hasFund){ fRes=scoreFund(x,preset);
-    html+=`<h2>펀더멘털 · 실적 <span>스코어 −2~+2</span></h2>`;
-    html+=scoreCard("사업 체력",`취약 (net ${fRes.net})`,`우수 (net ${fRes.net})`,fRes);
-    html+=`<h2>실적 근거 <span>지표별 판정</span></h2>`+reasonTable(fRes.reasons);
+  if(hasFund) fRes=scoreFund(x,preset);
+  if(hasCons) cRes=scoreCons(c);
+
+  let html=`<div class="eyebrow" style="margin-top:22px;">한눈에 보기</div>`;
+  html+=plainSummaryFC(fRes,cRes);
+
+  if(fRes){
+    html+=`<h2>자세히 · 실적 <span>회사가 잘 버나</span></h2>`;
+    html+=scoreCard("사업 체력",`부진`,`좋음`,fRes);
+    html+=`<h2>실적 근거 <span>항목별</span></h2>`+reasonTable(fRes.reasons);
   }
-  if(hasCons){ cRes=scoreCons(c);
-    html+=`<h2>컨센서스 · 목표주가 <span>스코어 −2~+2</span></h2>`;
-    html+=scoreCard("시장 기대치","부정적","매우 우호",cRes);
+  if(cRes){
+    html+=`<h2>자세히 · 증권사 기대 <span>목표주가</span></h2>`;
+    html+=scoreCard("시장 기대치","낮음","높음",cRes);
     if(cRes.upside!=null){
       const uc=cRes.upside>=15?"var(--buy)":cRes.upside<=0?"var(--sell)":"var(--sub)";
-      html+=`<div class="callout">상단여력 <b class="hot" style="color:${uc}">${(cRes.upside>=0?"+":"")+cRes.upside.toFixed(1)}%</b> (목표 ${fmt(c.tp)} vs 현재 ${fmt(c.px)}) — 애널리스트 추정치이며 확정이 아닙니다.</div>`;
+      html+=`<div class="callout">지금 사서 목표가까지 가면 <b class="hot" style="color:${uc}">${(cRes.upside>=0?"+":"")+cRes.upside.toFixed(1)}%</b> (목표 ${fmt(c.tp)} vs 현재 ${fmt(c.px)}) — 증권사 예상치라 확정은 아니에요.</div>`;
     }
-    html+=`<h2>컨센 근거 <span>지표별 판정</span></h2>`+reasonTable(cRes.reasons);
+    html+=`<h2>기대 근거 <span>항목별</span></h2>`+reasonTable(cRes.reasons);
   }
   if(fRes&&cRes){
     const [t,a,cls]=fcMatrix(fRes.score,cRes.score);
     const col=cls==="b"?"var(--buy)":cls==="s"?"var(--sell)":"var(--gold)";
-    html+=`<h2>실적 × 컨센서스 <span>융합 해석</span></h2>
+    html+=`<h2>종합 판단 <span>실적 + 기대 합쳐서</span></h2>
       <div class="matrix" style="border-left-color:${col}">
-      <div class="mt" style="color:${col}">${t} <span class="tag ${cls}" style="margin-left:6px;vertical-align:middle;">실적 ${sgnTxt(fRes.score)} · 컨센 ${sgnTxt(cRes.score)}</span></div>
+      <div class="mt" style="color:${col}">${t} <span class="tag ${cls}" style="margin-left:6px;vertical-align:middle;">실적 ${sgnTxt(fRes.score)} · 기대 ${sgnTxt(cRes.score)}</span></div>
       <div class="ma">${a}</div>
-      <div class="mn">※ 이 두 축은 <b>종합 스코어카드</b>의 실적·컨센서스 입력으로 그대로 넣어 5축 종합 판단에 반영하세요.</div></div>`;
+      <div class="mn">※ 이 결과는 <b>종합 점수</b> 화면의 '실적'·'컨센서스' 칸에 그대로 넣어 다른 지표와 합쳐 볼 수 있어요.</div></div>`;
   } else {
-    html+=`<div class="callout" style="margin-top:14px;">실적·컨센서스를 <b>모두</b> 입력하면 융합 해석이 표시됩니다. ${fRes?"현재 컨센서스 미입력":"현재 실적 미입력"}.</div>`;
+    html+=`<div class="callout" style="margin-top:14px;">실적과 증권사 기대를 <b>둘 다</b> 넣으면 합친 판단도 보여드려요.</div>`;
   }
-  html+=`<p class="foot">본 도구는 투자 판단을 <b style="color:var(--sub)">구조화</b>하는 참고 자료이며 <b style="color:var(--sub)">투자 권유가 아닙니다</b>. 실적 임계값은 범용 기준으로 업종별 편차를 반영하지 않으며, 목표주가·투자의견은 애널리스트 추정으로 실현을 보장하지 않습니다. 값의 시점·정확성은 사용자가 확인해야 합니다.</p>`;
+  html+=`<p class="foot">이 앱은 판단을 <b style="color:var(--sub)">정리해 주는 참고 도구</b>일 뿐 <b style="color:var(--sub)">"사라/팔라"는 권유가 아닙니다</b>. 기준은 일반적인 눈대중이라 업종별 차이가 있고, 목표주가·의견은 증권사 예상이라 실현을 보장하지 않아요. 매매 결정·결과의 책임은 본인에게 있습니다.</p>`;
   const app=document.getElementById("app"); app.innerHTML=html; app.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
