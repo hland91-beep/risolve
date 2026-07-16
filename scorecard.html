@@ -103,7 +103,7 @@
 </style>
 </head>
 <body>
-  <div class="eyebrow">여러 점수를 하나로</div>
+  <div class="eyebrow">여러 점수를 하나로 · <span style="color:var(--mut)">v8</span></div>
   <h1 class="title">종합 점수</h1>
   <p class="lede">앞 화면들에서 나온 점수(<b>싸다·비싸다</b>, <b>큰손</b>, <b>실적</b>, <b>기대</b> 등)를 여기 모으면 <b>하나의 종합 판단</b>으로 합쳐드려요.</p>
   <div class="navrow">
@@ -319,7 +319,9 @@ document.getElementById("macroCalc").onclick=macroCalc;
 /* 종합 보고서에서 점수가 넘어오면 자동 입력·자동 판단 (?쿼리·#해시 모두 수신) */
 (function(){
   const s=new URLSearchParams(location.search), hh=new URLSearchParams((location.hash||"").replace(/^#/,""));
-  const sp={get:k=>s.get(k)??hh.get(k)};
+  let store=null; try{const j=JSON.parse(localStorage.getItem("rz_handoff")||"null"); if(j&&j.scores&&Date.now()-j.t<15*60*1000)store=j;}catch(e){}
+  const sp={get:k=>{const v=s.get(k)??hh.get(k); if(v!=null)return v;
+    if(store){ if(k==="name")return store.name; if(store.scores&&store.scores[k]!=null)return String(store.scores[k]); } return null;}};
   let n=0;
   AXES.forEach(([k])=>{
     const v=sp.get(k); if(v==null)return;

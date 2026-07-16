@@ -330,6 +330,30 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     ok('chain.codeHint', /6자리 종목번호/.test(await p.locator('#st').innerText()));
     await p.close(); }
 
+  /* ── 저장소 연동 3중화: URL 파라미터가 전부 잘려도 15분 내엔 자동 연동 ── */
+  { const ctx = await b.newContext(); const p = await ctx.newPage();
+    p.on('pageerror', e => errs.push('store: ' + e.message));
+    await p.addInitScript(() => {
+      try { localStorage.setItem('rz_handoff', JSON.stringify({ t: Date.now(), code: '005930', name: '삼성전자',
+        scores: { val: 1, flow: 2, fund: 2, cons: 1, tech: 1 } })); } catch (e) {}
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      window.fetch = url => {
+        if (url.includes('quote-fundamentals')) return mk({ meta: { name: "삼성전자", price: 70000 }, valuation: { per: 11, pbr: 1.1, dividendYield: 2.5, roe: 9.5 }, fundamentals: {}, consensus: {} });
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "x" }) });
+      };
+    });
+    await p.goto(F('valuation-flow.html'));           // 파라미터 전혀 없음
+    await p.waitForTimeout(500);
+    ok('store.val.autolink', (await p.inputValue('#px')) === '70,000');
+    await p.close();
+    const p2 = await ctx.newPage(); p2.on('pageerror', e => errs.push('store2: ' + e.message));
+    await p2.addInitScript(() => { try { localStorage.setItem('rz_handoff', JSON.stringify({ t: Date.now(), code: '005930', name: '삼성전자',
+      scores: { val: 1, flow: 2, fund: 2, cons: 1, tech: 1 } })); } catch (e) {} });
+    await p2.goto(F('scorecard.html'));               // 파라미터 전혀 없음
+    await p2.waitForTimeout(400);
+    ok('store.sc.autolink', (await p2.locator('.verdict .g').count()) === 1 && (await p2.inputValue('#ax_flow')) === '2');
+    await p2.close(); await ctx.close(); }
+
   console.log(`  pageerrors: ${errs.length ? JSON.stringify(errs) : 'none'}`);
   ok('no-pageerrors', errs.length === 0);
   console.log(`\n${fail ? '❌' : '✅'} ui: ${pass} passed, ${fail} failed`);

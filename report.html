@@ -101,7 +101,7 @@
 </style>
 </head>
 <body>
-  <div class="eyebrow">종목 하나, 보고서 한 장</div>
+  <div class="eyebrow">종목 하나, 보고서 한 장 · <span style="color:var(--mut)">v8</span></div>
   <h1 class="title">종목 종합 보고서</h1>
   <p class="lede"><b>종목명이나 종목번호</b>만 넣으면 가격·실적·증권사 기대·수급·차트 위치를 자동으로 모아 <b>한 장짜리 쉬운 보고서</b>를 만들어 드려요.</p>
   <div class="navrow">
@@ -433,6 +433,11 @@ async function buildReport(code,knownName,exchHint){
   if(!FL)miss.push(p.flow?null:`수급: ${why(flow)||"미수집"}`);
   const missTxt=miss.filter(Boolean).length?`<br><span style="color:var(--mut)">미수집 — ${miss.filter(Boolean).join(" · ")}</span>`:"";
   setSt(`✅ ${meta.name} — ${got}개 항목 자동 수집${isEtf?" · ETF 상품":""}${missTxt}`);
+  // 탭 연동 3중화: URL(해시) 외에 브라우저 저장소에도 기록 — 어떤 리다이렉트/캐시
+  // 문제로 URL 이 잘려도 15분 내 탭 이동이면 자동 연동됨
+  try{ localStorage.setItem("rz_handoff", JSON.stringify({ t:Date.now(), code, name:meta.name,
+    scores:{ val:p.val?p.val.score:null, flow:p.flow?p.flow.score:null, fund:p.fund?p.fund.score:null,
+             cons:p.cons?p.cons.score:null, tech:p.tech?p.tech.score:null } })); }catch(e){}
   renderReport(meta,p);
 }
 
