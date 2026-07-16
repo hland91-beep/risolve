@@ -169,16 +169,16 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     await p.fill('#q', '삼성전자'); await p.click('#go'); await p.waitForTimeout(400);
     const val = await p.locator('#app .navrow a').nth(0).getAttribute('href');
     scoreLink = await p.locator('#app .navrow a').nth(2).getAttribute('href');
-    ok('link.rpt.val', /valuation-flow\.html\?code=005930/.test(val || ''));
-    ok('link.rpt.score', /scorecard\.html\?.*flow=2/.test(scoreLink || ''));
+    ok('link.rpt.val', /valuation-flow\.html#code=005930/.test(val || ''));
+    ok('link.rpt.score', /scorecard\.html#.*flow=2/.test(scoreLink || ''));
     await p.close(); }
   { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-val: ' + e.message));
     await p.addInitScript(mockScript);
-    await p.goto(F('valuation-flow.html') + '?code=005930&name=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90');
+    await p.goto(F('valuation-flow.html') + '#code=005930&name=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90');
     await p.waitForTimeout(500);
     ok('link.val.autofill', (await p.inputValue('#px')) === '70,000' && (await p.inputValue('#f5')) === '1200');
     ok('link.val.analyzed', (await p.locator('.plain').count()) === 1);
-    ok('link.val.navkeep', /report\.html\?code=005930/.test(await p.locator('.navrow a[href*="report"]').first().getAttribute('href') || ''));
+    ok('link.val.navkeep', /report\.html#code=005930/.test(await p.locator('.navrow a[href*="report"]').first().getAttribute('href') || ''));
     await p.close(); }
   { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-fund: ' + e.message));
     await p.addInitScript(mockScript);
@@ -187,7 +187,7 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     ok('link.fund.autofill', (await p.inputValue('#revG')) === '12.3' && (await p.inputValue('#tp')) === '90,000');
     await p.close(); }
   { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-sc: ' + e.message));
-    await p.goto(F('scorecard.html') + '?' + (scoreLink || '').split('?')[1]);
+    await p.goto(F('scorecard.html') + '#' + (scoreLink || '').split('#')[1]);
     await p.waitForTimeout(400);
     ok('link.sc.verdict', (await p.locator('.verdict .g').count()) === 1);
     ok('link.sc.filled', (await p.inputValue('#ax_flow')) === '2');

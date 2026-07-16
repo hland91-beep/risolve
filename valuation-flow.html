@@ -524,14 +524,16 @@ async function autoFetch(){
 }
 document.getElementById("autoBtn").onclick=autoFetch;
 
-/* 종합 보고서에서 종목이 넘어오면 자동 조회·분석 + 내비에 종목 유지 */
+/* 종합 보고서에서 종목이 넘어오면 자동 조회·분석 + 내비에 종목 유지
+   (?쿼리·#해시 모두 수신, 전달은 리다이렉트에 안전한 #해시로) */
 (function(){
-  const sp=new URLSearchParams(location.search);
-  const c=(sp.get("code")||"").replace(/\D/g,""), nm=sp.get("name")||"";
+  const s=new URLSearchParams(location.search), hh=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  const g=k=>s.get(k)??hh.get(k);
+  const c=(g("code")||"").replace(/\D/g,""), nm=g("name")||"";
   if(!/^\d{6}$/.test(c))return;
   document.querySelectorAll(".navrow a").forEach(a=>{
     const h=a.getAttribute("href")||"";
-    if(/^(report|fundamentals-flow|valuation-flow)\.html$/.test(h)) a.href=`${h}?code=${c}&name=${encodeURIComponent(nm)}`;
+    if(/^(report|fundamentals-flow|valuation-flow)\.html$/.test(h)) a.href=`${h}#code=${c}&name=${encodeURIComponent(nm)}`;
   });
   const el=document.getElementById("code");
   if(el){ el.value=c; document.getElementById("autoPanel").open=true; autoFetch(); }

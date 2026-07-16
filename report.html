@@ -354,7 +354,9 @@ function renderReport(meta,p){
     set('.navrow a[href^="scorecard"]',links.score);
   }
 }
-/* 탭 연동 링크 생성: 코드(자동조회용) + 점수(종합점수용) */
+/* 탭 연동 링크 생성: 코드(자동조회용) + 점수(종합점수용)
+   ⚠️ 반드시 해시(#)로 전달 — Netlify 등 호스팅의 리다이렉트가 ?쿼리를 유실시켜도
+   #해시는 브라우저가 보존하므로 탭 연동이 깨지지 않음 */
 function tabLinks(meta,p){
   if(!meta.code||!/^\d{6}$/.test(String(meta.code)))return null;
   const nm=encodeURIComponent(meta.name||"");
@@ -363,9 +365,9 @@ function tabLinks(meta,p){
   if(p.fund)sp.set("fund",p.fund.score); if(p.cons)sp.set("cons",p.cons.score);
   if(p.tech)sp.set("tech",p.tech.score);
   return {
-    val:`valuation-flow.html?code=${meta.code}&name=${nm}`,
-    fund:`fundamentals-flow.html?code=${meta.code}&name=${nm}`,
-    score:`scorecard.html?${sp.toString()}&name=${nm}`,
+    val:`valuation-flow.html#code=${meta.code}&name=${nm}`,
+    fund:`fundamentals-flow.html#code=${meta.code}&name=${nm}`,
+    score:`scorecard.html#${sp.toString()}&name=${nm}`,
   };
 }
 
@@ -492,11 +494,12 @@ document.getElementById("go").onclick=run;
 document.getElementById("demo").onclick=demo;
 document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
 
-/* URL로 종목이 넘어오면 자동 실행 (다른 탭에서 돌아올 때 연동) */
+/* URL로 종목이 넘어오면 자동 실행 (?쿼리·#해시 모두 지원 — 리다이렉트 내성) */
 (function(){
-  const sp=new URLSearchParams(location.search);
-  const c=(sp.get("code")||"").replace(/\D/g,"");
-  if(/^\d{6}$/.test(c)){ document.getElementById("q").value=sp.get("name")||c; buildReport(c,sp.get("name")||null); }
+  const s=new URLSearchParams(location.search), h=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  const g=k=>s.get(k)??h.get(k);
+  const c=(g("code")||"").replace(/\D/g,"");
+  if(/^\d{6}$/.test(c)){ document.getElementById("q").value=g("name")||c; buildReport(c,g("name")||null); }
 })();
 </script>
 </body>

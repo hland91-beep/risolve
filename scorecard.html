@@ -316,9 +316,10 @@ document.getElementById("demo").onclick=demo;
 document.getElementById("clear").onclick=clearAll;
 document.getElementById("macroCalc").onclick=macroCalc;
 
-/* 종합 보고서에서 점수가 넘어오면 자동 입력·자동 판단 */
+/* 종합 보고서에서 점수가 넘어오면 자동 입력·자동 판단 (?쿼리·#해시 모두 수신) */
 (function(){
-  const sp=new URLSearchParams(location.search);
+  const s=new URLSearchParams(location.search), hh=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  const sp={get:k=>s.get(k)??hh.get(k)};
   let n=0;
   AXES.forEach(([k])=>{
     const v=sp.get(k); if(v==null)return;
