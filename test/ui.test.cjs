@@ -273,6 +273,38 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     ok('xchk.dropBogus', !/12,140/.test(t) && !/ETF\(묶음 상품\)/.test(t) && /차트 흐름/.test(t)); // 차트와 불일치한 기본정보 폐기
     await p.close(); }
 
+  /* ── 소룩스 최종 회귀: 차트 메타가 ETF 라고 거짓말해도 개별주로 표시 ── */
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('lie: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 4500;
+      for (let i = 0; i < 40; i++) { base *= 1.001; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('quote-yahoo')) return mk({ meta: { name: "소룩스", price: 4640, prevClose: 5010, asOfDate: "t", quoteType: "ETF", symbol: "290690.KQ" }, candles }); // ← Yahoo 오분류 재현
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "502" }) });
+      };
+    });
+    await p.goto(F('report.html') + '?code=290690&name=%EC%86%8C%EB%A3%A9%EC%8A%A4');
+    await p.waitForTimeout(500);
+    const t = await appText(p);
+    ok('lie.chartEtfIgnored', !/ETF\(묶음 상품\)/.test(t) && /값이 싼가/.test(t) && /4,640/.test(t));
+    await p.close(); }
+  // 이름 브랜드(TIGER…)만으로 ETF 인식 (기본정보 실패 시)
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('brand: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 37000;
+      for (let i = 0; i < 40; i++) { base *= 1.001; candles.push({ o: base, h: base * 1.008, l: base * 0.992, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('quote-yahoo')) return mk({ meta: { name: "TIGER Fn반도체TOP10", price: 37285, prevClose: 37000, asOfDate: "t", quoteType: "EQUITY", symbol: "396500.KS" }, candles });
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "502" }) });
+      };
+    });
+    await p.goto(F('report.html') + '?code=396500&name=TIGER%20Fn%EB%B0%98%EB%8F%84%EC%B2%B4TOP10');
+    await p.waitForTimeout(500);
+    ok('brand.nameEtf', /ETF\(묶음 상품\)/.test(await appText(p)));
+    await p.close(); }
+
   /* ── 검색 체인: KRX 실패→Yahoo 폴백 / 둘 다 실패→종목번호 안내 ── */
   { const p = await b.newPage(); p.on('pageerror', e => errs.push('chain: ' + e.message));
     await p.addInitScript(() => {
