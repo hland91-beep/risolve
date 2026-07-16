@@ -4,6 +4,10 @@
   publish = "."
   functions = "netlify/functions"
 
+# Pretty URLs(.html 제거 리다이렉트)가 쿼리스트링을 유실시켜 탭 연동을 깨뜨림 → 비활성
+[build.processing]
+  skip_processing = true
+
 [functions]
   node_bundler = "esbuild"                 # require("./corp-map.json") 인라인 번들
   included_files = ["netlify/functions/corp-map.json"]
