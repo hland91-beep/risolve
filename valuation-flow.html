@@ -145,8 +145,8 @@
     <summary>처음이세요? 30초 사용법 · 용어 쉽게 보기</summary>
     <div class="body">
       <b>이렇게 쓰세요</b><br>
-      ① 네이버 금융(또는 증권사 앱)에서 종목 검색 → ② 아래 화면에 보이는 숫자를 그대로 입력 → ③ <b>분석</b> 버튼.
-      숫자를 모르면 그 칸은 <b>비워도 됩니다</b>. 딱 감이 안 오면 <b>예시 채우기</b>를 눌러 보세요.
+      ① 네이버 금융(또는 증권사 앱)에서 종목 검색 → ② 아래 화면에 보이는 숫자를 그대로 입력 → ③ <b>결과 보기</b> 버튼.
+      숫자를 모르면 그 칸은 <b>비워도 됩니다</b>. 딱 감이 안 오면 <b>예시로 해보기</b>를 눌러 보세요.
       <div class="g">
         <dt>현재가</dt><dd>지금 이 주식 1주 가격.</dd>
         <dt>PER</dt><dd>주가가 <b>이익</b>의 몇 배인가. <b>낮을수록 싸다</b>는 뜻.</dd>
@@ -182,7 +182,7 @@
       <div class="field"><label>PBR <i>(배)</i></label><input id="pbr" placeholder="1.1" inputmode="decimal"><span class="fhint">낮을수록 자산 대비 쌈</span></div>
     </div>
     <div class="frow three">
-      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="9" inputmode="decimal"><span class="fhint">높을수록 돈 잘 벰</span></div>
+      <div class="field"><label>ROE <i>(%)</i></label><input id="roe" placeholder="9" inputmode="decimal"><span class="fhint">높을수록 돈 잘 벌어요</span></div>
       <div class="field"><label>배당수익률 <i>(%)</i></label><input id="dy" placeholder="2.5" inputmode="decimal"><span class="fhint">배당이 주가의 몇 %</span></div>
       <div class="field"><label>같은 업종 PER <i>(선택)</i></label><input id="sPer" placeholder="13" inputmode="decimal"><span class="fhint">업종 평균과 비교용</span></div>
     </div>
@@ -443,7 +443,7 @@ function analyze(){
   const hasFlow = (f.f5!=null) || (f.i5!=null);
 
   if(!hasVal && !hasFlow){
-    showErr("숫자를 몇 개 넣어주세요. 잘 모르면 아래 '예시 채우기'를 눌러 보세요. (현재가·PER·PBR만 넣어도 됩니다)");
+    showErr("숫자를 몇 개 넣어주세요. 잘 모르면 아래 '예시로 해보기'를 눌러 보세요. (현재가·PER·PBR만 넣어도 됩니다)");
     document.getElementById("app").innerHTML="";
     return;
   }
