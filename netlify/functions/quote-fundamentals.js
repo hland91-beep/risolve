@@ -53,9 +53,13 @@ const rnd = x => { const v = raw(x); return v == null ? null : Math.round(v); };
 // quoteSummary.result[0] → 폼 매핑 스키마 (Yahoo 값은 {raw,fmt} 또는 숫자)
 function mapQuoteSummary(res, code, sfx) {
   const P = res.price || {}, S = res.summaryDetail || {}, K = res.defaultKeyStatistics || {}, F = res.financialData || {};
-  // ⚠️ 심볼 검증: 요청과 다른 상품이 오면 거부(코스닥 종목 .KS 오응답 등)
+  // ⚠️ 오응답 방어 3중 검증 — Yahoo 가 존재하지 않는 심볼(코스닥 종목의 .KS 등)에
+  //    엉뚱한 펀드를 돌려주며 심볼까지 메아리치는 사례 확인됨(소룩스 290690).
   const gotSym = String(P.symbol || "").toUpperCase();
-  if (gotSym && gotSym !== `${code}.${sfx}`.toUpperCase()) return null;
+  if (gotSym && gotSym !== `${code}.${sfx}`.toUpperCase()) return null;      // ① 심볼 불일치
+  if (/MUTUALFUND/i.test(P.quoteType || "")) return null;                     // ② 비상장 펀드(0P…)
+  if (P.market && P.market !== "kr_market") return null;                      // ③ 한국시장 아님
+  if (P.currency && String(P.currency).toUpperCase() !== "KRW") return null;  //    원화 아님
   const price = raw(P.regularMarketPrice);
   const target = raw(F.targetMeanPrice);
   return {
@@ -113,7 +117,9 @@ module.exports.handler = async (event) => {
     if (!/^\d{6}$/.test(code)) throw new Error("code는 6자리 숫자 종목코드여야 합니다");
     const sess = await getSession();
     let data = null;
-    for (const sfx of ["KS", "KQ"]) { data = await fetchOne(code, sfx, sess); if (data && data.meta.price != null) break; }
+    // sfx 힌트(차트가 검증한 시장)가 오면 그 시장만 조회 — 오응답 원천 차단
+    const sfxs = /^(KS|KQ)$/.test(p.sfx || "") ? [p.sfx] : ["KS", "KQ"];
+    for (const sfx of sfxs) { data = await fetchOne(code, sfx, sess); if (data && data.meta.price != null) break; }
     if (!data) throw new Error("데이터를 찾지 못했습니다 (코드/상장 확인, Yahoo 결측 가능)");
     return { statusCode: 200, headers: cors, body: JSON.stringify(data) };
   } catch (e) {
