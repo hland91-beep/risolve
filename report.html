@@ -321,9 +321,39 @@ function renderReport(meta,p){
     <tr><td>📰 최근 <b>공시·뉴스</b>에 큰 악재/호재가 없는지 봤나요?</td></tr>
   </table>`;
 
+  // 다른 탭 자동 연동 링크 (같은 종목으로 열리면 자동 조회·분석)
+  const links=tabLinks(meta,p);
+  if(links){
+    h+=`<h2>이 종목으로 자세히 보기 <span>탭이 자동으로 채워져요</span></h2>
+    <div class="navrow" style="margin-bottom:4px;">
+      <a href="${links.val}">💰 싸다·비싸다</a>
+      <a href="${links.fund}">🏭 회사 실적</a>
+      <a href="${links.score}">📊 종합 점수</a>
+    </div>`;
+  }
   h+=`<p class="foot">이 보고서는 공개 데이터(${meta.srcs.join(", ")})를 규칙에 따라 자동 정리한 <b style="color:var(--sub)">참고 자료</b>이며 <b style="color:var(--sub)">투자 권유가 아닙니다</b>. 데이터가 지연되거나 빠져 있을 수 있고, 여기 없는 정보(공시·뉴스·시장 상황)가 더 중요할 수 있습니다. 매매 결정과 결과의 책임은 본인에게 있습니다.</p>`;
   const app=document.getElementById("app");
   app.innerHTML=h; app.scrollIntoView({behavior:"smooth",block:"start"});
+  if(links){ // 상단 내비도 같은 종목으로 연동
+    const set=(sel,href)=>{const a=document.querySelector(sel);if(a)a.href=href;};
+    set('.navrow a[href^="valuation-flow"]',links.val);
+    set('.navrow a[href^="fundamentals-flow"]',links.fund);
+    set('.navrow a[href^="scorecard"]',links.score);
+  }
+}
+/* 탭 연동 링크 생성: 코드(자동조회용) + 점수(종합점수용) */
+function tabLinks(meta,p){
+  if(!meta.code||!/^\d{6}$/.test(String(meta.code)))return null;
+  const nm=encodeURIComponent(meta.name||"");
+  const sp=new URLSearchParams();
+  if(p.val)sp.set("val",p.val.score); if(p.flow)sp.set("flow",p.flow.score);
+  if(p.fund)sp.set("fund",p.fund.score); if(p.cons)sp.set("cons",p.cons.score);
+  if(p.tech)sp.set("tech",p.tech.score);
+  return {
+    val:`valuation-flow.html?code=${meta.code}&name=${nm}`,
+    fund:`fundamentals-flow.html?code=${meta.code}&name=${nm}`,
+    score:`scorecard.html?${sp.toString()}&name=${nm}`,
+  };
 }
 
 /* ============ 데이터 조회 & 조립 ============ */
@@ -419,6 +449,13 @@ function demo(){
 document.getElementById("go").onclick=run;
 document.getElementById("demo").onclick=demo;
 document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+
+/* URL로 종목이 넘어오면 자동 실행 (다른 탭에서 돌아올 때 연동) */
+(function(){
+  const sp=new URLSearchParams(location.search);
+  const c=(sp.get("code")||"").replace(/\D/g,"");
+  if(/^\d{6}$/.test(c)){ document.getElementById("q").value=sp.get("name")||c; buildReport(c,sp.get("name")||null); }
+})();
 </script>
 </body>
 </html>

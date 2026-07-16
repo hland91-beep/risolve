@@ -149,6 +149,50 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     await p.close();
   }
 
+  /* ── 탭 연동: 보고서 → 3개 탭 자동 채움 ── */
+  const mockScript = () => {
+    const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+    const candles = []; let base = 60000;
+    for (let i = 0; i < 70; i++) { base *= 1.002; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+    window.fetch = url => {
+      if (url.includes('quote-search')) return mk({ results: [{ code: "005930", name: "삼성전자", exchange: "KOSPI" }] });
+      if (url.includes('quote-fundamentals')) return mk({ meta: { name: "삼성전자", price: 70000 }, valuation: { per: 11, pbr: 1.1, dividendYield: 2.5, roe: 9.5 }, fundamentals: { revenueGrowth: 12.3, earningsGrowth: 20.1, operatingMargin: 18.4 }, consensus: { targetMean: 90000, recommendationMean: 2.1 } });
+      if (url.includes('quote-yahoo')) return mk({ meta: { name: "삼성전자", price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t" }, candles });
+      if (url.includes('quote-kis-flow')) return mk({ summary: { f5: 1200, i5: 300, f20: 3000, i20: 700, fStreak: 5, iStreak: 5 } });
+      return Promise.reject(new Error('no'));
+    };
+  };
+  let scoreLink = null;
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-rpt: ' + e.message));
+    await p.addInitScript(mockScript);
+    await p.goto(F('report.html'));
+    await p.fill('#q', '삼성전자'); await p.click('#go'); await p.waitForTimeout(400);
+    const val = await p.locator('#app .navrow a').nth(0).getAttribute('href');
+    scoreLink = await p.locator('#app .navrow a').nth(2).getAttribute('href');
+    ok('link.rpt.val', /valuation-flow\.html\?code=005930/.test(val || ''));
+    ok('link.rpt.score', /scorecard\.html\?.*flow=2/.test(scoreLink || ''));
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-val: ' + e.message));
+    await p.addInitScript(mockScript);
+    await p.goto(F('valuation-flow.html') + '?code=005930&name=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90');
+    await p.waitForTimeout(500);
+    ok('link.val.autofill', (await p.inputValue('#px')) === '70,000' && (await p.inputValue('#f5')) === '1200');
+    ok('link.val.analyzed', (await p.locator('.plain').count()) === 1);
+    ok('link.val.navkeep', /report\.html\?code=005930/.test(await p.locator('.navrow a[href*="report"]').first().getAttribute('href') || ''));
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-fund: ' + e.message));
+    await p.addInitScript(mockScript);
+    await p.goto(F('fundamentals-flow.html') + '?code=005930&name=x');
+    await p.waitForTimeout(500);
+    ok('link.fund.autofill', (await p.inputValue('#revG')) === '12.3' && (await p.inputValue('#tp')) === '90,000');
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('link-sc: ' + e.message));
+    await p.goto(F('scorecard.html') + '?' + (scoreLink || '').split('?')[1]);
+    await p.waitForTimeout(400);
+    ok('link.sc.verdict', (await p.locator('.verdict .g').count()) === 1);
+    ok('link.sc.filled', (await p.inputValue('#ax_flow')) === '2');
+    await p.close(); }
+
   console.log(`  pageerrors: ${errs.length ? JSON.stringify(errs) : 'none'}`);
   ok('no-pageerrors', errs.length === 0);
   console.log(`\n${fail ? '❌' : '✅'} ui: ${pass} passed, ${fail} failed`);

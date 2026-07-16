@@ -315,6 +315,24 @@ document.getElementById("go").onclick=analyze;
 document.getElementById("demo").onclick=demo;
 document.getElementById("clear").onclick=clearAll;
 document.getElementById("macroCalc").onclick=macroCalc;
+
+/* 종합 보고서에서 점수가 넘어오면 자동 입력·자동 판단 */
+(function(){
+  const sp=new URLSearchParams(location.search);
+  let n=0;
+  AXES.forEach(([k])=>{
+    const v=sp.get(k); if(v==null)return;
+    const num=parseInt(v,10);
+    if(Number.isInteger(num)&&num>=-2&&num<=2){ document.getElementById("ax_"+k).value=String(num); n++; }
+  });
+  if(n>=2){
+    const nm=sp.get("name");
+    if(nm){ const e=document.createElement("div"); e.className="callout";
+      e.innerHTML=`📋 <b>${nm.replace(/[<>&"]/g,"")}</b> 종합 보고서에서 넘어온 점수예요. 차트 흐름 등은 직접 조정해도 됩니다.`;
+      document.querySelector(".form").before(e); }
+    analyze();
+  }
+})();
 </script>
 </body>
 </html>
