@@ -131,7 +131,7 @@
 </style>
 </head>
 <body>
-  <div class="eyebrow">싼지 비싼지 · 큰손이 사는지</div>
+  <div class="eyebrow">싼지 비싼지 · 큰손이 사는지 · <span style="color:var(--mut)">v8</span></div>
   <h1 class="title">주식 싸다·비싸다 체크</h1>
   <p class="lede"><b>네이버 금융</b>에서 종목을 검색하면 나오는 숫자 몇 개만 넣으면, <b>지금 사도 될지</b>를 쉬운 말로 알려드려요. 다 넣지 않아도 됩니다.</p>
   <div class="navrow">
@@ -528,8 +528,9 @@ document.getElementById("autoBtn").onclick=autoFetch;
    (?쿼리·#해시 모두 수신, 전달은 리다이렉트에 안전한 #해시로) */
 (function(){
   const s=new URLSearchParams(location.search), hh=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  let store=null; try{const j=JSON.parse(localStorage.getItem("rz_handoff")||"null"); if(j&&j.code&&Date.now()-j.t<15*60*1000)store=j;}catch(e){}
   const g=k=>s.get(k)??hh.get(k);
-  const c=(g("code")||"").replace(/\D/g,""), nm=g("name")||"";
+  const c=((g("code")||(store&&store.code)||"")+"").replace(/\D/g,""), nm=g("name")||(store&&store.name)||"";
   if(!/^\d{6}$/.test(c))return;
   document.querySelectorAll(".navrow a").forEach(a=>{
     const h=a.getAttribute("href")||"";

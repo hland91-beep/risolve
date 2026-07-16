@@ -108,7 +108,7 @@
 </style>
 </head>
 <body>
-  <div class="eyebrow">회사가 잘 벌고 있나 · 시장 기대는</div>
+  <div class="eyebrow">회사가 잘 벌고 있나 · 시장 기대는 · <span style="color:var(--mut)">v8</span></div>
   <h1 class="title">회사 실적 체크</h1>
   <p class="lede"><b>이 회사가 돈을 잘 벌고 좋아지고 있는지</b>, 그리고 <b>증권사들이 얼마나 기대하는지</b>를 쉬운 말로 알려드려요. 아는 숫자만 넣어도 됩니다.</p>
   <div class="navrow">
@@ -386,8 +386,9 @@ document.getElementById("autoBtn").onclick=autoFetch;
    (?쿼리·#해시 모두 수신, 전달은 리다이렉트에 안전한 #해시로) */
 (function(){
   const s=new URLSearchParams(location.search), hh=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  let store=null; try{const j=JSON.parse(localStorage.getItem("rz_handoff")||"null"); if(j&&j.code&&Date.now()-j.t<15*60*1000)store=j;}catch(e){}
   const g=k=>s.get(k)??hh.get(k);
-  const c=(g("code")||"").replace(/\D/g,""), nm=g("name")||"";
+  const c=((g("code")||(store&&store.code)||"")+"").replace(/\D/g,""), nm=g("name")||(store&&store.name)||"";
   if(!/^\d{6}$/.test(c))return;
   document.querySelectorAll(".navrow a").forEach(a=>{
     const h=a.getAttribute("href")||"";
