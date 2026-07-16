@@ -133,7 +133,8 @@ const sgnTxt=x=>x>0?("+"+x):(""+x);
 const sign=x=>x==null?0:x>0?1:x<0?-1:0;
 
 /* ============ 자동조회 주소 (Netlify 함수 · 상대경로) ============ */
-const SEARCH_URL="/.netlify/functions/quote-search?q={q}";
+const NAMES_URL="/.netlify/functions/krx-names?q={q}";      // 1차: KRX 공식 목록(한글명)
+const SEARCH_URL="/.netlify/functions/quote-search?q={q}";  // 예비: Yahoo 검색
 const FUND_URL="/.netlify/functions/quote-fundamentals?code={code}";
 const CHART_URL="/.netlify/functions/quote-yahoo?code={code}";
 const CHART2_URL="/.netlify/functions/quote?code={code}";   // 예비: KIS 일봉(키 등록 시)
@@ -427,21 +428,24 @@ async function run(){
   document.getElementById("picks").innerHTML="";
   if(!q){ setSt("종목명이나 6자리 종목번호를 넣어주세요. (예: 삼성전자 / 005930)","warn"); return; }
   const asCode=q.replace(/\D/g,"");
-  try{
-    if(/^\d{6}$/.test(asCode)&&asCode.length===q.length){ await buildReport(asCode,null); return; }
-    setSt("종목을 찾는 중…");
-    const s=await jget(SEARCH_URL.replace("{q}",encodeURIComponent(q)));
-    const rs=s.results||[];
-    if(!rs.length) throw new Error("종목을 찾지 못했습니다");
-    if(rs.length===1){ await buildReport(rs[0].code, rs[0].name); return; }
-    setSt("어느 종목인가요? 하나를 선택하세요.");
-    document.getElementById("picks").innerHTML=rs.slice(0,6).map(r=>
-      `<div class="pick" data-c="${r.code}" data-n="${(r.name||"").replace(/"/g,"")}"><span>${r.name||r.code} <span style="color:var(--mut);font-size:12px;">${r.exchange||""}</span></span><span class="cd">${r.code}</span></div>`).join("");
-    document.querySelectorAll(".pick").forEach(el=>el.onclick=()=>{document.getElementById("picks").innerHTML="";buildReport(el.dataset.c,el.dataset.n);});
-  }catch(e){
-    if(/서버 |Failed|fetch/i.test(e.message)) showGuide();
-    else setSt("⚠️ "+e.message,"bad");
+  if(/^\d{6}$/.test(asCode)&&asCode.length===q.length){ await buildReport(asCode,null); return; } // 코드는 검색 불필요
+  setSt("종목을 찾는 중…");
+  // 검색 체인: KRX 공식 목록(한글명) → Yahoo 검색 → 안내
+  let rs=null, errs=[];
+  for(const u of [NAMES_URL,SEARCH_URL]){
+    try{ const s=await jget(u.replace("{q}",encodeURIComponent(q)));
+      if(s.results&&s.results.length){ rs=s.results; break; }
+    }catch(e){ errs.push(String(e.message||e).slice(0,60)); }
   }
+  if(!rs){
+    setSt(`⚠️ 이름으로 못 찾았어요 (${errs.join(" / ")||"결과 없음"}).<br>👉 <b>6자리 종목번호</b>로 넣으면 이름 검색 없이 바로 조회돼요. (예: 미래에셋증권 → <b>006800</b>처럼 증권사 앱·네이버에서 종목번호 확인)`,"warn");
+    return;
+  }
+  if(rs.length===1){ await buildReport(rs[0].code, rs[0].name); return; }
+  setSt("어느 종목인가요? 하나를 선택하세요.");
+  document.getElementById("picks").innerHTML=rs.slice(0,8).map(r=>
+    `<div class="pick" data-c="${r.code}" data-n="${(r.name||"").replace(/"/g,"")}"><span>${r.name||r.code} <span style="color:var(--mut);font-size:12px;">${r.exchange||""}</span></span><span class="cd">${r.code}</span></div>`).join("");
+  document.querySelectorAll(".pick").forEach(el=>el.onclick=()=>{document.getElementById("picks").innerHTML="";buildReport(el.dataset.c,el.dataset.n);});
 }
 function showGuide(reasons){
   setSt("");

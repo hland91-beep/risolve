@@ -44,10 +44,20 @@ module.exports.handler = async (event) => {
     if (/^\d{6}$/.test(q)) {
       return { statusCode: 200, headers: cors, body: JSON.stringify({ results: [{ code: q, name: null, symbol: null, exchange: null }] }) };
     }
-    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=10&newsCount=0&listsCount=0`;
-    const r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json" } });
-    if (!r.ok) throw new Error(`검색 실패 ${r.status}`);
-    const results = mapSearch(await r.json());
+    let j = null; const tried = [];
+    outer: for (const host of ["query1", "query2"]) {
+      const url = `https://${host}.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=10&newsCount=0&listsCount=0`;
+      for (let a = 0; a < 2; a++) {                                   // 429 → 1회 재시도
+        let r;
+        try { r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json" } }); }
+        catch (e) { tried.push(`${host} 연결실패`); break; }
+        if (r.status === 429 && a === 0) { await new Promise(x => setTimeout(x, 600)); continue; }
+        if (!r.ok) { tried.push(`${host} ${r.status}`); break; }
+        j = await r.json(); break outer;
+      }
+    }
+    if (!j) throw new Error(`검색 실패 [${tried.join(", ")}]`);
+    const results = mapSearch(j);
     if (!results.length) throw new Error("한국 상장 종목을 찾지 못했습니다 (정식 종목명 또는 6자리 코드로 시도)");
     return { statusCode: 200, headers: cors, body: JSON.stringify({ results }) };
   } catch (e) {

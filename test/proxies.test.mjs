@@ -73,6 +73,22 @@ eq("search.krOnly", sr.length, 3);
 eq("search.first", [sr[0].code, sr[0].exchange], ["005930", "KOSPI"]);
 eq("search.kq", sr[2].exchange, "KOSDAQ");
 
+/* ── KRX 이름 검색: 정확>시작>포함, 행 추출 유연성 ── */
+const krx = require("../netlify/functions/krx-names.js");
+const L = [
+  { code: "006800", name: "미래에셋증권", exchange: "KOSPI" },
+  { code: "006805", name: "미래에셋증권우", exchange: "KOSPI" },
+  { code: "396500", name: "TIGER Fn반도체TOP10", exchange: "ETF" },
+  { code: "005930", name: "삼성전자", exchange: "KOSPI" },
+];
+eq("krx.exactFirst", krx.filterNames(L, "미래에셋증권").map(x => x.code), ["006800", "006805"]);
+eq("krx.spacesIgnored", krx.filterNames(L, "미래에셋 증권")[0].code, "006800");
+eq("krx.etfIncl", krx.filterNames(L, "반도체")[0].code, "396500");
+eq("krx.caseLatin", krx.filterNames(L, "tiger")[0].code, "396500");
+eq("krx.rowsOf", krx.rowsOf({ OutBlock_1: [{ a: 1 }] }).length, 1);
+eq("krx.rowsOf.alt", krx.rowsOf({ output: [{ a: 1 }] }).length, 1);
+eq("krx.rowsOf.any", krx.rowsOf({ zzz: [{ a: 1 }] }).length, 1);
+
 /* ── corpCode.xml 파서 (상장사만) ── */
 const xml = `<result>
   <list><corp_code>00126380</corp_code><corp_name>삼성전자</corp_name><stock_code>005930</stock_code></list>
