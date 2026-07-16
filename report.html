@@ -136,6 +136,7 @@ const sign=x=>x==null?0:x>0?1:x<0?-1:0;
 const SEARCH_URL="/.netlify/functions/quote-search?q={q}";
 const FUND_URL="/.netlify/functions/quote-fundamentals?code={code}";
 const CHART_URL="/.netlify/functions/quote-yahoo?code={code}";
+const CHART2_URL="/.netlify/functions/quote?code={code}";   // 예비: KIS 일봉(키 등록 시)
 const FLOW_URL="/.netlify/functions/quote-kis-flow?code={code}";
 
 /* ============ 검증된 점수 로직 (valuation-flow 와 동일) ============ */
@@ -296,15 +297,26 @@ function renderReport(meta,p){
       ${gauge(cp.avg,true)}</div>`;
     h+=`<div class="plain"><div class="pl-t">${plainLine(p)}</div><div class="pl-b">${plainAdvice(cp,p)}</div></div>`;
   } else {
-    h+=`<div class="callout">받아온 항목이 적어 종합 등급은 생략했어요. 아래 개별 카드와 수기 화면(내비)을 함께 보세요.</div>`;
+    const line=plainLine(p);
+    h+=line?`<div class="plain"><div class="pl-t">${line}</div><div class="pl-b">받아온 항목이 적어 종합 등급은 생략했어요. 아래 카드와 참고 가격대를 보세요.</div></div>`
+      :`<div class="callout">받아온 항목이 적어 종합 등급은 생략했어요. 아래 개별 카드와 수기 화면(내비)을 함께 보세요.</div>`;
   }
 
   h+=`<h2>항목별 평가 <span>−2 나쁨 ~ +2 좋음</span></h2><div class="secgrid">`;
-  h+=secCard("val","💰 값이 싼가",p.val,"'싸다·비싸다' 화면에서 수기 입력 가능.");
-  h+=secCard("fund","🏭 회사가 잘 버나",p.fund,"'회사 실적' 화면에서 수기 입력 가능.");
-  h+=secCard("cons","🎯 증권사 기대",p.cons,"목표주가 데이터가 없을 수 있어요.");
+  if(meta.isEtf){
+    h+=`<div class="sec" style="grid-column:1/-1;border-left:3px solid var(--gold);">
+      <div class="st"><span class="k">ℹ️ 이 종목은 ETF(묶음 상품)</span><span class="chip gold">ETF</span></div>
+      <div class="val-word">여러 종목을 담은 상품이에요</div>
+      <div class="why">PER·회사 실적·목표주가 같은 <b>개별 기업 지표가 원래 없어요</b>(고장이 아니에요).
+      ETF는 ① 이 ETF가 따라가는 <b>지수·업종 전망</b> ② <b>차트 흐름</b> ③ <b>큰손 수급</b>으로 판단해요.
+      ${meta.etfDy!=null?`<br>· 분배금(배당) 수익률: <b>${meta.etfDy}%</b>`:""}</div></div>`;
+  } else {
+    h+=secCard("val","💰 값이 싼가",p.val,"'싸다·비싸다' 화면에서 수기 입력 가능.");
+    h+=secCard("fund","🏭 회사가 잘 버나",p.fund,"'회사 실적' 화면에서 수기 입력 가능.");
+    h+=secCard("cons","🎯 증권사 기대",p.cons,"목표주가 데이터가 없을 수 있어요.");
+  }
   h+=secCard("flow","🐋 큰손 수급",p.flow,"KIS 키 등록 시 자동으로 나와요.");
-  h+=secCard("tech","📈 차트 흐름",p.tech,"시세 데이터를 못 받았어요.");
+  h+=secCard("tech","📈 차트 흐름",p.tech,"시세 데이터를 못 받았어요. 잠시 후 다시 시도해 보세요.");
   h+=`</div>`;
 
   if(p.val&&p.val.targets.length){
@@ -362,25 +374,34 @@ async function jget(url){ const r=await fetch(url); if(!r.ok)throw new Error("�
 
 async function buildReport(code,knownName){
   setSt("데이터를 모으는 중… (가격·실적·기대·수급·차트)");
+  const chartChain=async()=>{ // Yahoo 실패 시 KIS 일봉으로 폴백(키 등록 시)
+    try{ return await jget(CHART_URL.replace("{code}",code)); }
+    catch(e1){ try{ return await jget(CHART2_URL.replace("{code}",code)); }
+      catch(e2){ throw new Error(String(e1.message||e1)); } }
+  };
   const [fund,chart,flow]=await Promise.allSettled([
     jget(FUND_URL.replace("{code}",code)),
-    jget(CHART_URL.replace("{code}",code)),
+    chartChain(),
     jget(FLOW_URL.replace("{code}",code)),
   ]);
   const F=fund.status==="fulfilled"?fund.value:null;
   const C=chart.status==="fulfilled"?chart.value:null;
   const FL=flow.status==="fulfilled"?flow.value:null;
-  if(!F&&!C){ showGuide(); return; }
+  const why=s=>s.status==="rejected"?String((s.reason&&s.reason.message)||s.reason).slice(0,90):null;
+  if(!F&&!C){ showGuide([["기본정보",why(fund)],["차트",why(chart)]]); return; }
 
   const price=(F&&F.meta&&F.meta.price)??(C&&C.meta&&C.meta.price)??null;
   const srcs=[]; if(F||C)srcs.push("Yahoo"); if(FL)srcs.push("KIS");
+  const qt=(F&&F.meta&&F.meta.quoteType)||(C&&C.meta&&C.meta.quoteType)||null;
+  const isEtf=/ETF|FUND/i.test(qt||"");
   const meta={ code,
     name:knownName||(F&&F.meta&&F.meta.name)||(C&&C.meta&&C.meta.name)||code,
     price, prevClose:C&&C.meta?C.meta.prevClose:null,
-    asOfDate:C&&C.meta?C.meta.asOfDate:null, srcs };
+    asOfDate:C&&C.meta?C.meta.asOfDate:null, srcs, isEtf,
+    etfDy:(isEtf&&F&&F.valuation)?F.valuation.dividendYield:null };
 
   const p={val:null,fund:null,cons:null,flow:null,tech:null};
-  if(F&&F.valuation){ const V=F.valuation;
+  if(!isEtf&&F&&F.valuation){ const V=F.valuation;   // ETF는 개별기업 지표 미적용
     if(V.pbr!=null||V.dividendYield!=null) p.val=scoreVal({px:price,per:V.per,pbr:V.pbr,roe:V.roe,dy:V.dividendYield});
     const X=F.fundamentals||{};
     if(X.revenueGrowth!=null||X.earningsGrowth!=null||X.operatingMargin!=null||V.roe!=null)
@@ -392,7 +413,12 @@ async function buildReport(code,knownName){
   if(FL&&FL.summary) p.flow=mkFlow(FL.summary);
 
   const got=Object.values(p).filter(Boolean).length;
-  setSt(`✅ ${meta.name} — ${got}개 항목 자동 수집 완료`+(p.flow?"":" · 수급은 KIS 키 등록 시 추가돼요"));
+  const miss=[];
+  if(!F&&why(fund))miss.push(`기본정보: ${why(fund)}`);
+  if(!C&&why(chart))miss.push(`차트: ${why(chart)}`);
+  if(!FL)miss.push(p.flow?null:`수급: ${why(flow)||"미수집"}`);
+  const missTxt=miss.filter(Boolean).length?`<br><span style="color:var(--mut)">미수집 — ${miss.filter(Boolean).join(" · ")}</span>`:"";
+  setSt(`✅ ${meta.name} — ${got}개 항목 자동 수집${isEtf?" · ETF 상품":""}${missTxt}`);
   renderReport(meta,p);
 }
 
@@ -417,14 +443,15 @@ async function run(){
     else setSt("⚠️ "+e.message,"bad");
   }
 }
-function showGuide(){
+function showGuide(reasons){
   setSt("");
+  const detail=(reasons||[]).filter(([,m])=>m).map(([k,m])=>`· ${k}: <span style="font-family:var(--mono);font-size:12px;">${m}</span>`).join("<br>");
   document.getElementById("app").innerHTML=`<div class="guide">
-    <div class="gt">자동 조회 서버에 연결할 수 없어요</div>
+    <div class="gt">데이터를 받아오지 못했어요</div>
+    ${detail?`이번 조회의 실패 내용:<br>${detail}<br><br><b>429</b>가 보이면 데이터 제공처(Yahoo)가 잠시 요청을 막은 것 — <b>1~2분 뒤 다시</b> 눌러보세요. 자주 그러면 KIS 키 등록이 근본 해결이에요.<br><br>`:""}
     이 <b>종합 보고서</b>는 데이터를 자동으로 받아오기 때문에 <b>Netlify에 올린 주소</b>(<span style="font-family:var(--mono)">～.netlify.app/report.html</span>)에서 열어야 동작해요.<br><br>
-    · 지금 여기서 쓰고 싶다면 → 상단의 <b>싸다·비싸다 / 회사 실적</b> 화면에서 숫자를 직접 넣어 같은 분석을 할 수 있어요.<br>
-    · 어떤 모습인지 궁금하면 → <b>예시 보고서 보기</b> 버튼을 눌러 보세요.<br>
-    · Netlify 배포 방법은 저장소의 <b>DEPLOY-NETLIFY.md</b> 문서에 5분 가이드로 정리돼 있어요.
+    · 지금 바로 분석하고 싶다면 → 상단의 <b>싸다·비싸다 / 회사 실적</b> 화면에서 숫자를 직접 넣을 수 있어요.<br>
+    · 어떤 모습인지 궁금하면 → <b>예시 보고서 보기</b> 버튼을 눌러 보세요.
   </div>`;
 }
 

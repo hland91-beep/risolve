@@ -145,7 +145,7 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
   // 서버 없는 환경(file://): 크래시 없이 안내 화면
   { const p = await page('report.html');
     await p.fill('#q', '005930'); await p.click('#go'); await p.waitForTimeout(700);
-    ok('rpt.offline.guide', /연결할 수 없어요/.test(await p.locator('.guide').innerText().catch(() => '')));
+    ok('rpt.offline.guide', /데이터를 받아오지 못했어요|연결할 수 없어요/.test(await p.locator('.guide').innerText().catch(() => '')));
     await p.close();
   }
 
@@ -191,6 +191,49 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     await p.waitForTimeout(400);
     ok('link.sc.verdict', (await p.locator('.verdict .g').count()) === 1);
     ok('link.sc.filled', (await p.inputValue('#ax_flow')) === '2');
+    await p.close(); }
+
+  /* ── ETF 모드 / 차트 KIS 폴백 / 전체실패 안내 ── */
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('etf: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 37000;
+      for (let i = 0; i < 70; i++) { base *= 1.001; candles.push({ o: base, h: base * 1.008, l: base * 0.992, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('quote-fundamentals')) return mk({ meta: { name: "TIGER 반도체", price: 37285, quoteType: "ETF" }, valuation: { dividendYield: 1.1 }, fundamentals: {}, consensus: {} });
+        if (url.includes('quote-yahoo')) return mk({ meta: { name: "TIGER 반도체", price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t", quoteType: "ETF" }, candles });
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "KIS 키" }) });
+      };
+    });
+    await p.goto(F('report.html') + '?code=396500');
+    await p.waitForTimeout(500);
+    const t = await appText(p);
+    ok('etf.infocard', /개별 기업 지표가 원래 없어요/.test(t));
+    ok('etf.noValCard', !/값이 싼가/.test(t) && /차트 흐름/.test(t) && /1차로 살 자리/.test(t));
+    ok('etf.clean', clean(t));
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('fb: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 10000;
+      for (let i = 0; i < 40; i++) { base *= 1.002; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('quote-yahoo')) return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "Yahoo 429" }) });
+        if (url.includes('functions/quote?')) return mk({ meta: { name: "미래에셋증권", price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t" }, candles });
+        if (url.includes('quote-fundamentals')) return mk({ meta: { name: "미래에셋증권", price: 10800, quoteType: "EQUITY" }, valuation: { per: 8, pbr: 0.5, dividendYield: 3.2, roe: 7 }, fundamentals: { revenueGrowth: 5 }, consensus: { targetMean: 13000, recommendationMean: 2.2 } });
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "KIS 키" }) });
+      };
+    });
+    await p.goto(F('report.html') + '?code=006800');
+    await p.waitForTimeout(500);
+    const t = await appText(p);
+    ok('chartfb.kis', /차트 흐름/.test(t) && /1차로 살 자리/.test(t) && (await p.locator('.verdict .g').count()) === 1);
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('fail: ' + e.message));
+    await p.addInitScript(() => { window.fetch = () => Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "Yahoo 시세 실패 [KS/query1 429]" }) }); });
+    await p.goto(F('report.html') + '?code=006800');
+    await p.waitForTimeout(500);
+    ok('fail.reasons', /429/.test(await p.locator('.guide').innerText().catch(() => '')));
     await p.close(); }
 
   console.log(`  pageerrors: ${errs.length ? JSON.stringify(errs) : 'none'}`);

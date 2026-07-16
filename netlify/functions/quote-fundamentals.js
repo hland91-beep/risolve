@@ -56,7 +56,8 @@ function mapQuoteSummary(res, code, sfx) {
   const price = raw(P.regularMarketPrice);
   const target = raw(F.targetMeanPrice);
   return {
-    meta: { name: P.longName || P.shortName || `${code}.${sfx}`, code, currency: P.currency || "KRW", price },
+    meta: { name: P.longName || P.shortName || `${code}.${sfx}`, code, currency: P.currency || "KRW", price,
+      quoteType: P.quoteType || null },   // EQUITY | ETF | MUTUALFUND …
     valuation: {
       per: raw(S.trailingPE) ?? raw(K.trailingPE) ?? null,
       pbr: raw(K.priceToBook),
