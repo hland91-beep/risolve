@@ -81,6 +81,11 @@ eq("sym.chart.match", !!yq.parseChart(chartJ("290690.KQ"), "290690", "290690.KQ"
 eq("sym.chart.reject", yq.parseChart(chartJ("0P0001L213"), "290690", "290690.KS"), null);
 eq("sym.fund.reject", fund.mapQuoteSummary({ price: { symbol: "0P0001L213", regularMarketPrice: { raw: 1 } } }, "290690", "KS"), null);
 eq("sym.fund.match", fund.mapQuoteSummary({ price: { symbol: "290690.KQ", regularMarketPrice: { raw: 5000 } } }, "290690", "KQ").meta.price, 5000);
+// 심볼을 메아리치는 오응답(소룩스 사례): 펀드 타입/타시장/타통화 거부
+eq("sym.fund.echoFund", fund.mapQuoteSummary({ price: { symbol: "290690.KS", quoteType: "MUTUALFUND", regularMarketPrice: { raw: 12140 } } }, "290690", "KS"), null);
+eq("sym.fund.usMarket", fund.mapQuoteSummary({ price: { symbol: "290690.KS", quoteType: "EQUITY", market: "us_market", regularMarketPrice: { raw: 1 } } }, "290690", "KS"), null);
+eq("sym.fund.usd", fund.mapQuoteSummary({ price: { symbol: "290690.KS", quoteType: "EQUITY", currency: "USD", regularMarketPrice: { raw: 1 } } }, "290690", "KS"), null);
+eq("sym.fund.krOk", fund.mapQuoteSummary({ price: { symbol: "290690.KQ", quoteType: "EQUITY", market: "kr_market", currency: "KRW", regularMarketPrice: { raw: 4640 } } }, "290690", "KQ").meta.price, 4640);
 
 /* ── 네이버 예비 검색: 구조 무관 코드+이름 쌍 추출 ── */
 const krx2 = require("../netlify/functions/krx-names.js");

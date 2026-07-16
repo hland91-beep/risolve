@@ -39,6 +39,7 @@ function parseChart(j, code, expectSymbol) {
       asOfDate: dates.at(-1),
       asOf: dates.at(-1) + " 종가 · Yahoo EOD",
       quoteType: m.instrumentType || null,      // EQUITY | ETF …
+      symbol: m.symbol || null,                 // 검증된 실제 심볼(코드.KS/KQ)
     },
     dates, candles,
   };

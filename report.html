@@ -380,14 +380,22 @@ async function buildReport(code,knownName){
     catch(e1){ try{ return await jget(CHART2_URL.replace("{code}",code)); }
       catch(e2){ throw new Error(String(e1.message||e1)); } }
   };
-  const [fund,chart,flow]=await Promise.allSettled([
-    jget(FUND_URL.replace("{code}",code)),
-    chartChain(),
-    jget(FLOW_URL.replace("{code}",code)),
-  ]);
-  const F=fund.status==="fulfilled"?fund.value:null;
+  // ① 차트 먼저 — 어느 시장(.KS/.KQ)인지 심볼 검증으로 확정
+  const flowPromise=jget(FLOW_URL.replace("{code}",code)).then(v=>({status:"fulfilled",value:v}),r=>({status:"rejected",reason:r}));
+  let chart; try{ chart={status:"fulfilled",value:await chartChain()}; }catch(r){ chart={status:"rejected",reason:r}; }
   const C=chart.status==="fulfilled"?chart.value:null;
+  const sfxM=C&&C.meta&&C.meta.symbol?String(C.meta.symbol).toUpperCase().match(/\.(KS|KQ)$/):null;
+  const sfxHint=sfxM?("&sfx="+sfxM[1]):"";
+  // ② 기본정보는 검증된 시장으로만 조회(오응답 원천 차단), 수급은 병렬
+  let fund; try{ fund={status:"fulfilled",value:await jget(FUND_URL.replace("{code}",code)+sfxHint)}; }catch(r){ fund={status:"rejected",reason:r}; }
+  const flow=await flowPromise;
+  let F=fund.status==="fulfilled"?fund.value:null;
   const FL=flow.status==="fulfilled"?flow.value:null;
+  // ③ 가격 교차 검증: 기본정보 가격이 차트 종가와 크게 어긋나면 오응답으로 보고 폐기
+  if(F&&C&&F.meta&&C.meta&&F.meta.price>0&&C.meta.price>0){
+    const r=F.meta.price/C.meta.price;
+    if(r>1.5||r<0.67){ fund={status:"rejected",reason:new Error("기본정보 가격이 차트와 불일치(오응답 의심)하여 폐기")}; F=null; }
+  }
   const why=s=>s.status==="rejected"?String((s.reason&&s.reason.message)||s.reason).slice(0,90):null;
   if(!F&&!C){ showGuide([["기본정보",why(fund)],["차트",why(chart)]]); return; }
 

@@ -236,6 +236,43 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     ok('fail.reasons', /429/.test(await p.locator('.guide').innerText().catch(() => '')));
     await p.close(); }
 
+  /* ── 소룩스 회귀: 차트가 확정한 시장(sfx)을 기본정보에 전달 + 가격 교차검증 ── */
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('sfx: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 4500;
+      for (let i = 0; i < 40; i++) { base *= 1.001; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+      window.__fundUrl = null;
+      window.fetch = url => {
+        if (url.includes('quote-yahoo')) return mk({ meta: { name: "소룩스", price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t", quoteType: "EQUITY", symbol: "290690.KQ" }, candles });
+        if (url.includes('quote-fundamentals')) { window.__fundUrl = url;
+          return mk({ meta: { name: "소룩스", price: 4640, quoteType: "EQUITY" }, valuation: { per: 20, pbr: 1.4, roe: 5 }, fundamentals: {}, consensus: {} }); }
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "KIS" }) });
+      };
+    });
+    await p.goto(F('report.html') + '?code=290690');
+    await p.waitForTimeout(500);
+    const t = await appText(p);
+    ok('sfx.hintPassed', /sfx=KQ/.test(await p.evaluate(() => window.__fundUrl) || ''));
+    ok('sfx.notEtf', !/ETF\(묶음 상품\)/.test(t) && /값이 싼가/.test(t));
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('xchk: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 4500;
+      for (let i = 0; i < 40; i++) { base *= 1.001; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('quote-yahoo')) return mk({ meta: { name: "소룩스", price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t", quoteType: "EQUITY" }, candles });
+        if (url.includes('quote-fundamentals')) return mk({ meta: { name: "이상한펀드", price: 12140, quoteType: "ETF" }, valuation: { dividendYield: 1 }, fundamentals: {}, consensus: {} });
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "KIS" }) });
+      };
+    });
+    await p.goto(F('report.html') + '?code=290690');
+    await p.waitForTimeout(500);
+    const t = await appText(p);
+    ok('xchk.dropBogus', !/12,140/.test(t) && !/ETF\(묶음 상품\)/.test(t) && /차트 흐름/.test(t)); // 차트와 불일치한 기본정보 폐기
+    await p.close(); }
+
   /* ── 검색 체인: KRX 실패→Yahoo 폴백 / 둘 다 실패→종목번호 안내 ── */
   { const p = await b.newPage(); p.on('pageerror', e => errs.push('chain: ' + e.message));
     await p.addInitScript(() => {
