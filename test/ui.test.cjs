@@ -236,6 +236,31 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     ok('fail.reasons', /429/.test(await p.locator('.guide').innerText().catch(() => '')));
     await p.close(); }
 
+  /* ── 검색 체인: KRX 실패→Yahoo 폴백 / 둘 다 실패→종목번호 안내 ── */
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('chain: ' + e.message));
+    await p.addInitScript(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 10000;
+      for (let i = 0; i < 40; i++) { base *= 1.002; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('krx-names')) return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "KRX 차단" }) });
+        if (url.includes('quote-search')) return mk({ results: [{ code: "006800", name: "미래에셋증권", exchange: "KOSPI" }] });
+        if (url.includes('quote-fundamentals')) return mk({ meta: { name: "미래에셋증권", price: 10800, quoteType: "EQUITY" }, valuation: { per: 8, pbr: 0.5, dividendYield: 3.2, roe: 7 }, fundamentals: {}, consensus: {} });
+        if (url.includes('quote-yahoo')) return mk({ meta: { price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t" }, candles });
+        return Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "KIS" }) });
+      };
+    });
+    await p.goto(F('report.html'));
+    await p.fill('#q', '미래에셋증권'); await p.click('#go'); await p.waitForTimeout(500);
+    ok('chain.yahooFallback', /미래에셋증권/.test(await appText(p)) && (await p.locator('header.rpt').count()) === 1);
+    await p.close(); }
+  { const p = await b.newPage(); p.on('pageerror', e => errs.push('chain2: ' + e.message));
+    await p.addInitScript(() => { window.fetch = () => Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve({ error: "검색 실패 [query1 429]" }) }); });
+    await p.goto(F('report.html'));
+    await p.fill('#q', '미래에셋증권'); await p.click('#go'); await p.waitForTimeout(400);
+    ok('chain.codeHint', /6자리 종목번호/.test(await p.locator('#st').innerText()));
+    await p.close(); }
+
   console.log(`  pageerrors: ${errs.length ? JSON.stringify(errs) : 'none'}`);
   ok('no-pageerrors', errs.length === 0);
   console.log(`\n${fail ? '❌' : '✅'} ui: ${pass} passed, ${fail} failed`);
