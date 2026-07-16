@@ -112,6 +112,43 @@ const clean = t => !/NaN|Infinity|∞|undefined/.test(t);
     await p.close();
   }
 
+  /* ── report (종합 보고서) ── */
+  { const p = await page('report.html');
+    // 데모 보고서: 등급·5카드·가격대표·클린
+    await p.click('#demo'); await p.waitForTimeout(400);
+    let t = await appText(p);
+    ok('rpt.demo.verdict', (await p.locator('.verdict .g').count()) === 1);
+    ok('rpt.demo.cards', (await p.locator('.sec').count()) === 5);
+    ok('rpt.demo.zones', /1차로 살 자리/.test(t) && /줄일 자리/.test(t));
+    ok('rpt.demo.clean', clean(t));
+    // mock 파이프라인: 이름 검색 → 후보 선택 → 보고서
+    await p.evaluate(() => {
+      const mk = o => Promise.resolve({ ok: true, json: () => Promise.resolve(o) });
+      const candles = []; let base = 60000;
+      for (let i = 0; i < 70; i++) { base *= 1.002; candles.push({ o: base, h: base * 1.01, l: base * 0.99, c: base, v: 0 }); }
+      window.fetch = url => {
+        if (url.includes('quote-search')) return mk({ results: [{ code: "005930", name: "삼성전자", exchange: "KOSPI" }, { code: "005935", name: "삼성전자우", exchange: "KOSPI" }] });
+        if (url.includes('quote-fundamentals')) return mk({ meta: { name: "삼성전자", price: 70000 }, valuation: { per: 11, pbr: 1.1, dividendYield: 2.5, roe: 9.5 }, fundamentals: { revenueGrowth: 12.3, earningsGrowth: 20.1, operatingMargin: 18.4 }, consensus: { targetMean: 90000, recommendationMean: 2.1 } });
+        if (url.includes('quote-yahoo')) return mk({ meta: { name: "삼성전자", price: candles.at(-1).c, prevClose: candles.at(-2).c, asOfDate: "t" }, candles });
+        if (url.includes('quote-kis-flow')) return mk({ summary: { f5: 1200, i5: 300, f20: 3000, i20: 700, fStreak: 5, iStreak: 5 } });
+        return Promise.reject(new Error('no'));
+      };
+    });
+    await p.fill('#q', '삼성전자'); await p.click('#go'); await p.waitForTimeout(250);
+    ok('rpt.mock.picks', (await p.locator('.pick').count()) === 2);
+    await p.locator('.pick').first().click(); await p.waitForTimeout(400);
+    t = await appText(p);
+    ok('rpt.mock.full', (await p.locator('.sec').count()) === 5 && /적극 매수 후보/.test(t) && clean(t));
+    ok('rpt.mock.status', /5개 항목 자동 수집/.test(await p.locator('#st').innerText()));
+    await p.close();
+  }
+  // 서버 없는 환경(file://): 크래시 없이 안내 화면
+  { const p = await page('report.html');
+    await p.fill('#q', '005930'); await p.click('#go'); await p.waitForTimeout(700);
+    ok('rpt.offline.guide', /연결할 수 없어요/.test(await p.locator('.guide').innerText().catch(() => '')));
+    await p.close();
+  }
+
   console.log(`  pageerrors: ${errs.length ? JSON.stringify(errs) : 'none'}`);
   ok('no-pageerrors', errs.length === 0);
   console.log(`\n${fail ? '❌' : '✅'} ui: ${pass} passed, ${fail} failed`);
