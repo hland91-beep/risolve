@@ -60,6 +60,19 @@ eq("dart.resolve.code", dart.resolveCorp("005930"), "00126380"); // 번들 corp-
 eq("dart.resolve.corp", dart.resolveCorp("00126380"), "00126380");
 eq("dart.resolve.miss", dart.resolveCorp("000660"), null);
 
+/* ── 종목명 검색: Yahoo search 응답 → 한국 종목만 ── */
+const search = require("../netlify/functions/quote-search.js");
+const searchRaw = { quotes: [
+  { symbol: "005930.KS", shortname: "Samsung Electronics", longname: "Samsung Electronics Co., Ltd." },
+  { symbol: "SSNLF", shortname: "SAMSUNG ELECTRONICS" },          // 미국 OTC → 제외
+  { symbol: "005935.KS", shortname: "Samsung Electronics Pfd" },
+  { symbol: "035420.KQ", shortname: "NAVER (가상)" },              // KQ 형식 확인용
+]};
+const sr = search.mapSearch(searchRaw);
+eq("search.krOnly", sr.length, 3);
+eq("search.first", [sr[0].code, sr[0].exchange], ["005930", "KOSPI"]);
+eq("search.kq", sr[2].exchange, "KOSDAQ");
+
 /* ── corpCode.xml 파서 (상장사만) ── */
 const xml = `<result>
   <list><corp_code>00126380</corp_code><corp_name>삼성전자</corp_name><stock_code>005930</stock_code></list>

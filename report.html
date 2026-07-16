@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>종목 종합 보고서</title>
+<style>
+  :root{
+    --bg:#0B1220; --card:#121B2E; --card2:#0E1626;
+    --line:#22304A; --gold:#D4A94E; --teal:#3FBFB2;
+    --buy:#E06565; --buy-bg:rgba(224,101,101,.14);
+    --sell:#5B9BD5; --sell-bg:rgba(91,155,213,.14);
+    --neu:#8B97AB; --neu-bg:rgba(139,151,171,.14);
+    --txt:#E8ECF4; --sub:#93A0B8; --mut:#5D6B84;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--txt);
+    font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;
+    padding:20px 14px 48px;max-width:760px;margin:0 auto;line-height:1.5;}
+  .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:600;margin-bottom:6px;}
+  h1.title{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;}
+  .lede{font-size:13px;color:var(--sub);margin-bottom:18px;}
+  .navrow{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .navrow a{font-size:12px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;background:var(--card2);}
+  .navrow a:hover{border-color:var(--gold);color:var(--gold);}
+  .navrow a.here{border-color:var(--gold);color:var(--gold);background:rgba(212,169,78,.10);}
+
+  .form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .srow{display:flex;gap:8px;}
+  .srow input{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;
+    padding:13px 14px;color:var(--txt);font-size:16px;outline:none;}
+  .srow input:focus{border-color:var(--gold);}
+  .srow input::placeholder{color:var(--mut);}
+  .btn{background:var(--gold);color:#0B1220;border:none;border-radius:10px;padding:13px 22px;font-weight:700;font-size:15px;cursor:pointer;}
+  .btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);font-weight:600;font-size:13px;}
+  .btn:active{transform:translateY(1px);}
+  .status{font-size:13px;color:var(--teal);margin-top:10px;line-height:1.6;}
+  .status.warn{color:var(--gold);} .status.bad{color:var(--buy);}
+  .picks{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .pick{display:flex;justify-content:space-between;align-items:center;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:14px;}
+  .pick:hover{border-color:var(--gold);}
+  .pick .cd{font-family:var(--mono);color:var(--mut);font-size:12px;}
+
+  h2{font-size:14px;letter-spacing:.08em;color:var(--sub);font-weight:600;margin:26px 0 12px;text-transform:uppercase;}
+  h2 span{color:var(--mut);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px;margin-left:8px;}
+  .callout{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--sub);margin-bottom:14px;}
+  .callout b{color:var(--txt);} .callout .hot{color:var(--gold);font-family:var(--mono);}
+
+  header.rpt{margin-top:20px;}
+  header.rpt .nm{font-size:21px;font-weight:800;}
+  header.rpt .nm span{color:var(--mut);font-weight:400;font-family:var(--mono);font-size:14px;margin-left:8px;}
+  header.rpt .price-row{display:flex;align-items:baseline;gap:10px;margin-top:6px;flex-wrap:wrap;}
+  header.rpt .price{font-family:var(--mono);font-size:30px;font-weight:600;}
+  header.rpt .chg{font-family:var(--mono);font-size:15px;font-weight:600;}
+  .chg.up{color:var(--buy);} .chg.down{color:var(--sell);}
+  header.rpt .kv{font-size:12px;color:var(--mut);margin-top:4px;}
+
+  .verdict{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin:14px 0;text-align:center;}
+  .verdict .g{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-bottom:2px;}
+  .verdict .sc{font-size:13px;color:var(--mut);margin-bottom:14px;}
+  .gauge{margin:2px 0;}
+  .gtrack{position:relative;height:14px;border-radius:8px;background:linear-gradient(90deg,var(--sell) 0%,#2b3653 44%,#2b3653 56%,var(--buy) 100%);}
+  .gzero{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--mut);opacity:.6;}
+  .gmark{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;border:3px solid var(--card);transform:translate(-50%,-50%);transition:left .3s ease;box-shadow:0 0 0 1px var(--line),0 2px 10px rgba(0,0,0,.55);}
+  .gmark.buy{background:var(--buy);} .gmark.sell{background:var(--sell);} .gmark.neu{background:var(--neu);}
+  .gticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px;}
+  .gticks b{color:var(--sub);}
+
+  .plain{background:linear-gradient(135deg,rgba(212,169,78,.14),rgba(63,191,178,.08));border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:16px 16px 14px;margin-bottom:14px;}
+  .plain .pl-t{font-size:16px;font-weight:800;color:var(--txt);margin-bottom:6px;line-height:1.45;}
+  .plain .pl-b{font-size:13.5px;color:var(--sub);line-height:1.65;} .plain .pl-b b{color:var(--txt);}
+
+  .secgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;}
+  .sec .st{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .sec .st .k{font-size:12px;color:var(--sub);font-weight:600;}
+  .sec .val-word{font-size:17px;font-weight:800;}
+  .sec .why{font-size:12px;color:var(--mut);line-height:1.55;margin-top:4px;}
+  .sec .why b{color:var(--sub);}
+  .sec.na{opacity:.6;}
+  .chip{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;}
+  .chip.buy{color:var(--buy);background:var(--buy-bg);} .chip.sell{color:var(--sell);background:var(--sell-bg);}
+  .chip.neu{color:var(--neu);background:var(--neu-bg);} .chip.gold{color:var(--gold);background:rgba(212,169,78,.12);}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:4px;}
+  th{font-size:11px;color:var(--mut);font-weight:600;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);letter-spacing:.06em;}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px;}
+  tr:last-child td{border-bottom:none;}
+  td.val{font-family:var(--mono);font-size:13px;color:var(--sub);text-align:right;}
+  td.pct{font-family:var(--mono);font-size:12px;text-align:right;}
+  td.pct.up{color:var(--buy);} td.pct.down{color:var(--sell);}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;}
+  .tag.b{color:var(--buy);background:var(--buy-bg);} .tag.s{color:var(--sell);background:var(--sell-bg);} .tag.n{color:var(--neu);background:var(--neu-bg);}
+
+  .guide{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px;font-size:13.5px;color:var(--sub);line-height:1.75;}
+  .guide b{color:var(--txt);} .guide .gt{font-size:15px;font-weight:800;color:var(--gold);margin-bottom:8px;}
+  .foot{margin-top:24px;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px;line-height:1.6;}
+  @media(max-width:540px){.secgrid{grid-template-columns:1fr;}header.rpt .price{font-size:26px;}}
+  @media print{body{background:#fff;color:#111;} .form,.navrow,.help,.btn{display:none!important;}}
+</style>
+</head>
+<body>
+  <div class="eyebrow">종목 하나, 보고서 한 장</div>
+  <h1 class="title">종목 종합 보고서</h1>
+  <p class="lede"><b>종목명이나 종목번호</b>만 넣으면 가격·실적·증권사 기대·수급·차트 위치를 자동으로 모아 <b>한 장짜리 쉬운 보고서</b>를 만들어 드려요.</p>
+  <div class="navrow">
+    <a href="report.html" class="here">📋 종합 보고서</a>
+    <a href="valuation-flow.html">싸다·비싸다</a>
+    <a href="fundamentals-flow.html">회사 실적</a>
+    <a href="scorecard.html">종합 점수</a>
+  </div>
+
+  <div class="form">
+    <div class="srow">
+      <input id="q" placeholder="종목명 또는 종목번호 (예: 삼성전자 또는 005930)" autocomplete="off">
+      <button class="btn" id="go">보고서</button>
+    </div>
+    <div class="srow" style="margin-top:8px;">
+      <button class="btn ghost" id="demo" style="flex:none;">예시 보고서 보기 (삼성전자 샘플)</button>
+    </div>
+    <div class="status" id="st"></div>
+    <div class="picks" id="picks"></div>
+  </div>
+
+  <div id="app"></div>
+
+<script>
+/* ============ 유틸 (기존 도구와 동일 규칙) ============ */
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const fmt=n=>(n==null||!isFinite(n))?"–":Math.round(n).toLocaleString("ko-KR");
+const sgnTxt=x=>x>0?("+"+x):(""+x);
+const sign=x=>x==null?0:x>0?1:x<0?-1:0;
+
+/* ============ 자동조회 주소 (Netlify 함수 · 상대경로) ============ */
+const SEARCH_URL="/.netlify/functions/quote-search?q={q}";
+const FUND_URL="/.netlify/functions/quote-fundamentals?code={code}";
+const CHART_URL="/.netlify/functions/quote-yahoo?code={code}";
+const FLOW_URL="/.netlify/functions/quote-kis-flow?code={code}";
+
+/* ============ 검증된 점수 로직 (valuation-flow 와 동일) ============ */
+function scoreVal(v){
+  let s=0;const R=[];
+  const impliedPbr=(v.sPbr!=null)?v.sPbr:(v.roe!=null?clamp(v.roe/8,0.4,4):1.0);
+  const basis=v.sPbr!=null?"업종PBR":(v.roe!=null?"ROE/8":"기준1.0");
+  if(v.pbr!=null){ if(v.pbr<=0){R.push(["n",`PBR ${v.pbr} — 자본잠식 등 비정상, 판정 보류`]);}
+    else if(v.pbr<impliedPbr*0.85){s++;R.push(["b",`PBR ${v.pbr} < 적정 ${impliedPbr.toFixed(2)} — 자산 대비 싼 편`]);}
+    else if(v.pbr>impliedPbr*1.15){s--;R.push(["s",`PBR ${v.pbr} > 적정 ${impliedPbr.toFixed(2)} — 자산 대비 비싼 편`]);}
+    else R.push(["n",`PBR ${v.pbr} ≈ 적정 ${impliedPbr.toFixed(2)} — 무난`]);}
+  if(v.per!=null&&v.sPer!=null){ if(v.per<=0){s--;R.push(["s",`PER ${v.per} — 적자(음수), 싼 게 아님`]);}
+    else if(v.sPer<=0){R.push(["n",`업종 PER 비정상, 판정 보류`]);}
+    else if(v.per<v.sPer*0.85){s++;R.push(["b",`PER ${v.per} < 업종 ${v.sPer} — 이익 대비 싼 편`]);}
+    else if(v.per>v.sPer*1.15){s--;R.push(["s",`PER ${v.per} > 업종 ${v.sPer} — 이익 대비 비싼 편`]);} else R.push(["n",`PER ${v.per} ≈ 업종 평균`]);}
+  if(v.dy!=null&&v.dy>=3){s++;R.push(["b",`배당 ${v.dy}% — 배당만으로도 쏠쏠`]);}
+  s=clamp(s,-2,2);
+  const grade=s>=2?"싼 편":s==1?"다소 싼 편":s==0?"보통":s==-1?"다소 비싼 편":"비싼 편";
+  const T=[];
+  if(v.px>0&&v.per>0&&v.sPer>0)T.push(["이익 기준",Math.round(v.px*v.sPer/v.per)]);
+  if(v.px>0&&v.pbr>0)T.push(["자산 기준",Math.round(v.px*impliedPbr/v.pbr)]);
+  return {score:s,grade,reasons:R,targets:T};
+}
+function scoreFlow(f){
+  const base=sign(f.f5)+sign(f.i5);
+  let trend="";
+  if(f.f20!=null&&f.i20!=null){const s5=sign(f.f5)+sign(f.i5),s20=sign(f.f20)+sign(f.i20);
+    trend=(s5>0&&s20>0)?"꾸준히 사는 중":(s5<0&&s20<0)?"꾸준히 파는 중":(s5>0&&s20<=0)?"최근 사기 시작":(s5<0&&s20>=0)?"최근 팔기 시작":"섞임";}
+  const mx=Math.max(Math.abs(f.fStreak||0),Math.abs(f.iStreak||0));
+  const strength=mx>=5?"강함":mx>=3?"중간":mx>0?"약함":"보통";
+  const dir=base>0?"큰손이 사는 중":base<0?"큰손이 파는 중":((f.f5||f.i5)&&sign(f.f5)!==sign(f.i5))?"외국인·기관 엇갈림":"잔잔함";
+  return {score:clamp(base,-2,2),dir,trend,strength};
+}
+/* 수급 결과를 보고서 카드 형식(grade/reasons)으로 변환 */
+function mkFlow(summary){
+  const f=scoreFlow(summary); if(!f)return null;
+  const R=[];
+  R.push([f.score>0?"b":f.score<0?"s":"n",`외국인 5일 ${sgnTxt(summary.f5??0)} · 기관 5일 ${sgnTxt(summary.i5??0)}`]);
+  if(f.trend)R.push(["n",`추세: ${f.trend}`]);
+  R.push(["n",`연속 매매 강도: ${f.strength}`]);
+  return {score:f.score,grade:f.dir,reasons:R,dir:f.dir,trend:f.trend,strength:f.strength};
+}
+/* 실적 스코어 (fundamentals-flow 일반 프리셋과 동일 기준) */
+function scoreFund(x){
+  const R=[]; let net=0;
+  const add=(d,m)=>{net+=d;R.push([d>0?"b":d<0?"s":"n",m]);};
+  if(x.revG!=null){x.revG>=10?add(1,`매출 +${x.revG}% 성장`):x.revG<0?add(-1,`매출 ${x.revG}% 감소`):add(0,`매출 +${x.revG}% 보통`);}
+  if(x.epsG!=null){x.epsG>=15?add(1,`이익 +${x.epsG}% 개선`):x.epsG<0?add(-1,`이익 ${x.epsG}% 감소`):add(0,`이익 +${x.epsG}% 보통`);}
+  if(x.roe!=null){x.roe>=15?add(1,`ROE ${x.roe}% 우수`):x.roe<5?add(-1,`ROE ${x.roe}% 낮음`):add(0,`ROE ${x.roe}% 보통`);}
+  if(x.opm!=null){x.opm>=15?add(1,`이익률 ${x.opm}% 좋음`):x.opm<5?add(-1,`이익률 ${x.opm}% 박함`):add(0,`이익률 ${x.opm}% 보통`);}
+  const score=net>=3?2:net>=1?1:net<=-3?-2:net<=-1?-1:0;
+  const grade=score>=2?"실적 좋음":score==1?"실적 양호":score==0?"실적 보통":score==-1?"실적 부진":"실적 취약";
+  return {score,grade,reasons:R};
+}
+/* 증권사 기대 (fundamentals-flow 와 동일 기준) */
+function scoreCons(c){
+  const R=[]; let net=0, upside=null;
+  if(c.px>0&&c.tp>0){ upside=(c.tp-c.px)/c.px*100;
+    if(upside>=15){net++;R.push(["b",`목표가 ${fmt(c.tp)}원 — 지금보다 +${upside.toFixed(1)}% 여유`]);}
+    else if(upside<=0){net--;R.push(["s",`목표가 ${fmt(c.tp)}원 — 이미 목표가 위`]);}
+    else R.push(["n",`목표가까지 +${upside.toFixed(1)}% — 여유 적음`]);}
+  if(c.rec!=null){ c.rec<=2.5?(net++,R.push(["b","증권사 의견: 매수 쪽 많음"])):c.rec>=3.5?(net--,R.push(["s","증권사 의견: 매도·보류 쪽"])):R.push(["n","증권사 의견: 중립"]);}
+  const score=clamp(net,-2,2);
+  const grade=score>0?"기대 높음":score<0?"기대 낮음":"기대 보통";
+  return {score,grade,upside,reasons:R};
+}
+/* 차트 위치 (zone-analyzer 피봇 시맨틱: 기준일 OHLC → 익일 레벨) */
+function pivots(h,l,c){const P=(h+l+c)/3,r=h-l;return {R3:h+2*(P-l),R2:P+r,R1:2*P-l,P,S1:2*P-h,S2:P-r,S3:l-2*(h-P)};}
+const sma=(a,n)=>a.length<n?null:a.slice(-n).reduce((x,y)=>x+y,0)/n;
+function rsi(c,n=14){if(c.length<n+1)return null;let g=0,l=0;for(let i=1;i<=n;i++){const d=c[i]-c[i-1];d>=0?g+=d:l-=d;}g/=n;l/=n;for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(n-1)+(d>0?d:0))/n;l=(l*(n-1)+(d<0?-d:0))/n;}return l===0?100:100-100/(1+g/l);}
+function scoreTech(candles){
+  if(!candles||candles.length<21) return null;
+  const cl=candles.map(x=>x.c), px=cl.at(-1), last=candles.at(-1);
+  const ma20=sma(cl,20), ma60=sma(cl,60), r=rsi(cl);
+  let s=0; const R=[];
+  if(ma20!=null){ px>ma20?(s++,R.push(["b",`20일 평균선(${fmt(ma20)}) 위 — 단기 흐름 좋음`])):(s--,R.push(["s",`20일 평균선(${fmt(ma20)}) 아래 — 단기 흐름 약함`])); }
+  if(ma60!=null){ px>ma60?(s++,R.push(["b",`60일 평균선(${fmt(ma60)}) 위 — 중기 흐름 좋음`])):(s--,R.push(["s",`60일 평균선(${fmt(ma60)}) 아래 — 중기 흐름 약함`])); }
+  let heat=null;
+  if(r!=null){ heat=r>=70?"단기 과열(급등 뒤)":r<=30?"단기 과매도(급락 뒤)":null;
+    if(heat)R.push(["n",`RSI ${r.toFixed(0)} — ${heat}`]); }
+  const score=clamp(s,-2,2);
+  const grade=score>0?"차트 흐름 좋음":score<0?"차트 흐름 약함":"차트 중립";
+  return {score,grade,reasons:R,piv:pivots(last.h,last.l,last.c),px,heat,rsi:r};
+}
+/* 종합 (scorecard 와 동일 가중·등급) */
+const W={val:25,fund:25,cons:15,flow:20,tech:15};
+function composite(parts){ // parts: {val,fund,cons,flow,tech} 각 {score} 또는 null
+  let Wsum=0,c=0,n=0;
+  for(const k in W){ if(parts[k]){ Wsum+=W[k]; c+=W[k]*parts[k].score; n++; } }
+  if(Wsum<=0||n<2) return null;
+  const avg=c/Wsum;
+  const [label,col,cls]=avg>=1.2?["적극 매수 후보","var(--buy)","buy"]:avg>=0.4?["매수 검토","var(--buy)","buy"]:
+    avg>-0.4?["중립 · 관망","var(--neu)","neu"]:avg>-1.2?["신중 · 축소 검토","var(--sell)","sell"]:["회피 · 위험","var(--sell)","sell"];
+  return {avg,label,col,cls,n};
+}
+function plainLine(p){
+  const t=[];
+  if(p.val)t.push(p.val.score>=1?"값은 <b>싼 편</b>":p.val.score<=-1?"값은 <b>비싼 편</b>":"값은 보통");
+  if(p.fund)t.push(p.fund.score>=1?"실적 <b>좋음</b>":p.fund.score<=-1?"실적 <b>부진</b>":"실적 보통");
+  if(p.cons)t.push(p.cons.score>0?"증권사 기대 <b>높음</b>":p.cons.score<0?"증권사 기대 낮음":"기대 보통");
+  if(p.flow)t.push(p.flow.score>0?"큰손 <b>매수 중</b>":p.flow.score<0?"큰손 <b>매도 중</b>":"수급 잔잔");
+  if(p.tech)t.push(p.tech.score>0?"차트 흐름 <b>좋음</b>":p.tech.score<0?"차트 흐름 약함":"차트 중립");
+  return t.join(" · ");
+}
+function plainAdvice(cp,p){
+  if(!cp)return "";
+  if(cp.avg>=1.2)return "여러 신호가 함께 좋아요. 그래도 <b>한 번에 사지 말고 2~3번에 나눠서</b>, 아래 '나눠 살 가격대'를 참고하세요.";
+  if(cp.avg>=0.4)return "살 만한 편이에요. <b>서두르지 말고 나눠서</b> 접근하고, 실적 발표 등 일정을 확인하세요.";
+  if(cp.avg>-0.4)return "지금은 뚜렷한 우위가 없어요. <b>보유 중이면 유지</b>, 신규 매수는 더 좋은 신호를 기다려도 늦지 않아요.";
+  if(cp.avg>-1.2)return "부담이 있는 자리예요. <b>신규 매수는 미루고</b>, 보유 중이면 반등할 때 조금씩 줄이는 걸 검토하세요.";
+  return "위험 신호가 여러 개예요. <b>새로 사는 건 피하고</b>, 보유 중이라면 비중 축소를 진지하게 검토하세요.";
+}
+
+/* ============ 렌더 ============ */
+function gauge(score,big){
+  const pos=(clamp(score,-2,2)+2)/4*100, cls=score>0?"buy":score<0?"sell":"neu";
+  return `<div class="gauge"><div class="gtrack"><div class="gzero"></div><div class="gmark ${cls}" style="left:${pos}%;"></div></div>
+    <div class="gticks"><span>−2 위험</span><span>−1</span><b>0</b><span>+1</span><span>+2 좋음</span></div></div>`;
+}
+function secCard(key,title,res,extra){
+  if(!res)return `<div class="sec na"><div class="st"><span class="k">${title}</span><span class="chip neu">데이터 없음</span></div><div class="why">자동으로 못 받아왔어요. ${extra||""}</div></div>`;
+  const col=res.score>0?"var(--buy)":res.score<0?"var(--sell)":"var(--neu)";
+  const why=(res.reasons||[]).map(([c,m])=>`· ${m}`).join("<br>");
+  return `<div class="sec"><div class="st"><span class="k">${title}</span><span class="chip ${res.score>0?"buy":res.score<0?"sell":"neu"}">${sgnTxt(res.score)}</span></div>
+    <div class="val-word" style="color:${col}">${res.grade}</div>
+    <div class="why">${why||""}</div></div>`;
+}
+function zoneTable(t){
+  if(!t||!t.piv)return "";
+  const P=t.piv, px=t.px;
+  const pctTxt=v=>{const p=(v-px)/px*100;return (p>=0?"+":"")+p.toFixed(1)+"%";};
+  return `<h2>참고 가격대 <span>나눠 살 자리 · 줄일 자리 (전일 기준 자동 계산)</span></h2>
+  <div class="callout">한 번에 사지 말고, 내려올 때 <b>아래 가격대에서 2~3번에 나눠</b> 사는 방식이 안전해요. 반대로 급등하면 <b>줄일 자리</b>에서 일부 정리를 검토하세요.</div>
+  <table>
+    <tr><th>구분</th><th style="text-align:right;">가격대</th><th style="text-align:right;">지금 대비</th></tr>
+    <tr><td><span class="tag n">지금</span></td><td class="val">${fmt(px)}</td><td class="pct">—</td></tr>
+    <tr><td><span class="tag b">1차로 살 자리</span></td><td class="val">${fmt(P.S1)} ~ ${fmt(P.P)}</td><td class="pct down">${pctTxt(P.S1)}</td></tr>
+    <tr><td><span class="tag b">2차로 살 자리</span></td><td class="val">${fmt(P.S2)} ~ ${fmt(P.S1)}</td><td class="pct down">${pctTxt(P.S2)}</td></tr>
+    <tr><td><span class="tag b">3차로 살 자리</span></td><td class="val">${fmt(P.S3)} ~ ${fmt(P.S2)}</td><td class="pct down">${pctTxt(P.S3)}</td></tr>
+    <tr><td><span class="tag s">1차로 줄일 자리</span></td><td class="val">${fmt(P.R1)}</td><td class="pct up">${pctTxt(P.R1)}</td></tr>
+    <tr><td><span class="tag s">2차로 줄일 자리</span></td><td class="val">${fmt(P.R2)}</td><td class="pct up">${pctTxt(P.R2)}</td></tr>
+    <tr><td><span class="tag s">계획 재검토</span></td><td class="val">종가 ${fmt(P.S3)} 아래</td><td class="pct down">${pctTxt(P.S3)} 이탈 시</td></tr>
+  </table>`;
+}
+function renderReport(meta,p){
+  const cp=composite(p);
+  const chg=(meta.price!=null&&meta.prevClose)?meta.price-meta.prevClose:null;
+  const pct=chg!=null?chg/meta.prevClose*100:null, up=chg==null?true:chg>=0;
+  let h=`<header class="rpt">
+    <div class="nm">${meta.name||"종목"} <span>${meta.code||""}</span></div>
+    <div class="price-row"><span class="price">${fmt(meta.price)}</span>${chg!=null?`<span class="chg ${up?"up":"down"}">${up?"▲":"▼"} ${fmt(Math.abs(chg))} (${up?"+":""}${pct.toFixed(2)}%)</span>`:""}</div>
+    <div class="kv">${meta.asOfDate?`기준일 ${meta.asOfDate} · `:""}${new Date().toLocaleDateString("ko-KR")} 자동 생성 · 데이터: ${meta.srcs.join(" + ")}</div>
+  </header>`;
+
+  if(cp){
+    h+=`<div class="verdict"><div class="g" style="color:${cp.col}">${cp.label}</div>
+      <div class="sc">종합점수 ${cp.avg>=0?"+":""}${cp.avg.toFixed(2)} · ${cp.n}개 항목 종합</div>
+      ${gauge(cp.avg,true)}</div>`;
+    h+=`<div class="plain"><div class="pl-t">${plainLine(p)}</div><div class="pl-b">${plainAdvice(cp,p)}</div></div>`;
+  } else {
+    h+=`<div class="callout">받아온 항목이 적어 종합 등급은 생략했어요. 아래 개별 카드와 수기 화면(내비)을 함께 보세요.</div>`;
+  }
+
+  h+=`<h2>항목별 평가 <span>−2 나쁨 ~ +2 좋음</span></h2><div class="secgrid">`;
+  h+=secCard("val","💰 값이 싼가",p.val,"'싸다·비싸다' 화면에서 수기 입력 가능.");
+  h+=secCard("fund","🏭 회사가 잘 버나",p.fund,"'회사 실적' 화면에서 수기 입력 가능.");
+  h+=secCard("cons","🎯 증권사 기대",p.cons,"목표주가 데이터가 없을 수 있어요.");
+  h+=secCard("flow","🐋 큰손 수급",p.flow,"KIS 키 등록 시 자동으로 나와요.");
+  h+=secCard("tech","📈 차트 흐름",p.tech,"시세 데이터를 못 받았어요.");
+  h+=`</div>`;
+
+  if(p.val&&p.val.targets.length){
+    const vals=p.val.targets.map(t=>t[1]); const lo=Math.min(...vals),hi=Math.max(...vals);
+    h+=`<div class="callout" style="margin-top:12px;">이 회사의 <b>적당한 가격대</b>는 대략 <b class="hot">${lo===hi?fmt(lo):fmt(lo)+" ~ "+fmt(hi)}원</b>으로 계산돼요(참고치).</div>`;
+  }
+  h+=zoneTable(p.tech);
+
+  h+=`<h2>확인해 볼 것 <span>체크리스트</span></h2>
+  <table>
+    <tr><td>📅 실적 발표·배당락 등 <b>일정</b>이 코앞인지 확인했나요?</td></tr>
+    <tr><td>💼 이 종목이 내 계좌에서 차지할 <b>비중</b>을 정했나요? (한 종목에 몰빵 금지)</td></tr>
+    <tr><td>🛑 <b>어디까지 빠지면 계획을 접을지</b>(손절 기준)를 미리 정했나요?</td></tr>
+    <tr><td>📰 최근 <b>공시·뉴스</b>에 큰 악재/호재가 없는지 봤나요?</td></tr>
+  </table>`;
+
+  h+=`<p class="foot">이 보고서는 공개 데이터(${meta.srcs.join(", ")})를 규칙에 따라 자동 정리한 <b style="color:var(--sub)">참고 자료</b>이며 <b style="color:var(--sub)">투자 권유가 아닙니다</b>. 데이터가 지연되거나 빠져 있을 수 있고, 여기 없는 정보(공시·뉴스·시장 상황)가 더 중요할 수 있습니다. 매매 결정과 결과의 책임은 본인에게 있습니다.</p>`;
+  const app=document.getElementById("app");
+  app.innerHTML=h; app.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ============ 데이터 조회 & 조립 ============ */
+function setSt(msg,cls){const e=document.getElementById("st");e.className="status"+(cls?" "+cls:"");e.innerHTML=msg||"";}
+async function jget(url){ const r=await fetch(url); if(!r.ok)throw new Error("서버 "+r.status); const j=await r.json(); if(j.error)throw new Error(j.error); return j; }
+
+async function buildReport(code,knownName){
+  setSt("데이터를 모으는 중… (가격·실적·기대·수급·차트)");
+  const [fund,chart,flow]=await Promise.allSettled([
+    jget(FUND_URL.replace("{code}",code)),
+    jget(CHART_URL.replace("{code}",code)),
+    jget(FLOW_URL.replace("{code}",code)),
+  ]);
+  const F=fund.status==="fulfilled"?fund.value:null;
+  const C=chart.status==="fulfilled"?chart.value:null;
+  const FL=flow.status==="fulfilled"?flow.value:null;
+  if(!F&&!C){ showGuide(); return; }
+
+  const price=(F&&F.meta&&F.meta.price)??(C&&C.meta&&C.meta.price)??null;
+  const srcs=[]; if(F||C)srcs.push("Yahoo"); if(FL)srcs.push("KIS");
+  const meta={ code,
+    name:knownName||(F&&F.meta&&F.meta.name)||(C&&C.meta&&C.meta.name)||code,
+    price, prevClose:C&&C.meta?C.meta.prevClose:null,
+    asOfDate:C&&C.meta?C.meta.asOfDate:null, srcs };
+
+  const p={val:null,fund:null,cons:null,flow:null,tech:null};
+  if(F&&F.valuation){ const V=F.valuation;
+    if(V.pbr!=null||V.dividendYield!=null) p.val=scoreVal({px:price,per:V.per,pbr:V.pbr,roe:V.roe,dy:V.dividendYield});
+    const X=F.fundamentals||{};
+    if(X.revenueGrowth!=null||X.earningsGrowth!=null||X.operatingMargin!=null||V.roe!=null)
+      p.fund=scoreFund({revG:X.revenueGrowth,epsG:X.earningsGrowth,roe:V.roe,opm:X.operatingMargin});
+    const K=F.consensus||{};
+    if(K.targetMean!=null||K.recommendationMean!=null) p.cons=scoreCons({px:price,tp:K.targetMean,rec:K.recommendationMean});
+  }
+  if(C&&C.candles) p.tech=scoreTech(C.candles);
+  if(FL&&FL.summary) p.flow=mkFlow(FL.summary);
+
+  const got=Object.values(p).filter(Boolean).length;
+  setSt(`✅ ${meta.name} — ${got}개 항목 자동 수집 완료`+(p.flow?"":" · 수급은 KIS 키 등록 시 추가돼요"));
+  renderReport(meta,p);
+}
+
+async function run(){
+  const q=(document.getElementById("q").value||"").trim();
+  document.getElementById("picks").innerHTML="";
+  if(!q){ setSt("종목명이나 6자리 종목번호를 넣어주세요. (예: 삼성전자 / 005930)","warn"); return; }
+  const asCode=q.replace(/\D/g,"");
+  try{
+    if(/^\d{6}$/.test(asCode)&&asCode.length===q.length){ await buildReport(asCode,null); return; }
+    setSt("종목을 찾는 중…");
+    const s=await jget(SEARCH_URL.replace("{q}",encodeURIComponent(q)));
+    const rs=s.results||[];
+    if(!rs.length) throw new Error("종목을 찾지 못했습니다");
+    if(rs.length===1){ await buildReport(rs[0].code, rs[0].name); return; }
+    setSt("어느 종목인가요? 하나를 선택하세요.");
+    document.getElementById("picks").innerHTML=rs.slice(0,6).map(r=>
+      `<div class="pick" data-c="${r.code}" data-n="${(r.name||"").replace(/"/g,"")}"><span>${r.name||r.code} <span style="color:var(--mut);font-size:12px;">${r.exchange||""}</span></span><span class="cd">${r.code}</span></div>`).join("");
+    document.querySelectorAll(".pick").forEach(el=>el.onclick=()=>{document.getElementById("picks").innerHTML="";buildReport(el.dataset.c,el.dataset.n);});
+  }catch(e){
+    if(/서버 |Failed|fetch/i.test(e.message)) showGuide();
+    else setSt("⚠️ "+e.message,"bad");
+  }
+}
+function showGuide(){
+  setSt("");
+  document.getElementById("app").innerHTML=`<div class="guide">
+    <div class="gt">자동 조회 서버에 연결할 수 없어요</div>
+    이 <b>종합 보고서</b>는 데이터를 자동으로 받아오기 때문에 <b>Netlify에 올린 주소</b>(<span style="font-family:var(--mono)">～.netlify.app/report.html</span>)에서 열어야 동작해요.<br><br>
+    · 지금 여기서 쓰고 싶다면 → 상단의 <b>싸다·비싸다 / 회사 실적</b> 화면에서 숫자를 직접 넣어 같은 분석을 할 수 있어요.<br>
+    · 어떤 모습인지 궁금하면 → <b>예시 보고서 보기</b> 버튼을 눌러 보세요.<br>
+    · Netlify 배포 방법은 저장소의 <b>DEPLOY-NETLIFY.md</b> 문서에 5분 가이드로 정리돼 있어요.
+  </div>`;
+}
+
+/* ============ 예시 보고서 (삼성전자 샘플 — 검증 케이스 수치) ============ */
+function demo(){
+  document.getElementById("picks").innerHTML="";
+  setSt("📋 예시 보고서예요 — 실제 데이터가 아니라 화면 구성을 보여주는 샘플입니다.","warn");
+  const meta={code:"005930",name:"삼성전자 (예시)",price:263000,prevClose:254500,asOfDate:"예시",srcs:["샘플"]};
+  const candles=[]; let base=230000;
+  for(let i=0;i<80;i++){ base*=1+(Math.sin(i/9)*0.008+0.0012); const o=base*0.995,c=base,h=base*1.012,l=base*0.985; candles.push({o,h,l,c,v:0}); }
+  candles.push({o:262000,h:270000,l:247000,c:263000,v:0});
+  const p={
+    val:scoreVal({px:263000,per:11,pbr:1.1,roe:9,dy:2.5,sPer:13}),
+    fund:scoreFund({revG:12,epsG:20,roe:9,opm:18}),
+    cons:scoreCons({px:263000,tp:310000,rec:2.0}),
+    flow:mkFlow({f5:1200,i5:300,f20:3000,i20:700,fStreak:5,iStreak:5}),
+    tech:scoreTech(candles),
+  };
+  renderReport(meta,p);
+}
+
+document.getElementById("go").onclick=run;
+document.getElementById("demo").onclick=demo;
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+</script>
+</body>
+</html>
