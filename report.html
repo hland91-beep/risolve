@@ -373,7 +373,7 @@ function tabLinks(meta,p){
 function setSt(msg,cls){const e=document.getElementById("st");e.className="status"+(cls?" "+cls:"");e.innerHTML=msg||"";}
 async function jget(url){ const r=await fetch(url); if(!r.ok)throw new Error("서버 "+r.status); const j=await r.json(); if(j.error)throw new Error(j.error); return j; }
 
-async function buildReport(code,knownName){
+async function buildReport(code,knownName,exchHint){
   setSt("데이터를 모으는 중… (가격·실적·기대·수급·차트)");
   const chartChain=async()=>{ // Yahoo 실패 시 KIS 일봉으로 폴백(키 등록 시)
     try{ return await jget(CHART_URL.replace("{code}",code)); }
@@ -401,10 +401,13 @@ async function buildReport(code,knownName){
 
   const price=(F&&F.meta&&F.meta.price)??(C&&C.meta&&C.meta.price)??null;
   const srcs=[]; if(F||C)srcs.push("Yahoo"); if(FL)srcs.push("KIS");
-  const qt=(F&&F.meta&&F.meta.quoteType)||(C&&C.meta&&C.meta.quoteType)||null;
-  const isEtf=/ETF|FUND/i.test(qt||"");
-  const meta={ code,
-    name:knownName||(F&&F.meta&&F.meta.name)||(C&&C.meta&&C.meta.name)||code,
+  const name=knownName||(F&&F.meta&&F.meta.name)||(C&&C.meta&&C.meta.name)||code;
+  // ETF 판정 — Yahoo 차트의 유형 필드는 개별주를 ETF 로 잘못 기록하는 사례가
+  // 있어(소룩스) 신뢰하지 않음. ①검증 통과한 기본정보의 유형 ②국내 ETF 브랜드명
+  // ③검색 결과의 구분(KRX ETF 목록) 만 인정.
+  const ETF_RE=/^(KODEX|TIGER|PLUS|ACE|SOL|KBSTAR|RISE|HANARO|ARIRANG|KOSEF|KIWOOM|TIMEFOLIO|UNICORN|1Q|WON|BNK|FOCUS|마이티|KTOP|VITA|KoAct|파워)\s?/i;
+  const isEtf=((F&&F.meta&&F.meta.quoteType)==="ETF")||ETF_RE.test(name)||(exchHint==="ETF");
+  const meta={ code, name,
     price, prevClose:C&&C.meta?C.meta.prevClose:null,
     asOfDate:C&&C.meta?C.meta.asOfDate:null, srcs, isEtf,
     etfDy:(isEtf&&F&&F.valuation)?F.valuation.dividendYield:null };
@@ -449,11 +452,11 @@ async function run(){
     setSt(`⚠️ 이름으로 못 찾았어요 (${errs.join(" / ")||"결과 없음"}).<br>👉 <b>6자리 종목번호</b>로 넣으면 이름 검색 없이 바로 조회돼요. (예: 미래에셋증권 → <b>006800</b>처럼 증권사 앱·네이버에서 종목번호 확인)`,"warn");
     return;
   }
-  if(rs.length===1){ await buildReport(rs[0].code, rs[0].name); return; }
+  if(rs.length===1){ await buildReport(rs[0].code, rs[0].name, rs[0].exchange); return; }
   setSt("어느 종목인가요? 하나를 선택하세요.");
   document.getElementById("picks").innerHTML=rs.slice(0,8).map(r=>
-    `<div class="pick" data-c="${r.code}" data-n="${(r.name||"").replace(/"/g,"")}"><span>${r.name||r.code} <span style="color:var(--mut);font-size:12px;">${r.exchange||""}</span></span><span class="cd">${r.code}</span></div>`).join("");
-  document.querySelectorAll(".pick").forEach(el=>el.onclick=()=>{document.getElementById("picks").innerHTML="";buildReport(el.dataset.c,el.dataset.n);});
+    `<div class="pick" data-c="${r.code}" data-n="${(r.name||"").replace(/"/g,"")}" data-x="${r.exchange||""}"><span>${r.name||r.code} <span style="color:var(--mut);font-size:12px;">${r.exchange||""}</span></span><span class="cd">${r.code}</span></div>`).join("");
+  document.querySelectorAll(".pick").forEach(el=>el.onclick=()=>{document.getElementById("picks").innerHTML="";buildReport(el.dataset.c,el.dataset.n,el.dataset.x||null);});
 }
 function showGuide(reasons){
   setSt("");
