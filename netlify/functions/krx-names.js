@@ -83,6 +83,46 @@ function filterNames(list, q, limit = 8) {
 module.exports.filterNames = filterNames;
 module.exports.rowsOf = rowsOf;
 
+/* ── 예비 검색: 네이버 증권 (KRX 차단 시) ──
+   응답 스키마가 바뀔 수 있어, JSON 어디에 있든 "6자리 코드 + 이름" 쌍을
+   구조 무관하게 추출한다(순수 — 테스트에서 import). */
+function extractPairs(node, out, seen) {
+  out = out || []; seen = seen || new Set();
+  const scan = vals => {
+    const strs = vals.filter(x => typeof x === "string");
+    const code = strs.find(s => /^\d{6}$/.test(s));
+    const name = strs.find(s => s !== code && /[가-힣A-Za-z]/.test(s) && !/^[\d.,%+-]+$/.test(s) && s.length >= 2 && s.length <= 40);
+    if (code && name && !seen.has(code)) { seen.add(code); out.push({ code, name, exchange: null }); }
+  };
+  if (Array.isArray(node)) { scan(node); node.forEach(x => extractPairs(x, out, seen)); }
+  else if (node && typeof node === "object") { scan(Object.values(node)); Object.values(node).forEach(x => extractPairs(x, out, seen)); }
+  return out;
+}
+module.exports.extractPairs = extractPairs;
+
+async function naverSearch(q) {
+  const enc = encodeURIComponent(q);
+  const urls = [
+    `https://m.stock.naver.com/api/search/stock?query=${enc}&page=1&pageSize=10`,
+    `https://ac.stock.naver.com/ac?q=${enc}&target=stock,index,marketindicator`,
+  ];
+  const tried = [];
+  for (const u of urls) {
+    try {
+      const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json", "Referer": "https://m.stock.naver.com/" } });
+      if (!r.ok) { tried.push(`${new URL(u).host} ${r.status}`); continue; }
+      const pairs = extractPairs(await r.json());
+      if (pairs.length) {
+        const norm = s => String(s || "").replace(/\s+/g, "").toLowerCase(), n = norm(q);
+        pairs.sort((a, b) => (norm(b.name).includes(n) ? 1 : 0) - (norm(a.name).includes(n) ? 1 : 0));
+        return pairs.slice(0, 8);
+      }
+      tried.push(`${new URL(u).host} 결과없음`);
+    } catch (e) { tried.push("연결실패"); }
+  }
+  throw new Error(tried.join(", ") || "결과없음");
+}
+
 module.exports.handler = async (event) => {
   const cors = {
     "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type",
@@ -93,16 +133,21 @@ module.exports.handler = async (event) => {
   try {
     const p = event.queryStringParameters || {};
     const q = String(p.q || "").trim();
-    const list = await loadAll();
-    if (p.debug) return { statusCode: 200, headers: cors, body: JSON.stringify({ total: list.length, sample: list.slice(0, 3) }) };
+    let list = null, krxErr = null;
+    try { list = await loadAll(); } catch (e) { krxErr = String(e.message || e); }
+    if (p.debug) return { statusCode: 200, headers: cors, body: JSON.stringify({ krx: list ? list.length : ("실패: " + krxErr), sample: list ? list.slice(0, 3) : null }) };
     if (!q) throw new Error("q(종목명 또는 종목코드)를 입력하세요");
     if (/^\d{6}$/.test(q.replace(/\D/g, "")) && q.replace(/\D/g, "").length === q.length) {
       const code = q.replace(/\D/g, "");
-      const hit = list.find(x => x.code === code);
+      const hit = list ? list.find(x => x.code === code) : null;
       return { statusCode: 200, headers: cors, body: JSON.stringify({ results: [hit || { code, name: null, exchange: null }] }) };
     }
-    const results = filterNames(list, q);
-    if (!results.length) throw new Error("KRX 목록에서 찾지 못했습니다 (정식 종목명 또는 6자리 코드로 시도)");
+    let results = list ? filterNames(list, q) : [];
+    let naverErr = null;
+    if (!results.length) {                      // KRX 실패/무결과 → 네이버 예비
+      try { results = await naverSearch(q); } catch (e) { naverErr = String(e.message || e); }
+    }
+    if (!results.length) throw new Error(`이름 검색 실패 — KRX: ${krxErr || "결과없음"}${naverErr ? ` · Naver: ${naverErr}` : ""}`);
     return { statusCode: 200, headers: cors, body: JSON.stringify({ results }) };
   } catch (e) {
     return { statusCode: 502, headers: cors, body: JSON.stringify({ error: String(e.message || e) }) };

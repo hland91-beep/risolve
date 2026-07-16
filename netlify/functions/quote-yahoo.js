@@ -12,9 +12,13 @@
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function parseChart(j, code) {
+function parseChart(j, code, expectSymbol) {
   const res = j && j.chart && j.chart.result && j.chart.result[0];
   if (!res || !res.timestamp) return null;
+  // ⚠️ 심볼 검증: Yahoo 가 존재하지 않는 심볼에 엉뚱한 상품(펀드 등)을 돌려주는
+  //    사례가 있음(예: 코스닥 종목을 .KS 로 조회) → 요청 심볼과 다르면 거부
+  const gotSym = String((res.meta && res.meta.symbol) || "").toUpperCase();
+  if (expectSymbol && gotSym && gotSym !== expectSymbol.toUpperCase()) return null;
   const q = (res.indicators && res.indicators.quote && res.indicators.quote[0]) || {};
   const candles = [], dates = [];
   for (let i = 0; i < res.timestamp.length; i++) {
@@ -55,9 +59,9 @@ async function yahoo(code, dateStr, attempts) {
           catch (e) { attempts.push(`${sfx}/${host} 연결실패`); break; }
           if (r.status === 429 && attempt === 0) { await sleep(600); continue; }
           if (!r.ok) { attempts.push(`${sfx}/${host} ${r.status}`); break; }
-          const parsed = parseChart(await r.json(), code);
+          const parsed = parseChart(await r.json(), code, `${code}.${sfx}`);
           if (parsed) return parsed;
-          attempts.push(`${sfx}/${host} 빈응답`); break;
+          attempts.push(`${sfx}/${host} 심볼불일치/빈응답`); break;
         }
       }
       // 같은 접미사에서 두 쿼리 모두 404 계열이면 다음 접미사로
@@ -65,6 +69,8 @@ async function yahoo(code, dateStr, attempts) {
   }
   return null;
 }
+
+module.exports.parseChart = parseChart;
 
 exports.handler = async (event) => {
   const cors = {

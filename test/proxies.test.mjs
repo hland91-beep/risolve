@@ -73,6 +73,21 @@ eq("search.krOnly", sr.length, 3);
 eq("search.first", [sr[0].code, sr[0].exchange], ["005930", "KOSPI"]);
 eq("search.kq", sr[2].exchange, "KOSDAQ");
 
+/* ── 심볼 검증: 다른 상품 오응답 거부(소룩스 .KS 오탐 재발 방지) ── */
+const yq = require("../netlify/functions/quote-yahoo.js");
+const chartJ = sym => ({ chart: { result: [{ timestamp: [1, 2], meta: { symbol: sym, currency: "KRW" },
+  indicators: { quote: [{ open: [1, 2], high: [2, 3], low: [1, 1], close: [2, 2], volume: [0, 0] }] } }] } });
+eq("sym.chart.match", !!yq.parseChart(chartJ("290690.KQ"), "290690", "290690.KQ"), true);
+eq("sym.chart.reject", yq.parseChart(chartJ("0P0001L213"), "290690", "290690.KS"), null);
+eq("sym.fund.reject", fund.mapQuoteSummary({ price: { symbol: "0P0001L213", regularMarketPrice: { raw: 1 } } }, "290690", "KS"), null);
+eq("sym.fund.match", fund.mapQuoteSummary({ price: { symbol: "290690.KQ", regularMarketPrice: { raw: 5000 } } }, "290690", "KQ").meta.price, 5000);
+
+/* ── 네이버 예비 검색: 구조 무관 코드+이름 쌍 추출 ── */
+const krx2 = require("../netlify/functions/krx-names.js");
+eq("naver.objShape", krx2.extractPairs({ stocks: [{ stockCode: "290690", stockName: "소룩스", per: "12.3" }] }), [{ code: "290690", name: "소룩스", exchange: null }]);
+eq("naver.arrShape", krx2.extractPairs({ items: [[["소룩스", "290690", "KOSDAQ"], ["소룩스우", "290695"]]] }).map(x => x.code), ["290690", "290695"]);
+eq("naver.noNumericName", krx2.extractPairs([["290690", "12,340", "+3.2%"]]), []);
+
 /* ── KRX 이름 검색: 정확>시작>포함, 행 추출 유연성 ── */
 const krx = require("../netlify/functions/krx-names.js");
 const L = [
