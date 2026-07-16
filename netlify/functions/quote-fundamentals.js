@@ -53,6 +53,9 @@ const rnd = x => { const v = raw(x); return v == null ? null : Math.round(v); };
 // quoteSummary.result[0] → 폼 매핑 스키마 (Yahoo 값은 {raw,fmt} 또는 숫자)
 function mapQuoteSummary(res, code, sfx) {
   const P = res.price || {}, S = res.summaryDetail || {}, K = res.defaultKeyStatistics || {}, F = res.financialData || {};
+  // ⚠️ 심볼 검증: 요청과 다른 상품이 오면 거부(코스닥 종목 .KS 오응답 등)
+  const gotSym = String(P.symbol || "").toUpperCase();
+  if (gotSym && gotSym !== `${code}.${sfx}`.toUpperCase()) return null;
   const price = raw(P.regularMarketPrice);
   const target = raw(F.targetMeanPrice);
   return {
