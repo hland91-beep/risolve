@@ -29,8 +29,11 @@ const LEGAL_CONSTANTS = {
   ISA_CAP: 2000,                      // ISA 연간 납입한도(만원)
 
   // ── 임원 퇴직소득 (법인 대표 퇴직플랜 진단) ──
-  EXEC_SEVERANCE_RATE: 0.1,           // 퇴직 전 3년 평균 연급여의 10%
-  EXEC_SEVERANCE_MULTIPLE: 2,         // 임원 퇴직소득 한도 배수(2020년 이후 근속분 기준)
+  EXEC_SEVERANCE_RATE: 0.1,           // 3년 평균 연급여의 10%
+  EXEC_SEVERANCE_MULTIPLE: 2,         // 한도 배수 — 2020.1.1 이후 근속분
+  EXEC_SEVERANCE_MULTIPLE_PRE2020: 3, // 한도 배수 — 2012~2019 근속분
+  EXEC_LIMIT_START_YEAR: 2012,        // 한도 규정 적용 시작 연도(2011.12.31 이전 근속분은 한도 규정 미적용)
+  EXEC_MULTIPLE_CHANGE_YEAR: 2020,    // 배수 3배→2배 전환 연도
 
   // ── 출처/기준시점 (보고서 "주요 가정 및 근거" 표에 사용) ──
   SOURCES: {
@@ -39,7 +42,7 @@ const LEGAL_CONSTANTS = {
     PRIVATE_PENSION_TAX: '소득세법 §20-3',
     HOUSING_PENSION: '한국주택금융공사 종신지급 근사',
     HEALTH_DEPENDENT: '국민건강보험법 시행규칙 (2026 기준)',
-    EXEC_SEVERANCE: '소득세법 §22 임원 퇴직소득 한도 (2020년 이후 근속분 2배)'
+    EXEC_SEVERANCE: '소득세법 §22 임원 퇴직소득 한도 (2012~2019 근속분 3배 · 2020 이후 근속분 2배)'
   },
 
   UPDATED_AT: '2026-07' // 이 상수 세트의 최종 검토 시점(연-월)
