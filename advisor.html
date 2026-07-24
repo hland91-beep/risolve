@@ -112,6 +112,7 @@
         <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px">
           <li id="nav-btn-8" onclick="app.goTo8()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">8. 상속·증여 시뮬레이션</li>
           <li id="nav-btn-9" onclick="app.goTo9()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">9. 종합 진단 보고서</li>
+          <li onclick="ceoOpen()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#c9a24b;border:1px dashed #3a5a80;margin-top:8px;text-align:center">🏢 법인 대표 퇴직플랜 진단</li>
         </ul>
       </div>
     </nav>
@@ -529,7 +530,10 @@
               </div>
               <div id="s4_healthAlert"></div>
               <p style="font-size:11px;font-weight:600;color:#8a2f2f;line-height:1.6;background:#fff;padding:11px 13px;border:1px solid #ecdada;border-radius:9px;margin:0">
-                ※ 공적연금을 포함한 연간 합산소득이 <strong>2,000만 원</strong>을 초과하면 피부양자 자격이 사라지고 지역가입자로 전환되어 건강보험료가 크게 늘어납니다.
+                ※ 공적연금을 포함한 연간 합산소득이 <strong>2,000만 원</strong>을 초과하면 피부양자 자격이 상실될 수 있고, 지역가입자 전환 시 건강보험료가 새로 부과될 수 있습니다(추정, 현행 기준).
+              </p>
+              <p style="font-size:10.5px;font-weight:600;color:#64748b;line-height:1.6;background:#faf9f6;padding:10px 13px;border:1px solid #e2e1da;border-radius:9px;margin:0">
+                ※ 사적연금(연금저축·IRP 등) 수령액은 현행 피부양자 소득요건 합산에 <strong>포함되지 않습니다</strong>. 이자·배당 등 금융소득은 연 1,000만 원 초과 시 전액 합산되며, 사업소득이 있으면 금액과 무관하게 자격이 제한될 수 있습니다.
               </p>
             </div>
           </div>
@@ -667,6 +671,32 @@
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase B · 솔루션 설계</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">절세 계좌 및 세액공제 시뮬레이션</h2>
+          </div>
+        </div>
+
+        <!-- ★ R2: 내 퇴직연금 점검 (DB·DC·IRP) — 전 항목 선택 입력, 점검 전용(자산 합산 미반영) -->
+        <div id="rpCheck" style="border:1px solid #d7dee8;background:#f8fafc;border-radius:11px;margin-bottom:22px;overflow:hidden">
+          <button onclick="app.toggleRpCheck()" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;background:transparent;border:none;cursor:pointer;padding:15px 20px">
+            <span style="font-size:13px;font-weight:800;color:#0b1f33">🏦 내 퇴직연금 점검 (DB·DC·IRP) <span style="font-weight:700;color:#94a3b8;font-size:11px">선택 입력</span></span>
+            <span id="rpCheckArrow" style="font-size:11px;font-weight:700;color:#64748b;flex:0 0 auto">▼ 펼치기</span>
+          </button>
+          <div id="rpCheckBody" style="display:none;padding:0 20px 18px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:8px">퇴직연금 유형</label>
+                <select id="v_rpType" onChange="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:8px;font-weight:700;font-size:13px;color:#0b1f33;background:#fff;box-sizing:border-box">
+                  <option value="">유형 선택 (모름)</option>
+                  <option value="DB">DB (확정급여형)</option>
+                  <option value="DC">DC (확정기여형)·기업형 IRP</option>
+                  <option value="NONE">퇴직연금 없음 (퇴직금 제도 등)</option>
+                </select>
+              </div>
+              <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:8px">DC 적립금 (만원)</label><input type="number" id="v_rpBal" placeholder="예: 5000 (선택)" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:8px;font-weight:800;font-size:14px;color:#0b1f33;background:#fff;box-sizing:border-box" /></div>
+              <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:8px">최근 1년 수익률 (%)</label><input type="number" step="0.1" id="v_rpReturn" placeholder="모르면 비워두세요" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:8px;font-weight:800;font-size:14px;color:#0b1f33;background:#fff;box-sizing:border-box" /></div>
+              <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:8px">월 평균임금 (만원 · DB 추정용)</label><input type="number" id="v_rpSalary" placeholder="예: 450 (선택)" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:8px;font-weight:800;font-size:14px;color:#0b1f33;background:#fff;box-sizing:border-box" /></div>
+              <div><label style="display:block;font-size:11.5px;font-weight:700;color:#64748b;margin-bottom:8px">근속연수 (년)</label><input type="number" id="v_rpYears" placeholder="예: 18 (선택)" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:8px;font-weight:800;font-size:14px;color:#0b1f33;background:#fff;box-sizing:border-box" /></div>
+            </div>
+            <div id="o_rp_summary" style="display:flex;flex-direction:column;gap:8px;margin-top:14px"></div>
+            <p style="font-size:10.5px;font-weight:600;color:#94a3b8;line-height:1.6;margin:10px 0 0">※ 이 점검의 DC 적립금은 1단계 자산현황의 '퇴직연금(DC)/저축성 보장보험' 금액과 별개이며, 자산 합산에는 반영되지 않습니다(점검 전용).</p>
           </div>
         </div>
 
@@ -855,6 +885,10 @@
           <p style="color:#94a3b8;font-size:12px;font-weight:700;margin:10px 0 0">작성 기준시점: 2026년 &nbsp;|&nbsp; 전담 카운셀러: Next Life FA</p>
         </div>
 
+        <!-- ★ 3대 재무 리스크 카드 — 기존 calcAll 산출물 재배치(소프트 티저: 수치 전부 공개) -->
+        <div id="riskTriad" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:10px"></div>
+        <p id="riskTriadNote" style="font-size:10.5px;color:#94a3b8;font-weight:600;line-height:1.6;margin:0 0 26px">※ 3대 리스크의 모든 수치는 입력하신 정보 기반 <strong>추정치</strong>이며, 현행 법령·제도 기준 가정입니다. 실제 금액은 개인별 상황에 따라 달라질 수 있습니다.</p>
+
         <!-- 스냅샷 인포그래픽: 순자산·부동산비중·월수지·자산고갈 위험을 한눈에 -->
         <div style="display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:14px;margin-bottom:30px">
           <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:13px;padding:18px;display:flex;align-items:center;gap:14px">
@@ -923,6 +957,15 @@
           <div id="r_longTerm"></div>
         </div>
 
+        <!-- ★ 결과 요약 공유 CTA (소프트 티저 — 숫자는 위에서 전부 공개, 실행 순서·조합만 상담 영역) -->
+        <div style="margin-top:30px;background:#0b1f33;border-radius:16px;padding:30px 26px;text-align:center">
+          <p style="color:#c9a24b;font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px">다음 단계</p>
+          <h3 style="color:#fff;font-size:19px;font-weight:800;margin:0 0 10px;line-height:1.35">숫자는 모두 확인하셨습니다</h3>
+          <p style="color:#c7d0dc;font-size:13px;font-weight:600;line-height:1.7;margin:0 0 18px">이제 남은 것은 <strong style="color:#fff">'내 상황에 맞는 실행 순서와 조합'</strong>입니다.<br>결과 요약을 전담 컨설턴트에게 보내 상담을 시작해 보세요.</p>
+          <button onclick="app.shareRiskSummary()" style="background:linear-gradient(135deg,#c9a24b,#b3893a);color:#0b1f33;border:none;font-size:14.5px;font-weight:800;padding:16px 36px;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(201,162,75,.35)">📤 내 결과 요약 카톡으로 보내기</button>
+          <p style="color:#7c8ea6;font-size:10.5px;font-weight:600;line-height:1.6;margin:14px 0 0">요약 이미지는 기기에서 직접 공유되며 서버에 저장되지 않습니다.<br>모든 수치는 입력값 기반 추정치입니다(현행 제도 기준 가정).</p>
+        </div>
+
         <div style="text-align:center;padding-top:30px">
           <button onclick="app.buildPrintReportFn()" style="background:#0b1f33;color:#fff;padding:16px 40px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 10px rgba(11,31,51,.2)">전체 리포트 인쇄 및 PDF 저장</button>
         </div>
@@ -951,6 +994,9 @@
 
   <!-- 인쇄 전용 리포트 (화면 숨김) -->
   <div id="printReport" style="display:none"></div>
+
+  <!-- 카톡 공유용 요약 카드 (화면 숨김 — html2canvas 캡처 전용, 고정폭 720px로 펼쳐 캡처) -->
+  <div id="shareCard" style="display:none"></div>
 
   <!-- 고객 불러오기 모달 -->
   <div id="modalLoadManager" style="display:none;position:fixed;inset:0;background:rgba(11,31,51,.55);z-index:50;align-items:center;justify-content:center;padding:16px">
@@ -1066,7 +1112,7 @@ function benchForAge(a) {
 
 // 보고서 '주요 가정 및 근거' — [항목, 적용기준, 출처/시점] · 수치는 모두 LEGAL_CONSTANTS 참조(하드코딩 금지)
 const ASSUMPTIONS = [
-  ['건강보험 피부양자 소득기준', `연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원 초과 시 자격 상실`, LC.SOURCES?.HEALTH_DEPENDENT ?? '국민건강보험법 시행규칙 (2026 기준)'],
+  ['건강보험 피부양자 소득기준', `연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원 초과 시 자격 상실 가능(사적연금 제외)`, LC.SOURCES?.HEALTH_DEPENDENT ?? '국민건강보험법 시행규칙 (2026 기준)'],
   ['노령연금 재취업 감액 기준', `월 ${NPS_WORK_REDUCE_THRESHOLD}만 원 초과분 감액(수급 후 ${LC.NPS_WORK_REDUCE_YEARS ?? 5}년)`, LC.SOURCES?.NPS_WORK_REDUCE ?? '국민연금법 (2026년 A값 고시 반영)'],
   ['공무원연금 정지 기준', `평균연금월액(월 ${GOV_WORK_THRESHOLD}만 원) 초과 시`, LC.SOURCES?.GOV_SUSPEND ?? '공무원연금법 소득심사'],
   ['사적연금 분리과세 한도', `연 ${(LC.PRIVATE_PENSION_SEPARATE_TAX_LIMIT ?? 1500).toLocaleString()}만 원(초과 시 ${((LC.PRIVATE_PENSION_SEPARATE_TAX_RATE ?? 0.165) * 100).toFixed(1)}%)`, LC.SOURCES?.PRIVATE_PENSION_TAX ?? '소득세법 §20-3'],
@@ -1206,7 +1252,7 @@ async function smartDownload(blob, filename) {
         });
         const saved = await Filesystem.writeFile({ path: filename, data: base64, directory: 'CACHE' });
         if (!saved || !saved.uri) throw new Error('파일 저장 URI 없음');
-        await Share.share({ title: filename, url: saved.uri, dialogTitle: 'PDF 저장' });
+        await Share.share({ title: filename, url: saved.uri, dialogTitle: '파일 공유' });
         return;
       }
     } catch (e) {
@@ -1384,7 +1430,8 @@ class NextLifeAdvisorApp {
       'v_isaType': '200', 'v_isaProfit': 500, 'v_taxBasic': 50, 'v_taxSpouse': 0, 'v_giftAmt': 20, 'v_giftTarget': '5',
       'v_goalInfl': 2.5, 'v_goalPostRet': 4.5, 'v_goalInvRet': 6.0,
       'v_privEndAge': 80,
-      'v_lifeExp': 90, 'v_careCost': 0, 'v_careAge': 75, 'v_lumpSum': 0
+      'v_lifeExp': 90, 'v_careCost': 0, 'v_careAge': 75, 'v_lumpSum': 0,
+      'v_rpType': '', 'v_rpBal': '', 'v_rpReturn': '', 'v_rpSalary': '', 'v_rpYears': ''
     };
     Object.keys(defaults).forEach(id => {
       const el = document.getElementById(id);
@@ -1495,6 +1542,278 @@ class NextLifeAdvisorApp {
     if (lEl) lEl.innerHTML = this._longItems.length ? this._longItems.join('') : `<div style="padding:14px 2px;color:#94a3b8;font-size:12.5px">현재 장기 검토가 필요한 항목은 없습니다.</div>`;
   }
 
+  // ══════════════ 3대 재무 리스크 카드 (step9 상단 · 인바운드 핵심) ══════════════
+  // 컴플라이언스 원칙: 모든 수치 '추정' 라벨, 단정 표현 금지, 보험상품명 미노출(카테고리 수준 솔루션 문구만).
+  // 건보 카드의 합산소득(annualTotal)은 공적연금+재취업+임대만 포함 — 사적연금 미포함(현행 피부양자 기준과 일치).
+  _renderRiskTriad(ctx) {
+    const C = Calc;
+    const creditCap = LC.IRP_CREDIT_CAP ?? 900;
+    const healthLimit = LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000;
+
+    // ① 세금 누수: 한도 미달 납입액 × 세액공제율 = 놓치는 환급(추정)
+    const creditGap = Math.max(0, creditCap - Math.min(ctx.baseLimit, creditCap));
+    const missedYear = Math.round(creditGap * ctx.taxRate);
+    const yearsLeft = Math.max(0, ctx.baseRetAge - ctx.age);
+    const missedCum = missedYear * yearsLeft;
+
+    // ② 건보 피부양자: step4 판정과 동일 기준(초과/90% 근접/이내)
+    const hOver = Math.round(ctx.annualTotal - healthLimit);
+    const hState = ctx.annualTotal > healthLimit ? 'danger' : (ctx.annualTotal >= healthLimit * 0.9 ? 'warn' : 'ok');
+
+    // ③ 상속·부동산: 유동성 커버리지 = 금융자산 ÷ 추정 상속세
+    const finWon = ctx.totalFin * 1e7;
+    const liqCover = ctx.finalTaxWon > 0 ? Math.round(finWon / ctx.finalTaxWon * 100) : null;
+    const eState = ctx.finalTaxWon <= 0 ? 'ok' : (liqCover < 100 ? 'danger' : (ctx.rateRe > 50 ? 'warn' : 'ok'));
+
+    this._riskCtx = {
+      tax: { creditGap, missedYear, missedCum, yearsLeft, creditCap, state: creditGap > 0 ? 'danger' : 'ok', rpNeglect: !!(ctx.rp && ctx.rp.neglect), rpOppCostYear: ctx.rp ? (ctx.rp.oppCostYear || 0) : 0 },
+      health: { annualTotal: Math.round(ctx.annualTotal), over: hOver, limit: healthLimit, state: hState },
+      estate: { taxWon: ctx.finalTaxWon, liqCover, reRate: ctx.rateRe, state: eState }
+    };
+    window._nlRisk = this._riskCtx; // 간편진단 축약판이 재사용
+
+    const box = document.getElementById('riskTriad');
+    if (!box) return;
+    const tone = { danger: ['#8a2f2f', '#fbeeee', '#ecdada'], warn: ['#8a6d1f', '#fbf7ec', '#e7d9ad'], ok: ['#0f766e', '#eef4f2', '#bcd8cf'] };
+    const badge = { danger: '경고', warn: '주의', ok: '양호' };
+    const card = (no, title, state, valueHtml, descHtml, solHtml) => {
+      const [fg, bg, bd] = tone[state];
+      return `<div style="background:${bg};border:1.5px solid ${bd};border-radius:13px;padding:18px 16px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:800;color:#64748b;letter-spacing:.03em">${no} ${title}</span>
+          <span style="flex:0 0 auto;background:${fg};color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px">${badge[state]}</span>
+        </div>
+        <div style="font-size:17px;font-weight:900;color:${fg};line-height:1.35">${valueHtml}</div>
+        <div style="font-size:11.5px;font-weight:600;color:#475569;line-height:1.6">${descHtml}</div>
+        <div style="font-size:11px;font-weight:700;color:#0b1f33;background:#fff;border:1px solid ${bd};border-radius:8px;padding:8px 10px;line-height:1.55">💡 ${solHtml}</div>
+      </div>`;
+    };
+
+    const t = this._riskCtx.tax;
+    let tDesc = t.creditGap > 0
+      ? `연금저축·IRP 합산 세액공제 한도(연 ${creditCap.toLocaleString()}만 원)까지 <strong>${creditGap.toLocaleString()}만 원</strong> 미달입니다. 은퇴까지 ${yearsLeft}년 누적 시 약 <strong>${missedCum.toLocaleString()}만 원</strong>의 환급 기회가 지나갈 수 있습니다(추정).`
+      : `연금저축·IRP 합산 한도(연 ${creditCap.toLocaleString()}만 원)를 채우고 있어 세액공제를 최대로 활용 중입니다(추정).`;
+    if (t.rpNeglect) tDesc += `<br>· DC 퇴직연금 방치 의심 — 연 <strong>${t.rpOppCostYear.toLocaleString()}만 원</strong> 기회비용(추정, 6단계 점검 참고)`;
+
+    const hRoom = Math.max(0, healthLimit - Math.round(ctx.annualTotal));
+    const hValue = hState === 'danger' ? `기준 초과 +${hOver.toLocaleString()}만 원/연 <span style="font-size:11px;font-weight:700">(추정)</span>`
+      : hState === 'warn' ? `기준 근접 — 여유 ${hRoom.toLocaleString()}만 원/연`
+      : `합산 ${Math.round(ctx.annualTotal).toLocaleString()}만 원/연 — 기준 이내`;
+    const hDesc = hState === 'danger'
+      ? `공적연금 등 합산소득 <strong>${Math.round(ctx.annualTotal).toLocaleString()}만 원</strong>이 피부양자 기준(연 ${healthLimit.toLocaleString()}만 원)을 초과해 자격이 상실될 수 있습니다(추정, 현행 기준). 정확한 지역가입자 보험료는 상담 시 확인하세요.`
+      : hState === 'warn'
+        ? `합산소득 <strong>${Math.round(ctx.annualTotal).toLocaleString()}만 원</strong>으로 기준(연 ${healthLimit.toLocaleString()}만 원)에 근접했습니다. 연금 개시 시기·소득 구성에 따라 달라질 수 있습니다(추정).`
+        : `합산소득이 피부양자 기준(연 ${healthLimit.toLocaleString()}만 원) 이내입니다(추정, 현행 기준).`;
+    const hDescFull = hDesc + ` <span style="color:#94a3b8">※ 사적연금 수령액은 현행 기준 합산에 미포함.</span>`;
+
+    const e = this._riskCtx.estate;
+    const eValue = e.taxWon > 0 ? `상속세 약 ${C.formatKrwMixed(e.taxWon)} <span style="font-size:11px;font-weight:700">(추정)</span>` : `추정 상속세 없음 (공제 이내)`;
+    const eDesc = e.taxWon > 0
+      ? (e.liqCover < 100
+        ? `현재 금융자산으로 추정 상속세의 <strong>약 ${Math.min(999, e.liqCover)}%</strong>만 충당 가능합니다. 부족하면 상속 시점에 부동산을 급히 처분해야 할 수 있습니다(추정). 부동산 비중 ${e.reRate.toFixed(1)}%.`
+        : `금융자산으로 추정 상속세를 충당 가능한 수준(약 ${Math.min(999, e.liqCover)}%)입니다. 부동산 비중 ${e.reRate.toFixed(1)}%.`)
+      : `현재 입력 기준으로는 상속세 부담이 추정되지 않습니다. 부동산 비중 ${e.reRate.toFixed(1)}%.`;
+
+    box.innerHTML =
+      card('①', '세금 누수 (세액공제)', t.state, t.creditGap > 0 ? `연 ${missedYear.toLocaleString()}만 원 환급 놓침 <span style="font-size:11px;font-weight:700">(추정)</span>` : `한도 납입 충족`, tDesc,
+        `연금저축→IRP 순 납입 확대, ISA 만기 자금의 연금계좌 이전 검토 — 내 소득구간에 맞는 배분 순서는 상담으로 설계하세요.`)
+      + card('②', '건보 피부양자 리스크', hState, hValue, hDescFull,
+        hState === 'ok' ? `현행 기준 양호 — 연 1회 소득 구성 점검을 권장합니다.`
+          : `건보료 산정에서 제외되는 소득원(10년 이상 유지 시 비과세가 적용되는 장기 저축성 재원 등) 비중 검토 — 구성과 순서는 상담으로 설계하세요.`)
+      + card('③', '상속·부동산 유동성', e.state, eValue, eDesc,
+        e.state === 'ok' ? `자산 구성 변동 시 재점검을 권장합니다.`
+          : `상속세 납부 재원(현금 유동성) 사전 마련 + 10년 분할 증여 병행 검토 — 재원 조합은 상담으로 설계하세요.`);
+  }
+
+  // 인쇄/PDF 보고서용 3대 리스크 요약(스냅샷 그리드 아래 삽입) — _riskCtx 재사용
+  _riskTriadPrintHtml() {
+    const r = this._riskCtx;
+    if (!r) return '';
+    const C = Calc;
+    const tone = { danger: '#8a2f2f', warn: '#8a6d1f', ok: '#0f766e' };
+    const badge = { danger: '경고', warn: '주의', ok: '양호' };
+    const cell = (title, state, main, sub) => `<div style="border:1px solid #e2e1da;border-radius:10px;padding:12px;background:#fff">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span style="font-size:10px;font-weight:800;color:#64748b">${title}</span><span style="flex:0 0 auto;background:${tone[state]};color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:20px">${badge[state]}</span></div>
+      <div style="font-size:12.5px;font-weight:900;color:${tone[state]};margin-top:5px;line-height:1.35">${main}</div>
+      <div style="font-size:10px;color:#64748b;font-weight:600;margin-top:4px;line-height:1.5">${sub}</div>
+    </div>`;
+    const t = r.tax, h = r.health, e = r.estate;
+    const tMain = t.creditGap > 0 ? `연 ${t.missedYear.toLocaleString()}만 원 환급 놓침(추정)` : '한도 납입 충족';
+    const tSub = t.creditGap > 0 ? `한도 미달 ${t.creditGap.toLocaleString()}만 원 · 은퇴까지 누적 약 ${t.missedCum.toLocaleString()}만 원(추정)` : '연금저축·IRP 합산 한도 충족';
+    const hMain = h.state === 'danger' ? `기준 초과 +${h.over.toLocaleString()}만 원/연(추정)` : h.state === 'warn' ? `기준 근접 — 여유 ${Math.max(0, h.limit - h.annualTotal).toLocaleString()}만 원/연` : `합산 ${h.annualTotal.toLocaleString()}만 원/연 — 기준 이내`;
+    const hSub = `피부양자 소득기준 연 ${h.limit.toLocaleString()}만 원 · 사적연금 미포함(현행 기준)`;
+    const eMain = e.taxWon > 0 ? `상속세 약 ${C.formatKrwMixed(e.taxWon)}(추정)` : '추정 상속세 없음(공제 이내)';
+    const eSub = e.taxWon > 0 ? `금융자산 커버리지 약 ${Math.min(999, e.liqCover)}% · 부동산 비중 ${e.reRate.toFixed(1)}%` : `부동산 비중 ${e.reRate.toFixed(1)}%`;
+    return `<div class="pr-keep" style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:900;color:#0b1f33;margin-bottom:7px">3대 재무 리스크 요약 <span style="font-weight:700;color:#94a3b8">(추정 · 현행 제도 기준 가정)</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        ${cell('① 세금 누수(세액공제)', t.state, tMain, tSub)}
+        ${cell('② 건보 피부양자', h.state, hMain, hSub)}
+        ${cell('③ 상속·부동산 유동성', e.state, eMain, eSub)}
+      </div>
+    </div>`;
+  }
+
+  // ══════════════ R2: 직장인 퇴직연금 점검 (step6 #rpCheck · 전 항목 선택 입력) ══════════════
+  // v_rpBal은 점검 전용 — step1 자산(v_fin_ins)과 별개로 자산 합산에 반영하지 않음(이중계상 방지).
+  calcRetirePension(ctx) {
+    const type = this._val('v_rpType') || '';
+    const bal = this._num('v_rpBal');
+    const retStr = String(this._val('v_rpReturn') || '').trim();
+    const ret = retStr === '' ? null : parseFloat(retStr);
+    const sal = this._num('v_rpSalary');
+    const yrs = this._num('v_rpYears');
+    const infl = this._num('v_goalInfl') || 2.5;
+    const invRet = this._num('v_goalInvRet') || 6.0;
+    const yearsLeft = Math.max(0, (ctx.baseRetAge || 60) - (ctx.age || 0));
+    const res = { neglect: false, oppCostYear: 0 };
+    const box = document.getElementById('o_rp_summary');
+    const row = (label, valueHtml, sub) => `<div style="background:#fff;border:1px solid #e2e1da;border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:3px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline"><span style="font-size:11.5px;font-weight:700;color:#64748b">${label}</span><span style="font-size:13px;font-weight:800;color:#0b1f33;text-align:right">${valueHtml}</span></div>
+      ${sub ? `<span style="font-size:10.5px;font-weight:600;color:#94a3b8;line-height:1.5">${sub}</span>` : ''}
+    </div>`;
+    const out = [];
+
+    if (!type && bal <= 0 && sal <= 0) {
+      if (box) box.innerHTML = `<div style="font-size:11.5px;font-weight:600;color:#94a3b8;padding:4px 2px;line-height:1.6">퇴직연금 유형을 선택하면 점검 결과가 표시됩니다. 모든 항목은 선택 입력이며, 비워 두어도 다른 진단에는 영향이 없습니다.</div>`;
+      return res;
+    }
+
+    if (type === 'DB') {
+      if (sal > 0 && yrs > 0) {
+        const dbLump = Math.round(sal * yrs);
+        out.push(row('DB 예상 퇴직급여(일시금)', `약 ${dbLump.toLocaleString()}만 원 (추정)`, '현재 월평균임금 × 근속연수 단순 추정 — 승급·평균임금 변동 미반영'));
+      } else {
+        out.push(row('DB(확정급여형)', '월평균임금·근속연수 입력 시 예상 일시금 표시', 'DB형은 회사가 운용 책임을 지며, 급여·근속에 따라 수령액이 정해집니다'));
+      }
+      out.push(row('은퇴 시점 수령 방법', 'IRP 이전 후 연금 수령 검토', '퇴직급여를 IRP로 이전해 연금으로 수령하면 퇴직소득세 부담이 경감될 수 있습니다(추정, 현행 기준)'));
+    } else if (type === 'DC') {
+      if (bal > 0) out.push(row('DC 적립금', `${bal.toLocaleString()}만 원`, '점검 전용 입력 — 1단계 자산현황과 별개(자산 합산 미반영)'));
+      if (ret != null && !isNaN(ret)) {
+        if (ret < infl) {
+          res.neglect = true;
+          res.oppCostYear = Math.round(bal * Math.max(0, invRet - ret) / 100);
+          const cum = Math.round(res.oppCostYear * yearsLeft);
+          out.push(row('DC 운용 상태', `<span style="color:#8a2f2f">연 ${ret}% — 방치 의심</span>`, `수익률이 물가상승률(${infl}%)에 못 미칩니다. 기준수익률(${invRet}%) 대비 연 약 ${res.oppCostYear.toLocaleString()}만 원, 은퇴까지 누적 약 ${cum.toLocaleString()}만 원의 기회비용이 발생할 수 있습니다(단리 추정)`));
+        } else {
+          out.push(row('DC 운용 상태', `연 ${ret}% — 물가상승률(${infl}%) 이상`, '현행 유지 + 연 1회 상품 구성 점검을 권장합니다'));
+        }
+      } else {
+        out.push(row('DC 운용 수익률', '미입력', '가입 금융사 앱에서 최근 1년 수익률을 확인해 입력하면 방치 여부를 점검해 드립니다'));
+      }
+      out.push(row('은퇴 시점 수령 방법', 'IRP 이전 후 연금 수령 검토', '퇴직급여를 IRP로 이전해 연금으로 수령하면 퇴직소득세 부담이 경감될 수 있습니다(추정, 현행 기준)'));
+    } else if (type === 'NONE') {
+      out.push(row('퇴직연금 미가입', '퇴직금 제도 또는 미적용 사업장', '개인 차원에서는 연금저축·IRP 납입으로 은퇴 재원과 세액공제를 함께 준비할 수 있습니다'));
+    }
+
+    const creditCap = LC.IRP_CREDIT_CAP ?? 900;
+    const gap = Math.max(0, creditCap - Math.min(ctx.baseLimit || 0, creditCap));
+    if (gap > 0) {
+      out.push(row('IRP 추가납입 여력(세액공제)', `연 ${gap.toLocaleString()}만 원 → 환급 약 ${Math.round(gap * (ctx.taxRate || 0.165)).toLocaleString()}만 원/연 (추정)`, '아래 세액공제 시뮬레이션의 납입액과 연동됩니다'));
+    }
+
+    if (box) box.innerHTML = out.join('') + `<div style="font-size:10px;font-weight:600;color:#94a3b8;padding:2px 2px 0;line-height:1.5">※ 모든 수치는 입력값 기반 추정치이며 현행 제도 기준 가정입니다.</div>`;
+
+    if (res.neglect) {
+      this._addQuick('DC 퇴직연금 방치 점검',
+        `DC 적립금 <strong>${bal.toLocaleString()}만 원</strong>의 최근 수익률(연 ${ret}%)이 물가상승률(${infl}%)에 못 미쳐 실질가치가 줄고 있을 수 있습니다. 기준수익률(${invRet}%) 대비 연 약 <strong>${res.oppCostYear.toLocaleString()}만 원</strong>의 기회비용이 추정됩니다(단리 기준). 상품 구성 재점검을 권장합니다.`,
+        `연 ${res.oppCostYear.toLocaleString()}만 원 기회비용(추정)`);
+    }
+    return res;
+  }
+
+  toggleRpCheck() {
+    const body = document.getElementById('rpCheckBody');
+    const arrow = document.getElementById('rpCheckArrow');
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    if (arrow) arrow.textContent = open ? '▼ 펼치기' : '▲ 접기';
+  }
+
+  // ══════════════ 결과 요약 카톡 공유 (서버 없음 — 기기에서 이미지 생성 후 OS 공유 시트) ══════════════
+  _buildShareCard() {
+    const box = document.getElementById('shareCard');
+    if (!box) return;
+    const C = Calc;
+    const r = this._riskCtx || {};
+    const g = (id) => { const el = document.getElementById(id); return el ? el.innerText.trim() : '-'; };
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+    const name = (this._val('v_name') || '').trim();
+    const tone = { danger: '#8a2f2f', warn: '#8a6d1f', ok: '#0f766e' };
+    const badge = { danger: '경고', warn: '주의', ok: '양호' };
+    const line = (title, state, main, sub) => `<div style="display:flex;align-items:flex-start;gap:12px;border:1px solid #e2e1da;border-radius:11px;padding:14px 16px;background:#faf9f6">
+      <span style="flex:0 0 auto;background:${tone[state]};color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;margin-top:2px">${badge[state]}</span>
+      <div style="min-width:0">
+        <div style="font-size:12px;font-weight:800;color:#64748b">${title}</div>
+        <div style="font-size:15px;font-weight:900;color:${tone[state]};margin-top:3px;line-height:1.35">${main}</div>
+        ${sub ? `<div style="font-size:10.5px;font-weight:600;color:#94a3b8;margin-top:3px;line-height:1.5">${sub}</div>` : ''}
+      </div>
+    </div>`;
+    const t = r.tax || {}, h = r.health || {}, e = r.estate || {};
+    const rows = [
+      line('① 세금 누수 (세액공제)', t.state || 'ok',
+        (t.creditGap > 0 ? `연 ${(t.missedYear || 0).toLocaleString()}만 원 환급 놓침 (추정)` : '한도 납입 충족'),
+        (t.creditGap > 0 ? `연금저축·IRP 한도 미달 ${(t.creditGap || 0).toLocaleString()}만 원 · 은퇴까지 누적 약 ${(t.missedCum || 0).toLocaleString()}만 원(추정)` : '연금저축·IRP 합산 한도 충족')),
+      line('② 건보 피부양자 리스크', h.state || 'ok',
+        (h.state === 'danger' ? `기준 초과 +${(h.over || 0).toLocaleString()}만 원/연 (추정)` : h.state === 'warn' ? `기준 근접 — 여유 ${Math.max(0, (h.limit || 2000) - (h.annualTotal || 0)).toLocaleString()}만 원/연` : `합산 ${(h.annualTotal || 0).toLocaleString()}만 원/연 — 기준 이내`),
+        `피부양자 소득기준 연 ${((h.limit || 2000)).toLocaleString()}만 원 · 사적연금 미포함(현행 기준)`),
+      line('③ 상속·부동산 유동성', e.state || 'ok',
+        (e.taxWon > 0 ? `상속세 약 ${C.formatKrwMixed(e.taxWon)} (추정)` : '추정 상속세 없음 (공제 이내)'),
+        (e.taxWon > 0 ? `금융자산 커버리지 약 ${Math.min(999, e.liqCover || 0)}% · 부동산 비중 ${(e.reRate || 0).toFixed(1)}%` : `부동산 비중 ${(e.reRate || 0).toFixed(1)}%`))
+    ].join('');
+    box.innerHTML = `<div style="width:720px;box-sizing:border-box;background:#fff;padding:30px 30px 24px;font-family:'Pretendard',-apple-system,sans-serif;color:#101828">
+      <div style="border-bottom:3px solid #0b1f33;padding-bottom:14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px">
+        <div>
+          <div style="color:#0b1f33;font-weight:800;letter-spacing:.16em;font-size:10px">NEXT LIFE · RISK SUMMARY</div>
+          <div style="font-size:21px;font-weight:900;margin-top:5px">은퇴 재무 리스크 진단 요약</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;font-weight:700;text-align:right;line-height:1.6">${name ? `${name} 님<br>` : ''}작성일 ${dateStr}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">${rows}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:11px 12px"><div style="font-size:9.5px;color:#94a3b8;font-weight:800">순자산</div><div style="font-size:13px;font-weight:900;color:#0b1f33;margin-top:3px">${g('r_netAssetBig')}</div></div>
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:11px 12px"><div style="font-size:9.5px;color:#94a3b8;font-weight:800">완전 은퇴 후 월수지</div><div style="font-size:12px;font-weight:900;color:#0b1f33;margin-top:3px">${g('r_gapBig')}</div></div>
+        <div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:11px 12px"><div style="font-size:9.5px;color:#94a3b8;font-weight:800">금융자산 지속 전망</div><div style="font-size:12px;font-weight:900;color:#0b1f33;margin-top:3px">${g('r_depletionBadge')}</div></div>
+      </div>
+      <div style="margin-top:14px;background:#0b1f33;border-radius:10px;padding:13px 16px;font-size:12px;font-weight:700;color:#dce3ec;line-height:1.6">실행 순서와 재원 조합은 개인별 소득·자산 구성에 따라 달라집니다 — 전담 컨설턴트와의 상담으로 설계하세요.</div>
+      <div style="margin-top:12px;border-top:1px solid #e2e1da;padding-top:10px;font-size:9.5px;color:#94a3b8;font-weight:600;line-height:1.6">※ 본 요약은 고객님이 입력한 정보 기반 추정치이며, 현행 법령·제도 기준 가정입니다. 실제 수치는 개인별 상황에 따라 달라질 수 있습니다. 본 자료는 특정 금융상품의 권유가 아닙니다. (법령 상수 기준: ${LC.UPDATED_AT ?? '2026-07'})</div>
+    </div>`;
+  }
+
+  async _captureShareCard(fname, btnSel) {
+    const box = document.getElementById('shareCard');
+    if (!box || !window.html2canvas) { alert('이미지 생성 모듈을 불러오지 못했습니다. 앱을 다시 실행해 주세요.'); return; }
+    const btn = btnSel ? document.querySelector(btnSel) : null;
+    const origText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ 요약 이미지 생성 중...'; }
+    const prevStyle = box.getAttribute('style') || '';
+    box.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#fff;display:block;z-index:-1';
+    try {
+      await new Promise(r => setTimeout(r, 60));
+      const canvas = await html2canvas(box, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: 720 });
+      const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('이미지 변환 실패')), 'image/png'));
+      await smartDownload(blob, fname);
+      const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      if (!isNativeApp && !detectEnv().isMobile) alert('요약 이미지가 저장되었습니다. 카카오톡 PC버전 등으로 담당 컨설턴트에게 전송해 주세요.');
+    } catch (e) {
+      alert('요약 이미지 생성 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      box.setAttribute('style', prevStyle);
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+    }
+  }
+
+  async shareRiskSummary() {
+    try { this.calcAll(); } catch (e) {}
+    this._buildShareCard();
+    const d = new Date();
+    const custName = ((this._val('v_name') || '고객').trim().replace(/\s+/g, '') || '고객');
+    const fname = `NextLife_진단요약_${custName}_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.png`;
+    await this._captureShareCard(fname, 'button[onclick*="shareRiskSummary"]');
+  }
+
   buildPrintReport() {
     try { this.calcAll(); } catch (e) {}
     const g = (id) => { const e = document.getElementById(id); return e ? e.innerText.trim() : '-'; };
@@ -1534,6 +1853,8 @@ class NextLifeAdvisorApp {
           <div style="font-size:12px;font-weight:900;color:${depletionColor};margin-top:2px;line-height:1.3">${depletionText}</div>
         </div>
       </div>
+
+      ${this._riskTriadPrintHtml()}
 
       <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">Ⅰ. 고객 자산·소득 현황 요약</div>
       <table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>
@@ -1953,8 +2274,8 @@ class NextLifeAdvisorApp {
     const s4Alert = document.getElementById('s4_healthAlert');
     if (s4Alert) {
       s4Alert.innerHTML = annualTotal > 2000
-        ? `<div style="background:#8a2f2f;color:#fff;padding:14px;border-radius:10px;font-weight:700;text-align:center;font-size:12px">주의: 합산 소득이 연 2,000만 원을 초과하여 건강보험 피부양자 자격이 상실됩니다. 지역가입자로 전환 시 건강보험료가 새로 부과됩니다.</div>`
-        : `<div style="background:#0f766e;color:#fff;padding:14px;border-radius:10px;font-weight:700;text-align:center;font-size:12px">안전: 합산 소득이 연 2,000만 원 이하로 가족의 건강보험 피부양자 자격을 유지할 수 있습니다.</div>`;
+        ? `<div style="background:#8a2f2f;color:#fff;padding:14px;border-radius:10px;font-weight:700;text-align:center;font-size:12px">주의: 합산 소득이 연 2,000만 원을 초과하여 건강보험 피부양자 자격이 상실될 수 있습니다(추정, 현행 기준). 지역가입자 전환 시 건강보험료가 새로 부과될 수 있습니다.</div>`
+        : `<div style="background:#0f766e;color:#fff;padding:14px;border-radius:10px;font-weight:700;text-align:center;font-size:12px">양호(추정): 합산 소득이 연 2,000만 원 이하로 건강보험 피부양자 자격 유지가 가능한 수준입니다(현행 기준).</div>`;
     }
 
     const annualPriv = privAmt * 12;
@@ -2122,8 +2443,8 @@ class NextLifeAdvisorApp {
       const _yearsLeft = Math.max(0, baseRetAge - age);
       const _cumBenefit = Math.round(totalTaxReturn * _yearsLeft);
       this._addQuick('연금저축·IRP 세팅으로 세액공제 환급받기',
-        `연금저축(연 ${LC.PENSION_SAVINGS_CREDIT_CAP ?? 600}만)·IRP(합산 ${LC.IRP_CREDIT_CAP ?? 900}만) 한도를 채우면 세율 ${(taxRate * 100).toFixed(1)}% 기준 연 <strong>${Math.round(totalTaxReturn).toLocaleString()}만 원</strong>을 환급받습니다. 은퇴까지 ${_yearsLeft}년 유지 시 누적 약 <strong>${_cumBenefit.toLocaleString()}만 원</strong>. 납입 순서는 연금저축→IRP→ISA 순으로 진행하세요.`,
-        `연 ${Math.round(totalTaxReturn).toLocaleString()}만 원 환급`);
+        `연금저축(연 ${LC.PENSION_SAVINGS_CREDIT_CAP ?? 600}만)·IRP(합산 ${LC.IRP_CREDIT_CAP ?? 900}만) 한도를 채우면 세율 ${(taxRate * 100).toFixed(1)}% 기준 연 <strong>${Math.round(totalTaxReturn).toLocaleString()}만 원</strong>을 환급받을 수 있습니다(추정, 세율 구간 기준). 은퇴까지 ${_yearsLeft}년 유지 시 누적 약 <strong>${_cumBenefit.toLocaleString()}만 원</strong>. 납입 순서는 연금저축→IRP→ISA 순으로 진행하세요.`,
+        `연 ${Math.round(totalTaxReturn).toLocaleString()}만 원 환급 추정`);
     }
 
     // 재취업·근로소득 레버가 유효하면 즉시 실행 항목으로 안내
@@ -2147,14 +2468,21 @@ class NextLifeAdvisorApp {
 
     if (annualTotal > (LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000)) {
       this._addQuick('건강보험 피부양자 자격 상실 대비',
-        `합산소득이 연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원을 넘어 <strong>피부양자 자격이 상실</strong>되고 지역가입자로 전환됩니다. 예상 보험료를 미리 확인해 생활비 계획에 반영해 두세요.`,
-        '자격 상실 주의');
-      _secs.push(this._repSection('건강보험 피부양자', `합산소득이 연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원을 넘어 <strong>피부양자 자격이 상실</strong>되고 지역가입자로 전환됩니다. 보험료 증가분을 생활비에 미리 반영하세요.`));
+        `합산소득이 연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원을 넘어 <strong>피부양자 자격이 상실될 수 있고</strong>(추정, 현행 기준) 지역가입자로 전환될 수 있습니다. 정확한 예상 보험료는 상담 시 확인해 생활비 계획에 반영해 두세요.`,
+        '자격 상실 가능성');
+      _secs.push(this._repSection('건강보험 피부양자', `합산소득이 연 ${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원을 넘어 <strong>피부양자 자격이 상실될 수 있고</strong>(추정) 지역가입자로 전환될 수 있습니다. 보험료 증가 가능성을 생활비에 미리 반영하세요.`));
     } else if (annualTotal >= (LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000) * 0.9) {
       this._addQuick('건강보험 피부양자 기준 근접 확인',
         `합산소득 <strong>${Math.round(annualTotal).toLocaleString()}만 원</strong>으로 피부양자 기준(${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원)에 근접했습니다. 연금 수령 시기를 분산하면 자격 유지에 도움이 됩니다.`,
         '기준 근접');
       _secs.push(this._repSection('건강보험 피부양자', `합산소득 <strong>${Math.round(annualTotal).toLocaleString()}만 원</strong>으로 피부양자 기준(${(LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000).toLocaleString()}만 원)에 근접했습니다. 수령 시기 분산으로 자격 유지를 검토하세요.`));
+    }
+
+    // 건보 초과·근접 고객에게는 소득원 '구성'을 장기 과제로 제안(카테고리 수준 — 특정 상품 미언급, 실행 순서는 상담 영역)
+    if (annualTotal >= (LC.HEALTH_DEPENDENT_INCOME_LIMIT ?? 2000) * 0.9) {
+      this._addLong('건보료 산정에서 제외되는 소득원 구성 검토',
+        `은퇴 후 소득 중 이자·배당 등 금융소득은 연 1,000만 원을 넘으면 건보료 산정에 전액 합산될 수 있습니다. 10년 이상 유지 시 비과세가 적용되는 장기 저축성 재원 등 건보료 산정에서 제외되는 소득원의 비중을 어떤 순서로 늘릴지는 개인별 소득 구성에 따라 달라지므로, 담당 컨설턴트와 함께 설계하시길 권합니다.`,
+        '건보료 방어 전략');
     }
 
     {
@@ -2209,8 +2537,24 @@ class NextLifeAdvisorApp {
       _secs.push(this._repSection('증여·상속 설계', _giftBody));
     }
 
+    // 상속세 유동성 리스크 — 금융자산으로 추정 상속세를 충당 못 하면 납부 재원 마련을 장기 과제로 제안(카테고리 수준)
+    if (finalTaxWon > 0) {
+      const _liqCover = Math.round((totalFin * 1e7) / finalTaxWon * 100);
+      if (_liqCover < 100 || rateRe > 50) {
+        this._addLong('상속세 납부 재원(현금 유동성) 사전 마련',
+          `추정 상속세 <strong>${C.formatKrwMixed(finalTaxWon)}</strong> 대비 현재 금융자산으로 <strong>약 ${Math.min(999, _liqCover)}%</strong>를 충당할 수 있습니다(추정). 재원이 부족하면 상속 시점에 부동산을 급히 처분해야 할 수 있으므로, 10년 분할 증여와 함께 납부 재원을 어떤 재원으로·어떤 순서로 마련할지 로드맵이 필요합니다. 구체적 조합은 담당 컨설턴트와 설계하세요.`,
+          `유동성 커버리지 약 ${Math.min(999, _liqCover)}%`);
+      }
+    }
+
     const expEl = document.getElementById('r_textExpert');
     if (expEl) expEl.innerHTML = _secs.join('');
+
+    // R2: 퇴직연금 점검(step6) — 방치 판정을 리스크 카드 ①에 병기하기 위해 카드 렌더보다 먼저 계산
+    const _rpCtx = this.calcRetirePension({ taxRate, baseLimit, age, baseRetAge });
+
+    // R1: 3대 재무 리스크 카드(step9 상단) — 위에서 산출된 값 재배치
+    this._renderRiskTriad({ age, baseRetAge, taxRate, baseLimit, annualTotal, finalTaxWon, totalFin, rateRe, rp: _rpCtx });
 
     this.calcGoalRoadmap(baseTargetInc, baseRetAge, age, netAssetWon, rateRe, gapPhase2);
   }
@@ -2615,6 +2959,11 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="nlq-panel" style="padding:14px 8px;text-align:center"><div style="font-size:10.5px;color:#8fa0b8;font-weight:700">자산 전망</div><div id="nlq-sum-depl" style="font-size:15px;font-weight:900;color:#7fd6c4;margin-top:4px">–</div></div>
       </div>
       <div class="nlq-panel">
+        <div style="font-size:12.5px;color:#c9a24b;font-weight:800;margin-bottom:8px">🧭 3대 재무 리스크 체크</div>
+        <div id="nlq-risk3" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div style="font-size:10px;color:#5f7994;font-weight:600;margin-top:8px;line-height:1.5">모든 수치는 추정치(현행 제도 기준 가정)이며, 세액공제·상속세 리스크는 9단계 정밀진단에서 확인할 수 있습니다.</div>
+      </div>
+      <div class="nlq-panel">
         <div style="font-size:12.5px;color:#c9a24b;font-weight:800;margin-bottom:4px">🎯 오늘 할 한 가지</div>
         <div id="nlq-today" style="font-size:14px;color:#fff;font-weight:800;line-height:1.5">–</div>
         <div id="nlq-sol" style="margin-top:12px;display:flex;flex-direction:column;gap:9px"></div>
@@ -2860,6 +3209,29 @@ function nlqRenderSummary(){
         '<div><div style="font-size:12.5px;font-weight:800;color:#fff">'+s.t+'</div><div style="font-size:11px;color:#8fa0b8;font-weight:600;margin-top:2px;line-height:1.5">'+s.d+'</div></div></div>';
     }).join('') + '<div style="font-size:10.5px;color:#5f7994;margin-top:4px">전체 실행 체크리스트는 아래 종합 보고서에서 확인하세요.</div>';
   }
+  nlqRenderRisk3();
+}
+
+/* ── 3대 재무 리스크 축약판 — window._nlRisk(정밀엔진 app._renderRiskTriad 산출) 재사용, 정밀진단 유도 ── */
+function nlqRenderRisk3(){
+  var box=_nlqG('nlq-risk3'); if(!box) return;
+  var r=window._nlRisk||{};
+  function row(ico,t,v,c){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0b1f33;border:1px solid #26456a;border-radius:10px;padding:11px 13px">'+
+    '<span style="font-size:12px;font-weight:800;color:#c7d0dc;min-width:0">'+ico+' '+t+'</span>'+
+    '<span style="flex:0 0 auto;font-size:11.5px;font-weight:800;color:'+c+';text-align:right">'+v+'</span></div>'; }
+  var rows=[];
+  rows.push(row('💸','세금 누수(세액공제)','정밀진단에서 확인 →','#8fa0b8'));
+  var h=r.health||{};
+  if(_nlqNum('nlq-nps',0)>0){
+    var hv = h.state==='danger' ? '기준 초과 +'+(h.over||0).toLocaleString()+'만/연 (추정)'
+      : h.state==='warn' ? '기준 근접 (추정)' : '기준 이내 (추정)';
+    var hc = h.state==='danger' ? '#f0c9c9' : (h.state==='warn' ? '#e8dcc0' : '#7fd6c4');
+    rows.push(row('🏥','건보 피부양자 리스크',hv,hc));
+  } else {
+    rows.push(row('🏥','건보 피부양자 리스크','공적연금 입력 시 확인','#8fa0b8'));
+  }
+  rows.push(row('🏠','부동산 편중·상속세 유동성','정밀진단에서 확인 →','#8fa0b8'));
+  box.innerHTML=rows.join('');
 }
 function nlqBuildSolutions(k){
   var out=[];
@@ -2913,6 +3285,184 @@ function nlqMaybeAutoOpen(){
 function nlqToggleAutostart(){
   var c=_nlqG('nlq-autostart'); var on=c?c.checked:true;
   try { localStorage.setItem('nl_quick_autostart', on?'1':'0'); } catch(e){}
+}
+</script>
+
+<!-- ═══════════════════ R3: 법인 대표 퇴직플랜 진단 오버레이 (nl-quick 패턴 복제 · 9단계 v_* 필드와 완전 격리) ═══════════════════ -->
+<style>
+  #nl-ceo, #nl-ceo * { box-sizing:border-box; font-family:'Pretendard',sans-serif; }
+  #nl-ceo .ceo-panel { background:#0e2437; border:1px solid #1c3a57; border-radius:14px; padding:18px; }
+  #nl-ceo .ceo-input { width:100%; padding:13px 14px; background:#0b1f33; border:1.5px solid #26456a; border-radius:10px; color:#fff; font-weight:700; font-size:15px; }
+  #nl-ceo .ceo-input::placeholder { color:#5f7994; }
+  #nl-ceo .ceo-lbl { display:block; font-size:11.5px; font-weight:700; color:#8fa0b8; margin-bottom:7px; }
+  #nl-ceo .ceo-pill { padding:10px 14px; border-radius:999px; border:1.5px solid #26456a; background:#0b1f33; color:#c7d0dc; font-weight:800; font-size:13px; cursor:pointer; transition:.12s; }
+  #nl-ceo .ceo-pill.on { background:#c9a24b; border-color:#c9a24b; color:#0b1f33; }
+  #nl-ceo .ceo-cta { width:100%; padding:16px; border:none; border-radius:12px; background:#c9a24b; color:#0b1f33; font-weight:800; font-size:15px; cursor:pointer; }
+  #nl-ceo .ceo-cta.sub { background:transparent; border:1.5px solid #26456a; color:#c7d0dc; }
+</style>
+<div id="nl-ceo" style="display:none;position:fixed;inset:0;z-index:100000;background:#0b1f33;overflow-y:auto">
+  <div style="max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-bottom:8px">
+    <div style="padding:22px 22px 12px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font-size:19px">🏢</span>
+        <span style="color:#fff;font-weight:800;font-size:16px">법인 대표 퇴직플랜 진단</span>
+      </div>
+      <button onclick="ceoClose()" style="background:transparent;border:none;color:#7c8ea6;font-size:22px;cursor:pointer;padding:2px 8px">&times;</button>
+    </div>
+    <div id="ceo-progress" style="display:flex;gap:6px;padding:0 22px 14px">
+      <div data-ceostep="1" style="flex:1;text-align:center"><div class="ceo-bar" style="height:4px;border-radius:2px;background:#c9a24b"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">프로필</div></div>
+      <div data-ceostep="2" style="flex:1;text-align:center"><div class="ceo-bar" style="height:4px;border-radius:2px;background:#26456a"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">급여·근속</div></div>
+      <div data-ceostep="3" style="flex:1;text-align:center"><div class="ceo-bar" style="height:4px;border-radius:2px;background:#26456a"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">준비 현황</div></div>
+      <div data-ceostep="4" style="flex:1;text-align:center"><div class="ceo-bar" style="height:4px;border-radius:2px;background:#26456a"></div><div style="font-size:10px;color:#8fa0b8;font-weight:700;margin-top:5px">진단</div></div>
+    </div>
+
+    <!-- STEP 1 : 프로필 -->
+    <div id="ceo-step-1" class="ceo-step" style="padding:4px 22px 22px;display:flex;flex-direction:column;gap:16px">
+      <div class="ceo-panel">
+        <label class="ceo-lbl">구분</label>
+        <div style="display:flex;gap:8px">
+          <button id="ceo-kind-corp" class="ceo-pill" style="flex:1" onclick="ceoSelKind('corp')">🏢 법인 대표·임원</button>
+          <button id="ceo-kind-solo" class="ceo-pill" style="flex:1" onclick="ceoSelKind('solo')">👤 개인사업자</button>
+        </div>
+        <div id="ceo-solo-note" style="display:none;margin-top:10px;font-size:11px;color:#e8dcc0;font-weight:600;line-height:1.6;background:#132a42;border:1px solid #26456a;border-radius:9px;padding:10px 12px">개인사업자는 임원 퇴직소득 한도가 적용되지 않아 퇴직 재원 설계 방식이 다릅니다. 아래 진단은 참고용이며, 구체적 설계는 상담을 권합니다.</div>
+      </div>
+      <div class="ceo-panel" style="display:flex;flex-direction:column;gap:14px">
+        <div><label class="ceo-lbl">현재 나이</label><input id="ceo-age" class="ceo-input" type="number" placeholder="예: 55" /></div>
+        <div><label class="ceo-lbl">예상 퇴직(은퇴) 나이</label><input id="ceo-retage" class="ceo-input" type="number" placeholder="예: 65" /></div>
+      </div>
+      <button class="ceo-cta" onclick="ceoGoto(2)">다음: 급여·근속 →</button>
+    </div>
+
+    <!-- STEP 2 : 급여·근속 -->
+    <div id="ceo-step-2" class="ceo-step" style="display:none;padding:4px 22px 22px;flex-direction:column;gap:16px">
+      <div class="ceo-panel" style="display:flex;flex-direction:column;gap:14px">
+        <div><label class="ceo-lbl">월 평균 급여 (만원 · 최근 3년 평균 기준)</label><input id="ceo-sal" class="ceo-input" type="number" placeholder="예: 1200" /></div>
+        <div><label class="ceo-lbl">임원(대표) 재직 연수</label><input id="ceo-yrs" class="ceo-input" type="number" placeholder="예: 15" /></div>
+      </div>
+      <div class="ceo-panel">
+        <label class="ceo-lbl">임원 퇴직금 지급규정 (정관·주총 결의)</label>
+        <div style="display:flex;gap:8px">
+          <button id="ceo-rule-yes" class="ceo-pill" style="flex:1" onclick="ceoSelRule('yes')">있음</button>
+          <button id="ceo-rule-no" class="ceo-pill" style="flex:1" onclick="ceoSelRule('no')">없음</button>
+          <button id="ceo-rule-unknown" class="ceo-pill" style="flex:1" onclick="ceoSelRule('unknown')">모름</button>
+        </div>
+      </div>
+      <button class="ceo-cta" onclick="ceoGoto(3)">다음: 준비 현황 →</button>
+    </div>
+
+    <!-- STEP 3 : 준비 현황 -->
+    <div id="ceo-step-3" class="ceo-step" style="display:none;padding:4px 22px 22px;flex-direction:column;gap:16px">
+      <div class="ceo-panel">
+        <label class="ceo-lbl">법인 퇴직연금(DB/DC) 도입 여부</label>
+        <div style="display:flex;gap:8px">
+          <button id="ceo-dbdc-yes" class="ceo-pill" style="flex:1" onclick="ceoSelDbdc('yes')">도입됨</button>
+          <button id="ceo-dbdc-no" class="ceo-pill" style="flex:1" onclick="ceoSelDbdc('no')">미도입</button>
+          <button id="ceo-dbdc-unknown" class="ceo-pill" style="flex:1" onclick="ceoSelDbdc('unknown')">모름</button>
+        </div>
+      </div>
+      <div class="ceo-panel">
+        <label class="ceo-lbl">현재 준비·적립된 퇴직 재원 (만원)</label>
+        <input id="ceo-prep" class="ceo-input" type="number" placeholder="예: 30000 (없으면 비워두세요)" />
+        <div style="font-size:10.5px;color:#7c8ea6;font-weight:600;margin-top:7px">퇴직연금 적립금·퇴직금 목적 법인 저축 등 합계 (추정치로 충분합니다)</div>
+      </div>
+      <button class="ceo-cta" onclick="ceoGoto(4)">진단 결과 보기 →</button>
+    </div>
+
+    <!-- STEP 4 : 진단 결과 -->
+    <div id="ceo-step-4" class="ceo-step" style="display:none;padding:4px 22px 22px;flex-direction:column;gap:16px">
+      <div id="ceo-result" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="ceo-cta" onclick="ceoShare()">📤 진단 요약 카톡으로 보내기</button>
+      <button class="ceo-cta sub" onclick="ceoClose()">닫기</button>
+      <div style="font-size:10px;color:#5f7994;font-weight:600;line-height:1.6">※ 모든 수치는 입력값 기반 추정치이며 현행 법령(소득세법 임원 퇴직소득 한도 등) 기준 가정입니다. 정관·지급규정·재무제표에 따라 달라질 수 있으므로, 실행 설계는 전담 컨설턴트와의 상담이 필요합니다. 본 진단은 특정 금융상품의 권유가 아닙니다.</div>
+    </div>
+
+    <div style="margin-top:auto;padding:10px 22px 22px">
+      <button onclick="ceoBack()" style="background:transparent;border:none;color:#7c8ea6;font-weight:700;font-size:13px;cursor:pointer">← 뒤로</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════ 법인 대표 퇴직플랜 진단(ceo*) — 자체 상태만 사용, 9단계 엔진·필드 미접촉 ═══════════ */
+var _ceoState = { step:1, kind:'corp', rule:'unknown', dbdc:'unknown', last:null };
+function _ceoG(id){ return document.getElementById(id); }
+function _ceoNum(id){ var e=_ceoG(id); var v=e?parseFloat(e.value):NaN; return isNaN(v)?0:v; }
+function ceoOpen(){ var o=_ceoG('nl-ceo'); if(!o) return; o.style.display='block'; document.body.style.overflow='hidden'; ceoSelKind(_ceoState.kind); ceoSelRule(_ceoState.rule); ceoSelDbdc(_ceoState.dbdc); ceoGoto(1); }
+function ceoClose(){ var o=_ceoG('nl-ceo'); if(o) o.style.display='none'; document.body.style.overflow=''; }
+function ceoBack(){ if(_ceoState.step>1) ceoGoto(_ceoState.step-1); else ceoClose(); }
+function ceoGoto(n){
+  if(n===2 && !(_ceoNum('ceo-age')>0)){ alert('현재 나이를 입력해 주세요.'); return; }
+  if(n===3 && !(_ceoNum('ceo-sal')>0 && _ceoNum('ceo-yrs')>0)){ alert('월 평균 급여와 재직 연수를 입력해 주세요.'); return; }
+  _ceoState.step=n;
+  for(var i=1;i<=4;i++){ var s=_ceoG('ceo-step-'+i); if(s) s.style.display=(i===n)?'flex':'none'; }
+  var bars=document.querySelectorAll('#ceo-progress [data-ceostep]');
+  bars.forEach(function(b){ var bi=parseInt(b.getAttribute('data-ceostep')); var bar=b.querySelector('.ceo-bar'); if(bar) bar.style.background=(bi<=n)?'#c9a24b':'#26456a'; });
+  if(n===4) ceoCalc();
+}
+function _ceoPill(prefix, keys, cur){ keys.forEach(function(k){ var b=_ceoG(prefix+k); if(b) b.classList.toggle('on', k===cur); }); }
+function ceoSelKind(k){ _ceoState.kind=k; _ceoPill('ceo-kind-', ['corp','solo'], k); var n=_ceoG('ceo-solo-note'); if(n) n.style.display = (k==='solo')?'block':'none'; }
+function ceoSelRule(r){ _ceoState.rule=r; _ceoPill('ceo-rule-', ['yes','no','unknown'], r); }
+function ceoSelDbdc(v){ _ceoState.dbdc=v; _ceoPill('ceo-dbdc-', ['yes','no','unknown'], v); }
+
+function ceoCalc(){
+  var box=_ceoG('ceo-result'); if(!box) return;
+  var LCC = window.LEGAL_CONSTANTS || {};
+  var age=_ceoNum('ceo-age'), retAge=_ceoNum('ceo-retage');
+  var sal=_ceoNum('ceo-sal'), yrs=_ceoNum('ceo-yrs'), prep=_ceoNum('ceo-prep');
+  var rate=LCC.EXEC_SEVERANCE_RATE!=null?LCC.EXEC_SEVERANCE_RATE:0.1;
+  var mult=LCC.EXEC_SEVERANCE_MULTIPLE!=null?LCC.EXEC_SEVERANCE_MULTIPLE:2;
+  var limitMan=Math.round(sal*12*rate*yrs*mult);           // 임원 퇴직소득 한도 추정(만원)
+  var gapMan=Math.max(0, limitMan-prep);
+  var yearsToRet=Math.max(0, retAge-age);
+  var monthlyMan=(gapMan>0 && yearsToRet>0)?Math.round(gapMan/(yearsToRet*12)):0;
+  _ceoState.last={ age:age, retAge:retAge, sal:sal, yrs:yrs, prep:prep, limitMan:limitMan, gapMan:gapMan, yearsToRet:yearsToRet, monthlyMan:monthlyMan };
+  function fmt(man){ try { return Calc.formatKrwMixed(man*10000); } catch(e){ return man.toLocaleString()+'만원'; } }
+  function panel(html,border){ return '<div class="ceo-panel" style="'+(border||'')+'">'+html+'</div>'; }
+  var out=[];
+  if(_ceoState.rule!=='yes'){
+    out.push(panel('<div style="font-size:12.5px;font-weight:800;color:#f0c9c9">⚠ 임원퇴직금 지급규정 '+(_ceoState.rule==='no'?'없음':'확인 필요')+'</div><div style="font-size:11.5px;color:#c7d0dc;font-weight:600;line-height:1.6;margin-top:5px">정관·주총 결의에 따른 지급규정이 없으면 퇴직소득 한도 계산 자체가 달라질 수 있고, 지급액이 손금 인정에서 제외될 수 있습니다(추정, 현행 기준). 규정 정비가 최우선 과제입니다.</div>','border-color:#8a2f2f'));
+  }
+  out.push(panel('<div style="font-size:11px;color:#8fa0b8;font-weight:700">임원 퇴직소득 한도 추정 <span style="color:#5f7994">(연급여×'+(rate*100)+'%×근속'+yrs+'년×'+mult+'배)</span></div><div style="font-size:26px;font-weight:900;color:#c9a24b;margin-top:5px">'+fmt(limitMan)+'</div><div style="font-size:10.5px;color:#7c8ea6;font-weight:600;margin-top:5px">2020년 이후 근속분 기준 가정 · 한도를 넘는 지급분은 근로소득으로 과세될 수 있습니다(추정)</div>'));
+  if(gapMan>0){
+    out.push(panel('<div style="font-size:11px;color:#8fa0b8;font-weight:700">퇴직 재원 격차 (한도 − 현재 준비액)</div><div style="font-size:22px;font-weight:900;color:#f0c9c9;margin-top:5px">'+fmt(gapMan)+' 부족 (추정)</div>'+(monthlyMan>0?'<div style="font-size:11.5px;color:#c7d0dc;font-weight:700;margin-top:6px">퇴직까지 '+yearsToRet+'년 — 단순 분할 시 월 약 <b style="color:#fff">'+monthlyMan.toLocaleString()+'만원</b> 적립 규모 (수익률 미반영 추정)</div>':'')));
+  } else {
+    out.push(panel('<div style="font-size:11px;color:#8fa0b8;font-weight:700">퇴직 재원 격차</div><div style="font-size:20px;font-weight:900;color:#7fd6c4;margin-top:5px">한도 수준 준비 완료 (추정)</div>'));
+  }
+  if(_ceoState.dbdc!=='yes'){
+    out.push(panel('<div style="font-size:12.5px;font-weight:800;color:#e8dcc0">법인 퇴직연금(DB/DC) '+(_ceoState.dbdc==='no'?'미도입':'도입 여부 확인 필요')+'</div><div style="font-size:11.5px;color:#c7d0dc;font-weight:600;line-height:1.6;margin-top:5px">사외 적립 없이 퇴직 시점을 맞으면 일시 지급 부담으로 법인 현금흐름에 충격이 올 수 있습니다(추정). 사외 적립(DB/DC)은 재원을 미리 분산하는 기본 수단입니다.</div>'));
+  }
+  out.push(panel('<div style="font-size:11.5px;color:#c7d0dc;font-weight:600;line-height:1.7">재원 마련 방법과 법인 DB/DC 도입 순서는 <b style="color:#fff">정관·재무제표와 함께</b> 검토가 필요합니다. 진단 요약을 전담 컨설턴트에게 보내 상담을 시작해 보세요.</div>'));
+  box.innerHTML=out.join('');
+}
+
+/* 공유: 정밀모드 공유 인프라(app._captureShareCard) 재사용 — #shareCard에 CEO 카드 렌더 후 캡처 */
+function ceoShare(){
+  if(!_ceoState.last){ ceoCalc(); }
+  var d=_ceoState.last||{}; var LCC=window.LEGAL_CONSTANTS||{};
+  var box=document.getElementById('shareCard'); if(!box || !window.app){ alert('공유 모듈을 불러오지 못했습니다.'); return; }
+  function fmt(man){ try { return Calc.formatKrwMixed((man||0)*10000); } catch(e){ return (man||0).toLocaleString()+'만원'; } }
+  var dt=new Date();
+  var dateStr=dt.getFullYear()+'.'+String(dt.getMonth()+1).padStart(2,'0')+'.'+String(dt.getDate()).padStart(2,'0');
+  function line(title, main, sub, color){ return '<div style="border:1px solid #e2e1da;border-radius:11px;padding:14px 16px;background:#faf9f6">'+
+    '<div style="font-size:12px;font-weight:800;color:#64748b">'+title+'</div>'+
+    '<div style="font-size:15px;font-weight:900;color:'+(color||'#0b1f33')+';margin-top:3px;line-height:1.35">'+main+'</div>'+
+    (sub?'<div style="font-size:10.5px;font-weight:600;color:#94a3b8;margin-top:3px;line-height:1.5">'+sub+'</div>':'')+'</div>'; }
+  var rows=[
+    line('임원 퇴직소득 한도 추정', fmt(d.limitMan)+' (추정)', '연급여×10%×근속'+(d.yrs||0)+'년×'+(LCC.EXEC_SEVERANCE_MULTIPLE||2)+'배 · 2020년 이후 근속분 기준 가정'),
+    line('퇴직 재원 격차', d.gapMan>0? fmt(d.gapMan)+' 부족 (추정)' : '한도 수준 준비 완료 (추정)', d.gapMan>0&&d.monthlyMan>0? '퇴직까지 '+d.yearsToRet+'년 · 단순 분할 시 월 약 '+d.monthlyMan.toLocaleString()+'만원 규모(수익률 미반영)' : '', d.gapMan>0?'#8a2f2f':'#0f766e'),
+    line('임원퇴직금 지급규정', _ceoState.rule==='yes'?'정비됨':'정비 필요(없음/미확인)', '정관·주총 결의 기준', _ceoState.rule==='yes'?'#0f766e':'#8a2f2f'),
+    line('법인 퇴직연금(DB/DC)', _ceoState.dbdc==='yes'?'도입됨':'미도입/확인 필요', '사외 적립 여부', _ceoState.dbdc==='yes'?'#0f766e':'#8a6d1f')
+  ].join('');
+  box.innerHTML='<div style="width:720px;box-sizing:border-box;background:#fff;padding:30px 30px 24px;font-family:\'Pretendard\',-apple-system,sans-serif;color:#101828">'+
+    '<div style="border-bottom:3px solid #0b1f33;padding-bottom:14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px">'+
+    '<div><div style="color:#0b1f33;font-weight:800;letter-spacing:.16em;font-size:10px">NEXT LIFE · EXECUTIVE PLAN</div>'+
+    '<div style="font-size:21px;font-weight:900;margin-top:5px">법인 대표 퇴직플랜 진단 요약</div></div>'+
+    '<div style="font-size:11px;color:#64748b;font-weight:700;text-align:right">작성일 '+dateStr+'</div></div>'+
+    '<div style="display:flex;flex-direction:column;gap:9px">'+rows+'</div>'+
+    '<div style="margin-top:14px;background:#0b1f33;border-radius:10px;padding:13px 16px;font-size:12px;font-weight:700;color:#dce3ec;line-height:1.6">재원 마련 방법과 법인 DB/DC 도입 순서는 정관·재무제표와 함께 검토가 필요합니다 — 전담 컨설턴트와의 상담으로 설계하세요.</div>'+
+    '<div style="margin-top:12px;border-top:1px solid #e2e1da;padding-top:10px;font-size:9.5px;color:#94a3b8;font-weight:600;line-height:1.6">※ 본 요약은 입력한 정보 기반 추정치이며, 현행 법령·제도 기준 가정입니다. 실제 수치는 정관·지급규정·재무제표 등에 따라 달라질 수 있습니다. 본 자료는 특정 금융상품의 권유가 아닙니다. (법령 상수 기준: '+((window.LEGAL_CONSTANTS||{}).UPDATED_AT||'2026-07')+')</div></div>';
+  var fname='NextLife_법인대표진단_'+dt.getFullYear()+String(dt.getMonth()+1).padStart(2,'0')+String(dt.getDate()).padStart(2,'0')+'.png';
+  app._captureShareCard(fname, 'button[onclick*="ceoShare"]');
 }
 </script>
 </body>

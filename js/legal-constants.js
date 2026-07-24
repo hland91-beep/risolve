@@ -28,13 +28,18 @@ const LEGAL_CONSTANTS = {
   IRP_CREDIT_CAP: 900,                // 연금저축+IRP 합산 세액공제 한도(연, 만원)
   ISA_CAP: 2000,                      // ISA 연간 납입한도(만원)
 
+  // ── 임원 퇴직소득 (법인 대표 퇴직플랜 진단) ──
+  EXEC_SEVERANCE_RATE: 0.1,           // 퇴직 전 3년 평균 연급여의 10%
+  EXEC_SEVERANCE_MULTIPLE: 2,         // 임원 퇴직소득 한도 배수(2020년 이후 근속분 기준)
+
   // ── 출처/기준시점 (보고서 "주요 가정 및 근거" 표에 사용) ──
   SOURCES: {
     NPS_WORK_REDUCE: '국민연금법 시행령 (2026년 A값 고시 반영)',
     GOV_SUSPEND: '공무원연금법 소득심사',
     PRIVATE_PENSION_TAX: '소득세법 §20-3',
     HOUSING_PENSION: '한국주택금융공사 종신지급 근사',
-    HEALTH_DEPENDENT: '국민건강보험법 시행규칙 (2026 기준)'
+    HEALTH_DEPENDENT: '국민건강보험법 시행규칙 (2026 기준)',
+    EXEC_SEVERANCE: '소득세법 §22 임원 퇴직소득 한도 (2020년 이후 근속분 2배)'
   },
 
   UPDATED_AT: '2026-07' // 이 상수 세트의 최종 검토 시점(연-월)
