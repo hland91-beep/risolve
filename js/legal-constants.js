@@ -12,6 +12,8 @@ const LEGAL_CONSTANTS = {
   NPS_EARLY_RATE: 0.70,               // 조기노령연금(-5년) 지급률
   NPS_LATE_RATE: 1.36,                // 연기연금(+5년) 지급률
   NPS_LATE_ACCRUAL_ANNUAL: 0.072,     // 연기 1년당 가산율(7.2%)
+  NPS_DEFER_MAX_YEARS: 5,             // 연기연금 법정 최대 연기 기간(년) — 초과 선택 시 가산 미반영
+  NPS_EARLY_MAX_YEARS: 5,             // 조기노령연금 법정 최대 앞당김 기간(년)
 
   // ── 공무원·직역연금 ────────────────────────────────────
   GOV_ACCRUAL_RATE: 0.01736,          // 공무원연금 지급률(재직 1년당)

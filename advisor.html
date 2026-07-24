@@ -2085,16 +2085,21 @@ class NextLifeAdvisorApp {
     let fbText = '정상 개시 (100% 수령)';
     if (_pensionType === 'GOV') {
       if (npsAge < legalNpsAge) {
-        npsFactor = 1.0 - ((legalNpsAge - npsAge) * 0.06);
+        const _earlyYrs = Math.min(LC.NPS_EARLY_MAX_YEARS ?? 5, legalNpsAge - npsAge);
+        npsFactor = 1.0 - (_earlyYrs * 0.06);
         fbText = `직역연금 조기 수령 (${Math.round(npsFactor * 100)}% 수급)`;
       } else { fbText = '직역연금 정상 개시 (100% 수령)'; }
     } else {
       if (npsAge < legalNpsAge) {
-        npsFactor = 1.0 - ((legalNpsAge - npsAge) * 0.06);
+        const _earlyYrs = Math.min(LC.NPS_EARLY_MAX_YEARS ?? 5, legalNpsAge - npsAge);
+        npsFactor = 1.0 - (_earlyYrs * 0.06);
         fbText = `조기 특례 수령 (${Math.round(npsFactor * 100)}% 감액 수급)`;
       } else if (npsAge > legalNpsAge) {
-        npsFactor = 1.0 + ((npsAge - legalNpsAge) * 0.072);
-        fbText = `연기 가산 수령 (+${Math.round((npsFactor - 1) * 100)}% 가산 수급)`;
+        // 연기연금 가산은 법정 최대 5년(+36%)까지만 — 초과 선택 시 5년치만 반영(과대 계산 방지)
+        const _deferSel = npsAge - legalNpsAge;
+        const _deferYrs = Math.min(LC.NPS_DEFER_MAX_YEARS ?? 5, _deferSel);
+        npsFactor = 1.0 + (_deferYrs * (LC.NPS_LATE_ACCRUAL_ANNUAL ?? 0.072));
+        fbText = `연기 가산 수령 (+${Math.round((npsFactor - 1) * 100)}% 가산 수급${_deferSel > _deferYrs ? ' · 법정 최대 5년만 가산 반영' : ''})`;
       }
     }
     this._setTxt('o_npsStrategyFeedback', fbText);
