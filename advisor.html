@@ -2392,7 +2392,11 @@ class NextLifeAdvisorApp {
         _headline = `완전 은퇴 후 매월 <strong style="color:#fff">${_gapMan.toLocaleString()}만 원</strong>이 부족할 것으로 추정됩니다.${bridgeYears > 0 ? ` 연금 개시 전 <strong style="color:#fff">${bridgeYears}년</strong>의 소득 공백도 있습니다.` : ''} 주택연금·절세계좌·재취업을 단계적으로 활용하면 부족분을 메울 수 있습니다.`;
       } else {
         _hb.style.background = 'rgba(15,118,110,.16)'; _hb.style.border = '1px solid rgba(15,118,110,.4)'; _hb.style.color = '#bfe6de';
-        _headline = `연금과 자산만으로 은퇴 후 생활비 충당이 가능한 <strong style="color:#fff">안정적인 구조</strong>입니다. 절세·상속 설계로 자산을 한층 효율화할 수 있습니다.`;
+        // ⚠️ 여유 분기에서도 소득 공백은 반드시 병기한다. gapPhase2 는 「연금 수령기(exEnd 이후)」 수지이고
+        //    bridgeYears 는 「은퇴~연금개시」 공백이라 두 값은 독립이다 — 공백 5년인데 헤드라인이
+        //    「안정적인 구조」로만 끝나면 서술부('공백기 N년치 생활자금 마련에 집중하세요')와 정면으로 어긋난다.
+        //    금액은 쓰지 않는다: 공백 구간과 Phase1(재취업기, gapPhase1) 구간이 일치하지 않아 끌어오면 개념 혼동이다.
+        _headline = `연금과 자산만으로 은퇴 후 생활비 충당이 가능한 <strong style="color:#fff">안정적인 구조</strong>로 추정됩니다.${bridgeYears > 0 ? ` 다만 연금 개시 전 <strong style="color:#fff">${bridgeYears}년</strong>의 소득 공백이 있어, 그 기간 생활자금은 별도로 준비해야 합니다.` : ''} 절세·상속 설계로 자산을 한층 효율화할 수 있습니다.`;
       }
       _hb.style.borderRadius = '10px'; _hb.style.padding = '14px 16px'; _hb.style.marginBottom = '14px'; _hb.style.fontSize = '14px'; _hb.style.lineHeight = '1.65';
       _hb.innerHTML = `<span style="display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;color:#c9a24b;margin-bottom:6px">핵심 진단</span><div>${_headline}</div>`;
