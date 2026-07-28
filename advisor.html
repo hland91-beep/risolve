@@ -62,6 +62,117 @@
       #printReport thead { display: table-header-group; }                      /* 여러 페이지에 걸친 표는 머리글 반복 */
     }
 </style>
+<style>
+/* ══════════ 2단계 · 연금화 설계 (az-) ══════════
+   전문가용 base-store 의 az 블록 이식. 그쪽 회색 토큰(--g50~--g900)과 인디고
+   브랜드색을 이 앱의 실제 색(네이비 #0b1f33 · 골드 #c9a24b)으로 치환했다.
+   모든 셀렉터를 #step2 로 스코프해 다른 단계의 인라인 스타일과 충돌하지 않게 한다. */
+
+/* ── az 마크업이 의존하는 전역 클래스 축소판 (base-store 에서만 전역, 여기서는 #step2 한정) ── */
+#step2 .card{background:#fff;border:1px solid #e2e1da;border-radius:12px;padding:22px;margin-bottom:14px}
+#step2 .card-title{font-size:15px;font-weight:800;color:#101828;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+#step2 .card-title .ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+#step2 .hint{font-size:11px;color:#64748b;margin-top:3px;line-height:1.5;word-break:keep-all;font-weight:600}
+#step2 .input-group{margin-bottom:8px;min-width:0}
+#step2 .input-label{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#475569;margin-bottom:4px;min-width:0}
+#step2 .seg-group{display:flex;border:1.5px solid #e2e1da;border-radius:9px;overflow:hidden}
+#step2 .seg-btn{flex:1;padding:9px 6px;border:none;background:#faf9f6;font-size:12px;cursor:pointer;font-weight:700;color:#64748b;white-space:nowrap;transition:all .2s}
+#step2 .seg-btn.on{background:#0b1f33;color:#fff;font-weight:800}
+
+/* ── 입력 ── */
+#step2 input[type=number],#step2 input[type=text]{width:100%;box-sizing:border-box;border:1.5px solid #d8d5cb;border-radius:8px;padding:9px 11px;font-size:13px;font-weight:700;text-align:right;outline:none;transition:border-color .2s;background:#fff;color:#101828}
+#step2 input[type=number]:focus,#step2 input[type=text]:focus{border-color:#0b1f33;box-shadow:0 0 0 3px rgba(11,31,51,.10)}
+#step2 input[type=range]{width:100%;accent-color:#0b1f33}
+#step2 input[type=checkbox]{accent-color:#0b1f33}
+.az-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.az-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}
+
+/* ── 히어로 ──
+   #step2 로 스코프해야 한다 — 위의 `#step2 .card` 가 id 를 포함해 우선순위가 높아,
+   base-store 처럼 `.az-hero` 만 쓰면 카드의 흰 배경이 그라디언트를 덮는다. */
+#step2 .az-hero{background:linear-gradient(135deg,#0b1f33 0%,#16324f 100%);color:#fff;border:none;box-shadow:0 6px 20px rgba(11,31,51,.24)}
+.az-hero-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.07em;opacity:.8;margin-bottom:7px;color:#c9a24b}
+.az-hero-title{font-size:18px;font-weight:900;line-height:1.5;word-break:keep-all}
+.az-hero-title span{color:#c9a24b}
+.az-hero-body{font-size:12.5px;line-height:1.75;margin-top:10px;opacity:.94;word-break:keep-all}
+.az-hero-tags{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+.az-hero-tags span{background:rgba(255,255,255,.14);border-radius:8px;padding:6px 11px;font-size:11px;font-weight:700}
+
+/* ── 재원 행 ── */
+.az-src-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px dashed #e2e1da}
+.az-src-row:last-child{border-bottom:none}
+.az-src-nm{flex:0 0 138px;font-size:11.5px;font-weight:800;color:#101828;line-height:1.35}
+.az-src-nm i{display:block;font-style:normal;font-size:9.5px;font-weight:600;color:#64748b;margin-top:2px}
+.az-src-rng{flex:1 1 150px;display:flex;align-items:center;gap:7px;min-width:150px}
+.az-src-pct{flex:0 0 40px;text-align:right;font-size:11px;font-weight:800;color:#0b1f33;font-variant-numeric:tabular-nums}
+.az-src-amt{flex:0 0 112px;text-align:right;font-size:11.5px;font-weight:800;color:#101828;font-variant-numeric:tabular-nums}
+.az-src-amt i{display:block;font-style:normal;font-size:9.5px;font-weight:600;color:#8a6d1f;margin-top:2px}
+
+/* ── 순투입원금 ── */
+.az-principal{margin-top:12px;background:#f1f0ec;border:1.5px solid #d8d5cb;border-radius:11px;padding:13px 16px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.az-principal b{font-size:12px;font-weight:800;color:#0b1f33}
+.az-principal .az-p-num{font-size:21px;font-weight:900;color:#0b1f33;font-variant-numeric:tabular-nums}
+.az-principal .az-p-sub{flex:1 1 100%;font-size:10.5px;color:#64748b;line-height:1.55;font-weight:600}
+
+/* ── 표 ── */
+.az-tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.az-tbl{width:100%;border-collapse:collapse;font-size:11.5px;min-width:400px}
+.az-tbl th{background:#f1f0ec;color:#0b1f33;font-weight:800;padding:7px 6px;border:1px solid #d8d5cb;text-align:center;font-size:10.5px;white-space:nowrap}
+.az-tbl td{padding:7px 6px;border:1px solid #eceae3;text-align:right;font-variant-numeric:tabular-nums}
+.az-tbl td:first-child{text-align:left;font-weight:700;color:#101828}
+.az-tbl .az-tbl-total td{background:#faf9f6;font-weight:900;color:#0b1f33}
+.az-tbl .az-tbl-pick td{background:#f6f4ec;box-shadow:inset 0 0 0 1.5px #c9a24b}
+
+/* ── 매트릭스 ── */
+.az-mx{width:100%;border-collapse:collapse;font-size:11.5px;min-width:460px}
+.az-mx th{background:#f1f0ec;color:#0b1f33;font-weight:800;padding:8px 7px;border:1px solid #d8d5cb;text-align:center;font-size:10.5px}
+.az-mx td{padding:9px 7px;border:1px solid #eceae3;text-align:center;vertical-align:top}
+.az-mx td:first-child{text-align:left;font-weight:800;color:#101828;background:#faf9f6;white-space:nowrap}
+.az-mx-amt{font-size:13.5px;font-weight:900;color:#0b1f33;font-variant-numeric:tabular-nums}
+.az-mx-amt.az-nog{color:#b3261e}
+.az-mx-sub{font-size:9.5px;color:#64748b;margin-top:3px;line-height:1.45}
+.az-mx td.az-mx-on{background:#f6f4ec;box-shadow:inset 0 0 0 2px #c9a24b}
+
+/* ── 배지·칩 ── */
+.az-badge{display:inline-block;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800;vertical-align:middle}
+.az-b-approx{background:#f6f4ec;color:#7a6323;border:1px solid #e7d4a1}
+.az-b-good{background:#eaf3f1;color:#0f766e;border:1px solid #cfe3df}
+.az-b-bad{background:#f9eeee;color:#b3261e;border:1px solid #e8c9c9}
+.az-b-warn{background:#f6f4ec;color:#7a6323;border:1px solid #e7d4a1}
+.az-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.az-chip{border:1.5px solid #e2e1da;background:#fff;border-radius:9px;padding:6px 11px;font-size:11.5px;font-weight:700;color:#475569;cursor:pointer;transition:all .15s}
+.az-chip:hover{border-color:#0b1f33}
+.az-chip.has-val{border-color:#0b1f33;background:#0b1f33;color:#fff}
+.az-warn{margin-top:10px;background:#f9eeee;border:1px solid #e8c9c9;border-radius:9px;padding:10px 13px;font-size:11.5px;color:#b3261e;line-height:1.6;font-weight:600}
+.az-ok{margin-top:10px;background:#eaf3f1;border:1px solid #cfe3df;border-radius:9px;padding:10px 13px;font-size:11.5px;color:#0f766e;line-height:1.6;font-weight:600}
+.az-note{margin-top:9px;background:#faf9f6;border:1px solid #e2e1da;border-radius:9px;padding:9px 12px;font-size:11px;color:#55606f;line-height:1.6;font-weight:600}
+
+/* ── 세후 워터폴 ── */
+.az-wf-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed #e2e1da;font-size:12px;font-weight:600;color:#475569}
+.az-wf-row:last-child{border-bottom:none}
+.az-wf-row b{font-variant-numeric:tabular-nums}
+.az-wf-row.az-wf-sum{border-top:1.5px solid #d8d5cb;margin-top:4px;padding-top:9px;font-weight:900;color:#0b1f33;font-size:13.5px}
+
+/* ── 근거 fold ── */
+.az-basis{border:1px solid #e2e1da;border-radius:10px;padding:0;background:#faf9f6}
+.az-basis>summary{cursor:pointer;padding:10px 13px;font-size:12px;font-weight:800;color:#475569;list-style:none}
+.az-basis>summary::-webkit-details-marker{display:none}
+.az-basis>summary::before{content:'▸ ';color:#0b1f33}
+.az-basis[open]>summary::before{content:'▾ '}
+.az-basis-body{padding:0 13px 13px;font-size:11px;color:#55606f;line-height:1.65;font-weight:600}
+
+/* ── 반영 상태줄 ── */
+.az-msg{margin-top:9px;border-radius:9px;padding:9px 12px;font-size:11.5px;line-height:1.6;font-weight:700;display:none}
+.az-msg.on{display:block}
+.az-msg.az-m-ok{background:#eaf3f1;border:1px solid #cfe3df;color:#0f766e}
+.az-msg.az-m-info{background:#f6f4ec;border:1px solid #e7d4a1;color:#7a6323}
+
+/* ── 폰 폭 — 고정폭 컬럼이 넘치지 않게 완화 (base-store 의 큰글씨 모드 규칙과 같은 목적) ── */
+@media (max-width:640px){
+  #step2 .az-src-nm{flex-basis:100%}
+  #step2 .az-src-amt{flex:1 1 100px}
+}
+</style>
 </head>
 <body>
 <div id="nlHamburger" onclick="app.toggleSidebar()">&#9776;</div>
@@ -94,24 +205,25 @@
         <p style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#5f7994;text-transform:uppercase;margin:0 0 8px;padding:0 10px">Phase A · 자산·소득 진단</p>
         <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px">
           <li id="nav-btn-1" onclick="app.goTo1()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;background:#132a42;color:#ffffff">1. 자산 현황 진단</li>
-          <li id="nav-btn-2" onclick="app.goTo2()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">2. 은퇴시기·연금개시 설계</li>
-          <li id="nav-btn-3" onclick="app.goTo3()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">3. 현금흐름 분석</li>
-          <li id="nav-btn-4" onclick="app.goTo4()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">4. 연금·건보 세부분석</li>
+          <li id="nav-btn-2" onclick="app.goTo2()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">2. 연금화 설계</li>
+          <li id="nav-btn-3" onclick="app.goTo3()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">3. 은퇴시기·연금개시 설계</li>
+          <li id="nav-btn-4" onclick="app.goTo4()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">4. 현금흐름 분석</li>
+          <li id="nav-btn-5" onclick="app.goTo5()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">5. 연금·건보 세부분석</li>
         </ul>
       </div>
       <div>
         <p style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#5f7994;text-transform:uppercase;margin:0 0 8px;padding:0 10px">Phase B · 솔루션 설계</p>
         <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px">
-          <li id="nav-btn-5" onclick="app.goTo5()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">5. 목표자금·저축 로드맵</li>
-          <li id="nav-btn-6" onclick="app.goTo6()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">6. 절세계좌 시뮬레이션</li>
-          <li id="nav-btn-7" onclick="app.goTo7()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">7. 솔루션 효과 비교</li>
+          <li id="nav-btn-6" onclick="app.goTo6()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">6. 목표자금·저축 로드맵</li>
+          <li id="nav-btn-7" onclick="app.goTo7()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">7. 절세계좌 시뮬레이션</li>
+          <li id="nav-btn-8" onclick="app.goTo8()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">8. 솔루션 효과 비교</li>
         </ul>
       </div>
       <div>
         <p style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#5f7994;text-transform:uppercase;margin:0 0 8px;padding:0 10px">Phase C · 세무·상속 자문</p>
         <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px">
-          <li id="nav-btn-8" onclick="app.goTo8()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">8. 상속·증여 시뮬레이션</li>
-          <li id="nav-btn-9" onclick="app.goTo9()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">9. 종합 진단 보고서</li>
+          <li id="nav-btn-9" onclick="app.goTo9()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">9. 상속·증여 시뮬레이션</li>
+          <li id="nav-btn-10" onclick="app.goTo10()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:700;color:#9fb0c6">10. 종합 진단 보고서</li>
           <li onclick="ceoOpen()" style="padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#c9a24b;border:1px dashed #3a5a80;margin-top:8px;text-align:center">🏢 법인 대표 퇴직플랜 진단</li>
         </ul>
       </div>
@@ -224,8 +336,10 @@
                 <div><label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">현금 / 예적금 / CMA 잔고</label><input type="number" id="v_fin_cash" value="30" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;text-align:right;background:#fff;box-sizing:border-box" /></div>
                 <div><label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">국내외 일반 주식 / ETF / 펀드</label><input type="number" id="v_fin_stock" value="0" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;text-align:right;background:#fff;box-sizing:border-box" /></div>
                 <div><label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">연금저축 / IRP 구좌 적립액</label><input type="number" id="v_fin_pension" value="20" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;text-align:right;background:#fff;box-sizing:border-box" /></div>
-                <div><label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">퇴직연금(DC) / 저축성 보장보험</label><input type="number" id="v_fin_ins" value="10" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;text-align:right;background:#fff;box-sizing:border-box" /></div>
+                <div><label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">퇴직연금 (DC / DB 적립액)</label><input type="number" id="v_fin_dc" value="7" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;text-align:right;background:#fff;box-sizing:border-box" /></div>
+                <div><label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">저축성 · 보장성 보험 (적립금 평가액)</label><input type="number" id="v_fin_savins" value="3" onInput="app.handleCalc()" style="width:100%;padding:11px 13px;border:1.5px solid #d8d5cb;border-radius:9px;font-weight:700;font-size:14px;text-align:right;background:#fff;box-sizing:border-box" /></div>
               </div>
+              <p style="font-size:10.5px;font-weight:600;color:#94a3b8;line-height:1.55;margin:11px 0 0">※ 보험은 <b>해약환급금이 아니라 적립금(평가액)</b>을 적어주세요 — 해지 시 환급 손실은 2단계에서 따로 계산합니다. 퇴직연금(DC)은 이미 연금 재원이라 2단계 연금화 대상에서 제외됩니다.</p>
             </div>
 
             <div style="border:1px solid #e2e1da;border-radius:12px;padding:20px;background:#fafaf8">
@@ -257,7 +371,7 @@
         </div>
 
         <div style="display:flex;justify-content:flex-end;padding-top:22px">
-          <button onclick="app.goTo2()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 2단계 은퇴 시기 설정 →</button>
+          <button onclick="app.goTo2()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 2단계 연금화 설계 →</button>
         </div>
       </section>
 
@@ -265,6 +379,278 @@
       <section id="step2" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:26px">
           <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">2</span>
+          <div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase A · 자산·소득 진단</p>
+            <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">연금화 설계</h2>
+          </div>
+        </div>
+        <p style="font-size:11.5px;font-weight:600;color:#94a3b8;line-height:1.6;margin:-14px 0 20px">이 단계의 모든 금액은 입력값을 바탕으로 한 <b>추정치</b>이며, 실제 수령액·세액은 상품과 관계 법령, 개인별 상황에 따라 달라질 수 있습니다.</p>
+
+        <!-- 0. 히어로 -->
+        <div class="card az-hero" id="az-hero">
+          <div class="az-hero-eyebrow">ANNUITIZATION DESIGN · 연금화 설계</div>
+          <div class="az-hero-title">보유 자산을 <span>평생 나오는 현금흐름</span>으로 바꾸면<br>매달 얼마가 될까요?</div>
+          <div class="az-hero-body">현금·저축성보험·주식·투자부동산을 현금화해 <b>일시납 연금 · 커버드콜 · 배당형 자산</b>에 넣었을 때, <b>종신형 · 확정기간형 · 상속형</b>으로 <b>월 · 분기 · 반기 · 연</b> 수령액이 각각 얼마가 되는지 세금까지 추정합니다.</div>
+          <div id="az-hero-result" class="az-hero-tags"><span>아래에서 현금화할 자산을 고르면 계산됩니다</span></div>
+        </div>
+
+        <!-- 1. 재원 -->
+        <div class="card" id="az-src-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">💰</div> 1단계 · 어떤 자산을 현금화할까요</div>
+          <div class="hint" style="margin-bottom:8px">앞 단계(자산 현황 진단)에 입력한 금액을 그대로 가져옵니다. 슬라이더로 <b>현금화 비율</b>을 정하면 세금·수수료를 뺀 <b>실제 투입 가능 금액</b>이 계산됩니다.</div>
+          <div class="az-chips">
+            <button type="button" class="az-chip" id="az-preset-cons" onclick="_azPreset('cons')">🛡️ 보수적 — 현금 30%만</button>
+            <button type="button" class="az-chip" id="az-preset-bal" onclick="_azPreset('bal')">⚖️ 균형 — 현금 50% + 주식 30%</button>
+            <button type="button" class="az-chip" id="az-preset-aggr" onclick="_azPreset('aggr')">🚀 적극 — 현금·주식 + 투자부동산 50%</button>
+            <button type="button" class="az-chip" id="az-preset-reset" onclick="_azPreset('reset')">🔄 전부 0%</button>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="az-src-row">
+              <div class="az-src-nm">💵 현금 · 예적금 · CMA<i id="az-src-cash-have">—</i></div>
+              <div class="az-src-rng"><input type="range" id="az-src-cash-pct" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()" aria-label="현금성 자산 현금화 비율"><span class="az-src-pct" id="az-src-cash-pct-v">0%</span></div>
+              <div class="az-src-amt"><span id="az-src-cash-net">—</span><i id="az-src-cash-cost"></i></div>
+            </div>
+            <div class="az-src-row">
+              <div class="az-src-nm">🛡️ 저축성 · 보장성 보험<i id="az-src-ins-have">—</i></div>
+              <div class="az-src-rng"><input type="range" id="az-src-ins-pct" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()" aria-label="저축성보험 해지 비율"><span class="az-src-pct" id="az-src-ins-pct-v">0%</span></div>
+              <div class="az-src-amt"><span id="az-src-ins-net">—</span><i id="az-src-ins-cost"></i></div>
+            </div>
+            <div class="az-src-row">
+              <div class="az-src-nm">📈 주식 · ETF · 펀드<i id="az-src-stock-have">—</i></div>
+              <div class="az-src-rng"><input type="range" id="az-src-stock-pct" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()" aria-label="주식 자산 매도 비율"><span class="az-src-pct" id="az-src-stock-pct-v">0%</span></div>
+              <div class="az-src-amt"><span id="az-src-stock-net">—</span><i id="az-src-stock-cost"></i></div>
+            </div>
+            <div class="az-src-row">
+              <div class="az-src-nm">🏢 투자 · 임대 부동산<i id="az-src-re-have">—</i></div>
+              <div class="az-src-rng"><input type="range" id="az-src-re-pct" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()" aria-label="투자부동산 매각 비율"><span class="az-src-pct" id="az-src-re-pct-v">0%</span></div>
+              <div class="az-src-amt"><span id="az-src-re-net">—</span><i id="az-src-re-cost"></i></div>
+            </div>
+          </div>
+
+          <div class="az-principal">
+            <b>투입 가능 원금 (세금·수수료 차감 후, 추정)</b>
+            <div class="az-p-num" id="az-principal-v">—</div>
+            <div class="az-p-sub" id="az-principal-sub">거주주택 · 연금저축 · IRP · 퇴직연금(DC)은 <b>대상에서 제외</b>합니다 — 거주주택은 주택연금(4단계), 나머지는 이미 연금 재원이라 여기서 또 세면 이중 계상이 됩니다.</div>
+          </div>
+
+          <details class="az-basis" style="margin-top:11px">
+            <summary>현금화 비용 상세 설정 (환급률 · 취득가 · 보유기간)</summary>
+            <div class="az-basis-body">
+              <div class="az-grid3" style="margin-top:4px">
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">보험 해지환급률 (%)</div>
+                  <input type="number" id="az-ins-refund" min="0" max="150" step="1" value="92" oninput="_azTouch();updateAnnuity()">
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">보험 납입원금 (만원)</div>
+                  <input type="number" id="az-ins-paid" min="0" max="500000" step="100" value="0" oninput="_azTouch();updateAnnuity()">
+                  <div class="hint" style="margin-top:3px;font-size:10px">0 = 평가액의 85%로 근사</div>
+                </div>
+                <div class="input-group" style="margin:0;display:flex;align-items:flex-end">
+                  <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11.5px;font-weight:700;color:#475569;padding-bottom:9px"><input type="checkbox" id="az-ins-qualified" checked onchange="_azTouch();updateAnnuity()" style="width:15px;height:15px">보험 비과세 요건 충족</label>
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">해외주식 비중 (%)</div>
+                  <input type="number" id="az-ov-share" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()">
+                  <div class="hint" style="margin-top:3px;font-size:10px">0 = 전액 국내 주식으로 봅니다</div>
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">해외주식 상승률 (%)</div>
+                  <input type="number" id="az-ov-gain" min="0" max="1000" step="5" value="30" oninput="_azTouch();updateAnnuity()">
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">부동산 상승률 (%)</div>
+                  <input type="number" id="az-re-gain" min="0" max="2000" step="5" value="50" oninput="_azTouch();updateAnnuity()">
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">부동산 보유기간 (년)</div>
+                  <input type="number" id="az-re-hold" min="0" max="50" step="1" value="15" oninput="_azTouch();updateAnnuity()">
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">비상금 유보 (만원)</div>
+                  <input type="number" id="az-reserve" min="0" max="500000" step="100" value="0" oninput="_azTouch();updateAnnuity()">
+                  <div class="hint" style="margin-top:3px;font-size:10px">연금화하지 않고 남길 돈</div>
+                </div>
+                <div class="input-group" style="margin:0">
+                  <div class="input-label">재산세 과세표준 (만원)</div>
+                  <input type="number" id="v_propTax" min="0" max="1000000" step="1000" value="0" oninput="app.handleCalc();_azTouch();updateAnnuity()">
+                  <div class="hint" style="margin-top:3px;font-size:10px">모르면 비워 두세요 — 건강보험료 <b>증가분</b>에는 영향이 없고 재산 기준 판정에만 씁니다</div>
+                </div>
+              </div>
+              <div id="az-src-detail" style="margin-top:10px"></div>
+              <div style="margin-top:8px;font-size:10.5px;line-height:1.6">※ <b>상승률</b>은 취득가 대비 값입니다(50% = 1억에 사서 1.5억). 양도차익 = 매각액 × 상승률/(1+상승률). 부동산은 장기보유특별공제(10년 40% · 15년 50% · 20년 60%) 후 <b>22% 단일세율 근사</b>이며 누진세율·다주택 중과·1세대1주택 비과세는 반영하지 않습니다. 해외주식 기본공제 250만원은 <b>연 1회</b>라, 여러 자산을 같은 해에 팔면 한 번만 적용됩니다.</div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 2. 수령 설계 -->
+        <div class="card" id="az-plan-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">📅</div> 2단계 · 어떻게 받을까요</div>
+          <div class="az-grid2">
+            <div class="input-group" style="margin:0">
+              <div class="input-label">수령 개시 나이</div>
+              <input type="number" id="az-start-age" min="45" max="90" step="1" value="65" oninput="_azTouch();updateAnnuity()">
+            </div>
+            <div class="input-group" style="margin:0">
+              <div class="input-label">성별 <span class="hint" style="font-size:10px;margin:0">여성이 오래 살아 월 수령액이 낮습니다</span></div>
+              <input type="hidden" id="az-sex" value="m">
+              <div class="seg-group" id="az-sex-group">
+                <button class="seg-btn on" data-val="m" onclick="_azSeg('az-sex-group',this)">남성</button>
+                <button class="seg-btn" data-val="f" onclick="_azSeg('az-sex-group',this)">여성</button>
+              </div>
+            </div>
+            <div class="input-group" style="margin:0">
+              <div class="input-label">수령 방식</div>
+              <input type="hidden" id="az-mode" value="life">
+              <div class="seg-group" id="az-mode-group">
+                <button class="seg-btn on" data-val="life" onclick="_azSeg('az-mode-group',this)">종신형</button>
+                <button class="seg-btn" data-val="term" onclick="_azSeg('az-mode-group',this)">확정기간</button>
+                <button class="seg-btn" data-val="inherit" onclick="_azSeg('az-mode-group',this)">상속형</button>
+              </div>
+            </div>
+            <div class="input-group" style="margin:0">
+              <div class="input-label">지급 주기</div>
+              <input type="hidden" id="az-cycle" value="12">
+              <div class="seg-group" id="az-cycle-group">
+                <button class="seg-btn on" data-val="12" onclick="_azSeg('az-cycle-group',this)">매월</button>
+                <button class="seg-btn" data-val="4" onclick="_azSeg('az-cycle-group',this)">분기</button>
+                <button class="seg-btn" data-val="2" onclick="_azSeg('az-cycle-group',this)">반기</button>
+                <button class="seg-btn" data-val="1" onclick="_azSeg('az-cycle-group',this)">매년</button>
+              </div>
+            </div>
+            <div class="input-group" style="margin:0" id="az-guar-wrap">
+              <div class="input-label">보증기간 <span class="hint" style="font-size:10px;margin:0">일찍 사망해도 이 기간은 지급</span></div>
+              <input type="hidden" id="az-guar" value="10">
+              <div class="seg-group" id="az-guar-group">
+                <button class="seg-btn" data-val="0" onclick="_azSeg('az-guar-group',this)">없음</button>
+                <button class="seg-btn on" data-val="10" onclick="_azSeg('az-guar-group',this)">10년</button>
+                <button class="seg-btn" data-val="20" onclick="_azSeg('az-guar-group',this)">20년</button>
+              </div>
+            </div>
+            <div class="input-group" style="margin:0" id="az-term-wrap">
+              <div class="input-label">확정 수령기간 (년)</div>
+              <input type="number" id="az-term-yrs" min="1" max="50" step="1" value="20" oninput="_azTouch();updateAnnuity()">
+            </div>
+            <div class="input-group" style="margin:0">
+              <div class="input-label">실효 이율 (%) <span class="hint" style="font-size:10px;margin:0">사업비 차감 후</span></div>
+              <input type="number" id="az-rate" min="0" max="12" step="0.05" value="2.1" oninput="_azTouch();updateAnnuity()">
+              <div class="hint" id="az-rate-hint" style="margin-top:3px;font-size:10px">실측 역산 1.8~2.4% · <b>공시이율을 그대로 넣으면 과대</b>됩니다</div>
+            </div>
+            <div class="input-group" style="margin:0">
+              <div class="input-label">최저보증이율 (%) <span class="hint" style="font-size:10px;margin:0">최악 시나리오용</span></div>
+              <input type="number" id="az-min-guar" min="0" max="5" step="0.05" value="1.0" oninput="_azTouch();updateAnnuity()">
+              <div class="hint" style="margin-top:3px;font-size:10px">공시 실측 0.5~1.25% · 금리가 여기까지 내려가면 받는 금액</div>
+            </div>
+            <div class="input-group" style="margin:0">
+              <div class="input-label">기타 종합소득 과세표준 (만원)</div>
+              <input type="number" id="az-other-base" min="0" max="500000" step="100" value="0" oninput="_azTouch();updateAnnuity()">
+              <div class="hint" style="margin-top:3px;font-size:10px">금융소득 외 소득 — 종합과세 판정용</div>
+            </div>
+          </div>
+
+          <div style="margin-top:13px;padding-top:12px;border-top:1px dashed #e2e1da">
+            <div style="font-size:12.5px;font-weight:800;color:#101828;margin-bottom:4px">어디에 투입할까요 <span class="az-badge az-b-warn" id="az-alloc-warn" style="display:none">합계 100% 아님</span></div>
+            <div class="hint" style="margin-bottom:8px">보증이 필요한 만큼은 <b>보험</b>에, 나머지를 커버드콜·배당형에 나눕니다. 합이 100%가 되도록 자동 정규화됩니다.</div>
+            <div class="az-src-row">
+              <div class="az-src-nm">🏦 일시납 연금(보험)<i>지급 보증 있음</i></div>
+              <div class="az-src-rng"><input type="range" id="az-alloc-ins" min="0" max="100" step="5" value="100" oninput="_azTouch();updateAnnuity()" aria-label="일시납 연금 배분"><span class="az-src-pct" id="az-alloc-ins-v">100%</span></div>
+              <div class="az-src-amt"><span id="az-alloc-ins-amt">—</span></div>
+            </div>
+            <div class="az-src-row">
+              <div class="az-src-nm">📊 커버드콜 ETF<i>보증 없음 · 분배금 변동</i></div>
+              <div class="az-src-rng"><input type="range" id="az-alloc-cc" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()" aria-label="커버드콜 배분"><span class="az-src-pct" id="az-alloc-cc-v">0%</span></div>
+              <div class="az-src-amt"><span id="az-alloc-cc-amt">—</span></div>
+            </div>
+            <div class="az-src-row">
+              <div class="az-src-nm">💎 배당형 자산<i>보증 없음 · 배당 변동</i></div>
+              <div class="az-src-rng"><input type="range" id="az-alloc-div" min="0" max="100" step="5" value="0" oninput="_azTouch();updateAnnuity()" aria-label="배당형 배분"><span class="az-src-pct" id="az-alloc-div-v">0%</span></div>
+              <div class="az-src-amt"><span id="az-alloc-div-amt">—</span></div>
+            </div>
+            <div class="az-grid3" style="margin-top:10px">
+              <div class="input-group" style="margin:0">
+                <div class="input-label">커버드콜 분배율 (%)</div>
+                <input type="number" id="az-cc-dist" min="0" max="30" step="0.5" value="10" oninput="_azTouch();updateAnnuity()">
+              </div>
+              <div class="input-group" style="margin:0">
+                <div class="input-label">배당형 배당률 (%)</div>
+                <input type="number" id="az-div-yield" min="0" max="20" step="0.5" value="5" oninput="_azTouch();updateAnnuity()">
+              </div>
+              <div class="input-group" style="margin:0;display:flex;align-items:flex-end">
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11.5px;font-weight:700;color:#475569;padding-bottom:9px"><input type="checkbox" id="az-divsep-on" onchange="_azTouch();updateAnnuity()" style="width:15px;height:15px">고배당 분리과세 특례 검토</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 매트릭스 -->
+        <div class="card" id="az-matrix-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">🧮</div> 3단계 · 상품 × 수령방식 비교 (추정)</div>
+          <div class="hint" style="margin-bottom:8px">선택한 지급 주기 기준 <b>1회당 세전 수령액</b>입니다. 노란 칸이 현재 선택한 조합입니다.</div>
+          <div class="az-tblwrap"><table class="az-mx" id="az-matrix"></table></div>
+          <div id="az-matrix-note" class="az-note"></div>
+        </div>
+
+        <!-- 4. 세후 상세 -->
+        <div class="card" id="az-detail-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">🧾</div> 4단계 · 세금 빼고 손에 쥐는 금액 (추정)</div>
+          <div id="az-detail"></div>
+        </div>
+
+        <!-- 5. 주기 비교 -->
+        <div class="card" id="az-cycle-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">🔁</div> 5단계 · 월 · 분기 · 반기 · 연 비교 (추정)</div>
+          <div class="az-tblwrap"><table class="az-tbl" id="az-cycle-tbl"></table></div>
+          <div class="hint" style="margin-top:8px;line-height:1.6">※ 연 1회로 받으면 <b>연간 총액이 조금 더 큽니다</b> — 지급 시점이 뒤로 밀리는 만큼 그 사이 이자가 더 붙기 때문입니다. 다만 그동안의 생활비는 다른 돈으로 메워야 하므로 <b>총액이 크다고 유리한 것은 아닙니다</b>.</div>
+        </div>
+
+        <!-- 6. 분리과세 특례 (배당 배분 시에만) -->
+        <div class="card" id="az-divsep-card" style="display:none">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">⚖️</div> 고배당 분리과세 특례 검토 (추정)</div>
+          <div id="az-divsep"></div>
+        </div>
+
+        <!-- 7. 근거 -->
+        <div class="card" id="az-basis-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#55534e">📐</div> 이 숫자는 어떻게 나왔나</div>
+          <div id="az-basis-summary" class="az-note" style="margin-top:0"></div>
+          <details class="az-basis" style="margin-top:10px">
+            <summary>종신형 지급률표 전문 · 전제 · 검증</summary>
+            <div class="az-basis-body">
+              <div id="az-basis-body"></div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 8. 결론 + 반영 -->
+        <div class="card" id="az-conc-card">
+          <div class="card-title"><div class="ico" style="background:#f1f0ec;color:#0b1f33">🎯</div> 한 장으로 보는 결론</div>
+          <div id="az-conc"></div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed #e2e1da">
+            <div style="font-size:12.5px;font-weight:800;color:#101828;margin-bottom:6px">현금흐름에 반영하기</div>
+            <div class="hint" style="margin-bottom:8px">이 단계는 기본적으로 <b>읽기 전용</b>입니다. 아래 버튼을 누를 때만 다른 단계의 값이 바뀝니다.</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:#475569"><input type="checkbox" id="az-apply-priv" checked style="width:15px;height:15px">보험 연금분을 <b style="margin:0 3px">4단계 「개인연금 월 수령액」(세전)</b>에 반영 <span id="az-apply-priv-v" style="color:#94a3b8"></span></label>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onclick="applyAnnuityToCashflow()" style="background:#0b1f33;color:#fff;border:none;border-radius:9px;padding:11px 20px;font-size:12.5px;font-weight:800;cursor:pointer">📥 현금흐름에 반영</button>
+              <button onclick="revertAnnuityFromCashflow()" style="background:#fff;color:#475569;border:1.5px solid #e2e1da;border-radius:9px;padding:11px 20px;font-size:12.5px;font-weight:800;cursor:pointer">↩️ 되돌리기</button>
+            </div>
+            <div id="az-apply-msg" class="az-msg"></div>
+            <div class="hint" style="margin-top:8px;line-height:1.6">※ 커버드콜·배당 분배금은 <b>연금소득이 아니라 금융소득</b>이라 개인연금 칸에 넣지 않습니다(연금소득세 3.3~5.5%로 잘못 낮게 계산되는 것을 막기 위함). 보험 연금분은 <b>세전</b>으로 넣습니다 — 세금은 4·5단계 엔진이 다시 계산하므로 세후를 넣으면 이중과세가 됩니다. 자산 차감은 앞 단계 입력을 건드리지 않고 화면 표기로만 알려드립니다.</div>
+          </div>
+        </div>
+
+        <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
+          <button onclick="app.goTo1()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo3()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 3단계 은퇴 시기 설정 →</button>
+        </div>
+      </section>
+
+      <!-- ============ Step 3 ============ -->
+      <section id="step3" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+        <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:26px">
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">3</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase A · 자산·소득 진단</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">은퇴 시기 및 연금 시작 나이 설계</h2>
@@ -321,15 +707,15 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo1()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo3()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 3단계 수입·지출 분석 →</button>
+          <button onclick="app.goTo2()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo4()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 4단계 수입·지출 분석 →</button>
         </div>
       </section>
 
-      <!-- ============ Step 3 ============ -->
-      <section id="step3" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+      <!-- ============ Step 4 ============ -->
+      <section id="step4" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:26px">
-          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">3</span>
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">4</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase A · 자산·소득 진단</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">은퇴 후 현금흐름 분석</h2>
@@ -491,15 +877,15 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo2()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo4()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 4단계 연금·세금 분석 →</button>
+          <button onclick="app.goTo3()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo5()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 5단계 연금·세금 분석 →</button>
         </div>
       </section>
 
-      <!-- ============ Step 4 ============ -->
-      <section id="step4" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+      <!-- ============ Step 5 ============ -->
+      <section id="step5" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:26px">
-          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">4</span>
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">5</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase A · 자산·소득 진단</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">연금·건강보험 세부 분석</h2>
@@ -567,15 +953,15 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo3()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo5()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 5단계 목표자금 & 저축 로드맵 →</button>
+          <button onclick="app.goTo4()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo6()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 6단계 목표자금 & 저축 로드맵 →</button>
         </div>
       </section>
 
-      <!-- ============ Step 5 ============ -->
-      <section id="step5" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+      <!-- ============ Step 6 ============ -->
+      <section id="step6" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:22px">
-          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">5</span>
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">6</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase B · 솔루션 설계</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">은퇴 목표자금 & 저축 로드맵</h2>
@@ -659,15 +1045,15 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo4()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo6()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 6단계 절세 계좌 솔루션 →</button>
+          <button onclick="app.goTo5()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo7()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 7단계 절세 계좌 솔루션 →</button>
         </div>
       </section>
 
-      <!-- ============ Step 6 ============ -->
-      <section id="step6" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+      <!-- ============ Step 7 ============ -->
+      <section id="step7" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:22px">
-          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">6</span>
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">7</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase B · 솔루션 설계</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">절세 계좌 및 세액공제 시뮬레이션</h2>
@@ -752,15 +1138,15 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo5()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo7()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 7단계 효과 검증 →</button>
+          <button onclick="app.goTo6()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo8()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 8단계 효과 검증 →</button>
         </div>
       </section>
 
-      <!-- ============ Step 7 ============ -->
-      <section id="step7" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+      <!-- ============ Step 8 ============ -->
+      <section id="step8" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:22px">
-          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">7</span>
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">8</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase B · 솔루션 설계</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">솔루션 개선 효과 비교</h2>
@@ -812,15 +1198,15 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo6()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo8()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 8단계 상속·증여 →</button>
+          <button onclick="app.goTo7()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo9()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 9단계 상속·증여 →</button>
         </div>
       </section>
 
-      <!-- ============ Step 8 ============ -->
-      <section id="step8" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
+      <!-- ============ Step 9 ============ -->
+      <section id="step9" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:14px;padding:34px">
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #eceae3;margin-bottom:22px">
-          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">8</span>
+          <span style="background:#0b1f33;color:#c9a24b;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">9</span>
           <div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#94a3b8;text-transform:uppercase;margin:0 0 3px">Phase C · 세무·상속 자문</p>
             <h2 style="font-size:22px;font-weight:800;color:#101828;margin:0">상속세 예상 및 증여 절세 시뮬레이션</h2>
@@ -872,13 +1258,13 @@
         </div>
 
         <div class="nl-stepnav" style="display:flex;justify-content:space-between;gap:10px;padding-top:24px">
-          <button onclick="app.goTo7()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
-          <button onclick="app.goTo9()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 9단계 종합 보고서 →</button>
+          <button onclick="app.goTo8()" style="background:#f1f0ec;color:#475569;padding:13px 22px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;cursor:pointer">← 이전</button>
+          <button onclick="app.goTo10()" style="background:#0b1f33;color:#fff;padding:14px 30px;border-radius:9px;font-size:14px;font-weight:800;border:none;cursor:pointer">다음: 10단계 종합 보고서 →</button>
         </div>
       </section>
 
       <!-- ============ Step 9 : 종합 진단 보고서 ============ -->
-      <section id="step9" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:16px;padding:48px 44px">
+      <section id="step10" style="display:none;background:#ffffff;border:1px solid #e2e1da;border-radius:16px;padding:48px 44px">
         <div style="text-align:center;margin-bottom:34px;border-bottom:3px solid #0b1f33;padding-bottom:26px">
           <p style="color:#0b1f33;font-weight:800;letter-spacing:.2em;font-size:11px;margin:0 0 8px;text-transform:uppercase">NEXT LIFE · Executive Solution Report</p>
           <h1 style="font-size:29px;font-weight:800;color:#101828;letter-spacing:-.01em;margin:0">은퇴 자산 종합 정밀 진단 보고서</h1>
@@ -1016,6 +1402,558 @@
   </div>
 </div>
 
+
+<script>
+/* ============================================================
+   Next Life — 세액 계산 코어 (순수 함수)
+   전문가용 base-store 의 [[CORE:tax]] 블록에서 「연금화 설계」가 호출하는
+   7개 함수만 골라 1:1 그대로 이식했다. 수식·상수·주석을 손대지 않은 것은
+   이 프로젝트에 자동 테스트가 없어 「원본과 글자가 같다」가 유일한 정합
+   근거이기 때문이다. 이름을 Calc.* 로 감싸지 않은 것도 같은 이유다.
+
+   DOM 접근 금지. 세법 상수는 TAX_AZ(아래) 한 곳에서만 읽는다.
+   ============================================================ */
+
+// 세법 스냅샷 — js/legal-constants.js 를 단일 출처로 삼되, 파일 로드 실패에도
+// 계산이 멈추지 않도록 리터럴 폴백을 병기한다(값은 상수 파일과 동일).
+const TAX_AZ = (function () {
+  const L = (typeof LEGAL_CONSTANTS !== 'undefined') ? LEGAL_CONSTANTS : {};
+  return {
+    financialTaxRate:         L.FIN_INCOME_WITHHOLDING_RATE    ?? 0.154,
+    financialIncomeLimit:     L.FIN_INCOME_COMPREHENSIVE_LIMIT ?? 2000,
+    finIncomeExemptThreshold: L.HEALTH_FIN_INCOME_EXEMPT       ?? 1000,
+    dependIncomeLimit:        L.HEALTH_DEPENDENT_INCOME_LIMIT  ?? 2000,
+    healthLocalPremiumRate:   L.HEALTH_LOCAL_INCOME_RATE       ?? 0.0719,
+    ltcPremiumRate:           L.LTC_PREMIUM_RATE               ?? 0.1314,
+    propPointValue:           L.HEALTH_PROP_POINT_VALUE        ?? 211.5,
+    propBaseDeduct:           L.HEALTH_PROP_BASE_DEDUCT        ?? 10000
+  };
+})();
+
+// 종합소득세 계산 (만원 단위, 지방소득세 포함)
+function calcComprehensiveTax(taxBase) {
+  if (taxBase <= 0) return 0;
+  const brackets = [
+    [1400, 0.066,     0],
+    [5000, 0.165,   138.6],
+    [8800, 0.264,   633.6],
+    [15000, 0.385, 1698.4],
+    [30000, 0.418, 2193.4],
+    [50000, 0.44,  2853.4],
+    [100000, 0.462,3953.4],
+    [Infinity, 0.495,7253.4]
+  ]; // 누진공제액: 국세 기준 × 1.1 (지방소득세 10% 포함)
+  for (const [limit, rate, deduct] of brackets) {
+    if (taxBase <= limit) return Math.max(0, taxBase * rate - deduct);
+  }
+  // 안전장치 — Infinity 분기까지 도달하므로 이 줄은 실제 도달 불가지만,
+  // 만일의 경우를 대비해 정확한 누진공제액(7253.4) 적용 + 음수 방어
+  return Math.max(0, taxBase * 0.495 - 7253.4);
+}
+
+// 금융소득종합과세 비교과세 (소득세법 §62) — 만원 단위, 지방소득세 포함
+//  otherTaxBase: 금융소득 제외 종합소득 과세표준(인적공제 차감 후), finIncome: 이자+배당 합계
+//  금융소득 2,000만 초과 시 산출세액 = MAX(① 일반산출세액, ② 비교산출세액)
+//   ① 2,000만 초과분만 누진 + 2,000만 × 15.4%
+//   ② 금융소득 전액 15.4% + 다른 종합소득만 누진
+//  2,000만 이하 → 분리과세(14%)로 종합 미합산 (다른 소득만 누진과세 반환)
+function calcFinCompTax(otherTaxBase, finIncome) {
+  otherTaxBase = Math.max(0, otherTaxBase);
+  finIncome = Math.max(0, finIncome || 0);
+  const TH = TAX_AZ.financialIncomeLimit; // 금융소득종합과세 기준금액(만원)
+  const R  = TAX_AZ.financialTaxRate;     // 금융소득 원천징수세율 14% + 지방소득세 1.4%
+  if (finIncome <= TH) return calcComprehensiveTax(otherTaxBase); // 분리과세 — 종합 미합산
+  const general = calcComprehensiveTax(Math.max(0, otherTaxBase + finIncome - TH)) + TH * R; // 일반산출세액
+  const compare = calcComprehensiveTax(otherTaxBase) + finIncome * R;                        // 비교산출세액
+  return Math.max(general, compare);
+}
+
+// 🏠 지역가입자 재산보험료 계산 — 60등급 공식 테이블 (2026 기준, 기본공제 1억원)
+function _calcPropPremMonth(propTaxManwon) {
+  const BASE_DEDUCT = TAX_AZ.propBaseDeduct; // 2026년 기본공제 1억원
+  const v = Math.max(0, propTaxManwon - BASE_DEDUCT);
+  if (v <= 0) return 0;
+  // [구간상한(만원), 점수] — 국민건강보험법 시행령 별표4 (2025.6 기준)
+  const T = [
+    [450,22],[900,44],[1350,66],[1800,97],[2250,122],
+    [2700,146],[3150,171],[3600,195],[4050,219],[4500,244],
+    [5020,268],[5590,294],[6220,320],[6930,344],[7710,365],
+    [8590,386],[9570,412],[10700,439],[11900,465],[13300,490],
+    [14800,516],[16400,535],[18300,559],[20400,586],[22700,611],
+    [25300,637],[28100,659],[31300,681],[34900,706],[38800,731],
+    [43200,757],[48100,785],[53600,812],[59700,841],[66500,881],
+    [74000,921],[82400,961],[91800,1001],[103000,1041],
+    [114000,1091],[127000,1141],[142000,1191],[158000,1241],[176000,1291],
+    [196000,1341],[218000,1391],[242000,1451],[270000,1511],[300000,1571],
+    [330000,1641],[363000,1711],[399300,1781],[439230,1851],[483153,1921],
+    [531468,1991],[584615,2061],[643077,2131],[707385,2201],[778124,2271],
+    [Infinity,2341]
+  ];
+  let score = 2341;
+  for (const [upper, pts] of T) { if (v <= upper) { score = pts; break; } }
+  return Math.round(score * TAX_AZ.propPointValue); // 원/월 (2025.11~ 법령 211.5원/점)
+}
+
+// 🏥 건보 피부양자 게이트 판정 (순수) — hc = { depIncLimit, finExemptLim }
+//    소득 베이스 비대칭 주의: 피부양자 판정은 사적연금 항상 제외·금융 1,000만 초과 시 전액 합산·사업소득 1원 탈락,
+//    지역가입자 보험료 소득(_hiLocalPremium)에는 사업소득 포함 — 두 베이스가 다른 것이 법령 정합(시행령 §41).
+function _hiDepGates(inc, hc) {
+  const finIncomeAdded = inc.finIncome > hc.finExemptLim ? inc.finIncome : 0;
+  const totalIncomeForDep = Math.round(inc.taxableNpsOnly + inc.gpAnnual + finIncomeAdded + inc.otherIncome);
+  const gate0Pass = inc.depRelation !== 'none';
+  const siblingViolation = inc.depRelation === 'sibling' && inc.propertyTax > 18000; // 형제자매 재산 1.8억 룰
+  const bizGatePass = inc.bizIncome === 0; // 사업소득 1원이라도 있으면 자동 탈락
+  const gate1Pass = totalIncomeForDep <= hc.depIncLimit;
+  const gate2Pass = inc.propertyTax <= 90000;
+  const gate3Pass = inc.propertyTax <= 54000 || (inc.propertyTax <= 90000 && totalIncomeForDep <= hc.finExemptLim);
+  const allPass = gate0Pass && bizGatePass && !siblingViolation && gate1Pass && gate2Pass && gate3Pass;
+  const incomeMargin   = hc.depIncLimit - totalIncomeForDep;
+  const propertyMargin = (inc.propertyTax <= 54000 ? 54000 : 90000) - inc.propertyTax;
+  const noPubPension = (inc.npsAnnual === 0 && inc.gpAnnual === 0); // 소득 0원 = "안전" 아닌 "미확인"
+  let riskLevel, riskLabel;
+  if (!allPass) {
+    riskLevel = 'danger'; riskLabel = '🔴 탈락';
+  } else if (noPubPension) {
+    riskLevel = 'warn'; riskLabel = '🟡 미확인 (공적연금 입력 필요)';
+  } else if (incomeMargin < 200 || (inc.propertyTax > 54000 && propertyMargin < 5000)) {
+    riskLevel = 'warn'; riskLabel = '🟡 주의 (한계 임박)';
+  } else {
+    riskLevel = 'safe'; riskLabel = '🟢 안전';
+  }
+  return { finIncomeAdded, totalIncomeForDep, gate0Pass, siblingViolation, bizGatePass,
+           gate1Pass, gate2Pass, gate3Pass, allPass, incomeMargin, propertyMargin, noPubPension,
+           riskLevel, riskLabel };
+}
+
+// 🏥 지역가입자 건보료 추정 (순수, 만원/월) — hc = { healthRate, ltcRate, finExemptLim }
+function _hiLocalPremium(inc, hc) {
+  const localFinIncome  = inc.finIncome > hc.finExemptLim ? inc.finIncome : 0;
+  const localIncomeBase = Math.max(0, inc.taxableNpsOnly + inc.gpAnnual + localFinIncome + inc.bizIncome + inc.otherIncome);
+  const localIncomeFee  = (localIncomeBase / 12) * hc.healthRate;      // 건강보험료 (만원/월)
+  const localPropFee    = _calcPropPremMonth(inc.propertyTax) / 10000; // 60등급 테이블 (원/월 → 만원/월)
+  const localFeeMonthly = (localIncomeFee + localPropFee) * (1 + hc.ltcRate); // 장기요양 포함
+  return { localFinIncome, localIncomeBase, localIncomeFee, localPropFee, localFeeMonthly, localFeeAnnual: localFeeMonthly * 12 };
+}
+
+// ★ 고배당 상장법인 배당소득 분리과세 특례 (순수, 만원) — 2026~2028 한시(조특법), 연장 미정
+//   구간 누진(국세 14/20/25/30%) + 지방소득세 10% 별도 → 실질 15.4/22/27.5/33%
+//   tc.yearCfg.divSep 없으면 리터럴 기본값 폴백 (CORE 규율: DOM·전역 설정 직참조 금지)
+function _calcDivSepTax(divManwon, tc) {
+  const d = Math.max(0, +divManwon || 0);
+  const cfg = (tc && tc.yearCfg && tc.yearCfg.divSep) || null;
+  const brackets = (cfg && cfg.brackets) || [[2000, 0.14], [30000, 0.20], [500000, 0.25], [Infinity, 0.30]];
+  const surtax = (cfg && cfg.localSurtax != null) ? cfg.localSurtax : 0.10;
+  let natTax = 0, prev = 0;
+  for (let i = 0; i < brackets.length; i++) {
+    const cap = brackets[i][0], rate = brackets[i][1];
+    if (d > prev) natTax += (Math.min(d, cap) - prev) * rate;
+    if (d <= cap) break;
+    prev = cap;
+  }
+  const localTax = natTax * surtax;
+  return { tax: natTax + localTax, natTax: natTax, localTax: localTax };
+}
+
+// ★ 배당 분리과세 선택 vs 전량 종합과세 비교 (순수, 만원) — 기존 calcFinCompTax(§62 비교과세)를 그대로 재사용
+//   otherBase: 금융소득 제외 종합소득 과세표준 / finIncome: 이자+배당 합계 / sepDiv: 분리과세 대상 고배당 배당액
+//   ⚠️ 건보료 소득 산입은 분리과세 선택과 무관 — 이 함수는 소득세만 비교한다(호출부에서 경고 고정 표기).
+function _calcDivTaxCompare(otherBase, finIncome, sepDiv, tc) {
+  otherBase = Math.max(0, +otherBase || 0);
+  finIncome = Math.max(0, +finIncome || 0);
+  const sepDivUsed = Math.min(Math.max(0, +sepDiv || 0), finIncome); // 대상 배당은 금융소득 합계를 넘을 수 없음
+  const compTax = calcFinCompTax(otherBase, finIncome);              // A안: 전량 종합(현행 §62 비교과세)
+  const div = _calcDivSepTax(sepDivUsed, tc);
+  const sepTax = calcFinCompTax(otherBase, finIncome - sepDivUsed) + div.tax; // B안: 대상 배당만 분리 선택
+  const saveAmt = compTax - sepTax;                                  // 양수 = 분리과세 선택이 유리
+  return { compTax: compTax, sepTax: sepTax, saveAmt: saveAmt, better: saveAmt > 0 ? 'sep' : 'comp',
+           sepDivUsed: sepDivUsed, divTax: div.tax, divNatTax: div.natTax, divLocalTax: div.localTax };
+}
+</script>
+
+<script>
+/* ═══ 연금화 설계 — 순수 코어 ═══ */
+// [[CORE:annuity:start]] — 전문가용 base-store 의 동명 블록을 1:1 이식.
+//   블록 규율: DOM/window 접근 금지. 세법 상수는 tc 폴백(||·typeof) 문맥에서만 참조.
+//   tc = { yearCfg: null, flat: TAX_AZ } — 미전달 시 리터럴 폴백(기존 등가).
+//   단위: 금액은 전부 「만원」, 이율은 소수(0.025 = 2.5%), 연령은 만나이, p = 연간 지급 횟수.
+
+// ── 연금수령자 잔여기대여명 e (년) — 지급률표 생성 파라미터이자 종신형 보험차익 안분의 분모 ──
+//   통계청 완전생명표 + 연금선택효과 +3.5년 근사. 보험개발원 경험생명표 원표가 아니다.
+var AZ_LIFE_E = {
+  m: { 55:31.5, 60:27.0, 65:22.8, 70:18.7, 75:14.8, 80:11.4, 85:8.4 },
+  f: { 55:36.5, 60:31.8, 65:27.2, 70:22.7, 75:18.3, 80:14.2, 85:10.5 }
+};
+// ── 일시납 즉시연금 월 지급액 근사표 (1억당 만원/월 · 무보증 종신 · 예정이율 2.5%) ──
+//   생성식: rate = 10000 × LOAD / (12 × a12),  a12 = a1 × i/i^(12),  a1 = (1−(1+i)^(−e))/i
+//     e = AZ_LIFE_E · i = 0.025 · i/i^(12) = 1.011403 · LOAD = 0.867
+//   🎯 LOAD 캘리브레이션(2026-07): 국내 주요 생보사 4곳의 일시납 즉시연금 공시 예시
+//      (일시납 1억원 · 65세 남자 · 종신 20년보증 · 연금개시 후 현공시이율 가정) 평균
+//      **월 39.03만원** 에 맞춰 역산했다. 본 표의 65세 남 20년보증 = 41.5 × 0.94 = 39.01 (오차 −0.05%).
+//   ⚠️ 특정 보험사 공시표를 그대로 옮긴 것이 아니라 4개사 평균에 수준만 맞춘 근사다.
+//      무료판에는 상담사용 「실제 예시표 오버라이드」 입력이 없다 — 이 표가 유일한 산출 근거이므로
+//      화면·보고서에 「근사」 배지와 전제를 항상 병기한다. 실제 금액은 보험사 예시표로 확인해야 한다.
+//   ⚠️ 근거 자료는 사내교육용이라 회사명·개별 상품 수치를 화면·보고서에 인쇄하지 않는다(평균만 표기).
+var AZ_LIFE_RATE = {
+  m: { 55:33.0, 60:36.7, 65:41.5, 70:48.3, 75:58.3, 80:72.8, 85:95.3 },
+  f: { 55:30.1, 60:32.8, 65:36.5, 70:41.6, 75:49.1, 80:60.4, 85:78.2 }
+};
+// 📊 실측 벤치마크 (4개사 평균 · 일시납 1억 · 65세 남 · 만원/월) — 근거 카드·보고서가 소비한다.
+//    좌: 연금개시 후 「최저보증이율」 가정 / 우: 「현공시이율」 가정. 둘의 격차가 곧 금리 하락 리스크다.
+//    상속형은 이자만 받는 구조라 금리에 그대로 노출되어 격차가 147%까지 벌어진다(가장 중요한 고지 사항).
+var AZ_MARKET_65M = {
+  asOf: '2026.07',
+  rows: [
+    { k:'life20',  label:'종신형 (20년 보증)',  min:31.53, cur:39.03 },
+    { k:'life100', label:'종신형 (100세 보증)', min:26.12, cur:33.48 },
+    { k:'term10',  label:'확정형 (10년 지급)',  min:84.57, cur:90.99 },
+    { k:'term20',  label:'확정형 (20년 지급)',  min:44.10, cur:50.80 },
+    { k:'inherit', label:'상속형 (종신)',       min:8.00,  cur:19.73 }
+  ],
+  // 위 실측 지급액을 이 앱의 정확식으로 역산한 실효이율(현공시 가정). 「실효 이율」 입력의 현실적 밴드.
+  impliedRate: { term10: 1.79, term20: 2.06, inherit: 2.39 },
+  // 📋 생명보험협회 공시 「저축성 상품비교」(일시납 5,000만원, 즉시·저축성 8종) 실측 밴드.
+  //    공시이율은 상품이 표방하는 부리이율이고, 위 impliedRate 는 사업비 차감 후 실제 지급액에서 역산한 값이다.
+  //    둘의 차(약 0.2~0.8%p)가 곧 사업비 드래그이며, 지급 기간이 짧을수록 커진다(선취 사업비가 짧게 분산되므로).
+  disclosed: { min: 2.41, max: 2.67, avg: 2.59 },   // 현재공시이율
+  feeRate:   { min: 0.00, max: 2.60, avg: 1.91 },   // 사업비율(1년 시점, 납입보험료 대비)
+  // 최저보증이율 — 실측 0.5~1.25%(가입 후 경과기간별 차등). 대표값 1.0% 를 시나리오 기본값으로 쓴다.
+  minGuar: { min: 0.5, max: 1.25, typical: 1.0 },
+  // 종신형은 지급률표가 공시이율 기준 고정표라 이율을 바꿔 재계산할 수 없다.
+  //    실측 비율(31.53/39.03)을 곱해 최저보증 시나리오를 만든다 — 확정·상속형은 정확식으로 직접 재계산.
+  minGuarRatioLife: 0.808
+};
+// 보증기간 하향 배수 (무보증 = 1.00). 앵커 = 「65세 10년보증 −2% / 20년보증 −6%」 시장 통설을
+// 연령별 사망률 증가에 맞춰 확장. 성별 공통 근사(여성 실제는 0.5~1%p 관대).
+var AZ_GUAR_ADJ = {
+  0:  { 55:1.000, 60:1.000, 65:1.000, 70:1.000, 75:1.000, 80:1.000, 85:1.000 },
+  10: { 55:0.995, 60:0.990, 65:0.980, 70:0.965, 75:0.940, 80:0.900, 85:0.840 },
+  20: { 55:0.975, 60:0.960, 65:0.940, 70:0.900, 75:0.840, 80:0.760, 85:0.660 }
+};
+var AZ_AGE_ANCHORS = [55, 60, 65, 70, 75, 80, 85];
+
+// 5세 앵커 선형보간 + 양끝 클램프.
+// 앵커 위에서는 보간식을 타지 않고 원값을 반환한다 — 부동소수 오차로 표값이 흔들리지 않게.
+function _azInterpAge(tbl, age) {
+  var A = AZ_AGE_ANCHORS, n = A.length;
+  var a = +age;
+  if (!isFinite(a)) a = A[0];
+  if (a <= A[0]) return tbl[A[0]];
+  if (a >= A[n - 1]) return tbl[A[n - 1]];
+  for (var i = 0; i < n; i++) if (a === A[i]) return tbl[A[i]];
+  for (var j = 0; j < n - 1; j++) {
+    if (a < A[j + 1]) {
+      var lo = A[j], hi = A[j + 1];
+      return tbl[lo] + (tbl[hi] - tbl[lo]) * (a - lo) / (hi - lo);
+    }
+  }
+  return tbl[A[n - 1]];
+}
+function _azLifeRateAt(age, sex) { return _azInterpAge(AZ_LIFE_RATE[sex === 'f' ? 'f' : 'm'], age); }
+function _azLifeEAt(age, sex)    { return _azInterpAge(AZ_LIFE_E[sex === 'f' ? 'f' : 'm'], age); }
+// 보증기간은 0/10/20 노드에서 원값, 사이는 선형 — UI 는 3단 세그지만 복원값이 어긋나도 안전하게.
+function _azGuarAdjAt(age, guar) {
+  var g = Math.min(20, Math.max(0, +guar || 0));
+  if (g <= 0)  return _azInterpAge(AZ_GUAR_ADJ[0],  age);
+  if (g >= 20) return _azInterpAge(AZ_GUAR_ADJ[20], age);
+  if (g === 10) return _azInterpAge(AZ_GUAR_ADJ[10], age);
+  var v10 = _azInterpAge(AZ_GUAR_ADJ[10], age);
+  if (g < 10) { var v0 = _azInterpAge(AZ_GUAR_ADJ[0], age); return v0 + (v10 - v0) * (g / 10); }
+  var v20 = _azInterpAge(AZ_GUAR_ADJ[20], age);
+  return v10 + (v20 - v10) * ((g - 10) / 10);
+}
+
+// ── 지급주기 변환 ──────────────────────────────────────────────────────────
+//   i_p = (1+i)^(1/p) − 1 (주기 실효이율) · i^(p) = p·i_p (연 명목이율)
+//   ⚠️ 이 단계는 「실효이율」 규약이다.
+function _azNomRate(i, m) {
+  var per = Math.max(1, Math.round(+m || 12));
+  var r = +i;
+  if (!isFinite(r) || r <= 0) return 0;
+  if (per === 1) return r;   // Math.pow(1+r,1)−1 은 부동소수 오차가 남는다 — 연 1회는 정의상 i 자체
+  return per * (Math.pow(1 + r, 1 / per) - 1);
+}
+// X_p / X_12 = i^(p)/i^(12). 확정기간형·상속형에서는 근사가 아니라 항등식이다(원금·할인항이 p에 무관).
+// 종신형에는 같은 배율을 쓴다 — 이때는 근사(사망률 항 무시)이나, 대안인 Woolhouse 근사가
+// 지급액을 과대평가하는 것과 달리 오차 방향이 안전하고 3방식이 하나의 SSOT를 공유한다.
+function _azCycleF(i, p) {
+  var r = +i;
+  if (!isFinite(r) || r <= 0) return 1;
+  var d = _azNomRate(r, 12);
+  if (!(d > 0)) return 1;
+  return _azNomRate(r, p) / d;
+}
+// 확정기간형 회당 지급액 — PMT = P·i_p / (1 − (1+i)^(−n)). i≤0 이면 단순 분할.
+function _azTermPmt(P, i, n, p) {
+  var amt = Math.max(0, +P || 0);
+  var per = Math.max(1, Math.round(+p || 12));
+  var yrs = Math.max(0, +n || 0);
+  var N = yrs * per;
+  if (amt <= 0 || N <= 0) return 0;
+  var r = +i;
+  if (!isFinite(r) || r <= 0) return amt / N;
+  var den = 1 - Math.pow(1 + r, -yrs);
+  if (!(den > 0)) return amt / N;
+  return amt * (Math.pow(1 + r, 1 / per) - 1) / den;
+}
+// 상속형 회당 지급액 — 이자만 수령, 원금 P 는 전액 상속(잔존원금 불변).
+function _azInheritPmt(P, i, p) {
+  var amt = Math.max(0, +P || 0);
+  var per = Math.max(1, Math.round(+p || 12));
+  var r = +i;
+  if (amt <= 0 || !isFinite(r) || r <= 0) return 0;
+  return amt * (Math.pow(1 + r, 1 / per) - 1);
+}
+// 종신형 월 지급액 — 근사표 × 보증배수, 단 확정 g년 연금액을 상한으로 clamp.
+//   보증 지급총액이 원금+이자를 넘으면 그런 상품은 성립하지 않는다(판매 불가 조건을 인쇄하지 않기 위한 가드).
+function _azLifeMonthly(P, age, sex, guar, i0) {
+  var amt = Math.max(0, +P || 0);
+  var g = Math.min(20, Math.max(0, +guar || 0));
+  var base = _azLifeRateAt(age, sex) * _azGuarAdjAt(age, g);   // 1억당 만원/월
+  var raw = amt / 10000 * base;
+  var cap = g > 0 ? _azTermPmt(amt, i0, g, 12) : Infinity;
+  return { rate: base, raw: raw, pmt: Math.min(raw, cap), cap: cap, clamped: raw > cap };
+}
+// 종신형 회당 지급액 (주기 p). 지급률표가 월 기준이므로 배율식으로 환산한다.
+function _azLifePmt(P, age, sex, guar, i0, p) {
+  var per = Math.max(1, Math.round(+p || 12));
+  var m = _azLifeMonthly(P, age, sex, guar, i0);
+  return m.pmt * 12 * _azCycleF(i0, per) / per;
+}
+
+// ── 현금화 비용 ────────────────────────────────────────────────────────────
+// 양도가액 대비 차익 비율. gainPct = 취득가 대비 상승률(%) — Infinity 면 취득가 0(전액이 차익).
+function _azGainRatio(gainPct) {
+  var g = +gainPct;
+  if (!isFinite(g)) return g > 0 ? 1 : 0;
+  g = Math.max(0, g) / 100;
+  return g / (1 + g);
+}
+// 부동산 양도세 (근사). 장기보유특별공제 10년 40% / 15년 50% / 20년 60%.
+//   ⚠️ 누진세율·다주택 중과·1세대1주택 비과세는 미반영 — 22% 단일 근사.
+function _azReTax(saleAmt, gainPct, holdYrs, opt) {
+  var o = opt || {};
+  var S = Math.max(0, +saleAmt || 0);
+  var h = Math.max(0, +holdYrs || 0);
+  var dedRate = h >= 20 ? 0.60 : h >= 15 ? 0.50 : 0.40;
+  var gain = S * _azGainRatio(gainPct);
+  var ded = gain * dedRate;
+  var basic = (o.basicDed != null) ? Math.max(0, +o.basicDed || 0) : 250;
+  var rate  = (o.rate    != null) ? Math.max(0, +o.rate    || 0) : 0.22;
+  var base = Math.max(0, gain - ded - basic);
+  return { gain: gain, dedRate: dedRate, ded: ded, basicDed: basic, base: base, rate: rate, tax: base * rate };
+}
+// 해외주식 양도세 — 기본공제 250만원은 연 1회다(여러 재원을 같은 해에 실현하면 1회만 적용).
+function _azOvTax(amt, gainPct, opt) {
+  var o = opt || {};
+  var A = Math.max(0, +amt || 0);
+  var ded  = (o.ded  != null) ? Math.max(0, +o.ded  || 0) : 250;
+  var rate = (o.rate != null) ? Math.max(0, +o.rate || 0) : 0.22;
+  return Math.max(0, A * _azGainRatio(gainPct) - ded) * rate;
+}
+// 저축성보험 해지 — 환급 손실 + (비과세 요건 미충족 시) 보험차익 15.4%.
+function _azInsCashOut(evalAmt, refundPct, qualified, paidIn, tc) {
+  var F = (tc && tc.flat) || (typeof TAX_AZ !== 'undefined' ? TAX_AZ : null);
+  var R = (F && F.financialTaxRate) || 0.154;
+  var V = Math.max(0, +evalAmt || 0);
+  var pct = Math.min(100, Math.max(0, (refundPct == null ? 92 : +refundPct) || 0));
+  var refund = V * pct / 100;
+  var pi = (+paidIn > 0) ? +paidIn : V * 0.85;
+  var gain = Math.max(0, refund - pi);
+  var tax = qualified ? 0 : gain * R;
+  var cost = Math.max(0, V - refund + tax);
+  return { refund: refund, paidIn: pi, gain: gain, tax: tax, cost: cost, net: V - cost, rate: R };
+}
+// 재원 집계 — 불변식 I1(gross − cost === net)이 구조적으로 성립하도록 여기서만 합산한다.
+//   rows = [{ key, gross(보유 평가액), ratio(0~1 현금화 비율), cost(현금화 비용) }]
+function _azSourceNet(rows) {
+  var list = (rows && rows.length) ? rows : [];
+  var out = [], gT = 0, cT = 0, nT = 0;
+  for (var k = 0; k < list.length; k++) {
+    var r = list[k] || {};
+    var have = Math.max(0, +r.gross || 0);
+    var rt = Math.min(1, Math.max(0, +r.ratio || 0));
+    var sale = have * rt;
+    var cost = Math.min(sale, Math.max(0, +r.cost || 0));
+    out.push({ key: r.key || '', have: have, ratio: rt, gross: sale, cost: cost, net: sale - cost });
+    gT += sale; cT += cost; nT += sale - cost;
+  }
+  return { rows: out, gross: gT, cost: cT, net: nT };
+}
+
+// ── 상품별 세금 (만원/년) ──────────────────────────────────────────────────
+//   신규 세액 산식 없음 — 기존 calcFinCompTax(§62 비교과세)·_calcDivTaxCompare 만 호출한다.
+//   ⚠️ 이 두 호출에는 typeof 가드가 없다(원본 그대로). 세액 코어가 먼저 로드돼야 한다.
+//   a   = { ins:{amt,annual}, cc:{amt,annual}, div:{amt,annual} }  amt=투입원금, annual=세전 연 수령·분배액
+//   ctx = { mode:'life'|'term'|'inherit', startAge, sex, termYears, insQualified, otherBase, divSepOn }
+function _azProductTax(a, ctx, tc) {
+  var F = (tc && tc.flat) || (typeof TAX_AZ !== 'undefined' ? TAX_AZ : null);
+  var R  = (F && F.financialTaxRate)     || 0.154;
+  var TH = (F && F.financialIncomeLimit) || 2000;
+  var LIMIT = 10000;                    // 일시납 비과세 한도 1억원 (소득세법 시행령 §25)
+  var s = a || {}, c = ctx || {};
+  var ins = s.ins || {}, cc = s.cc || {}, dv = s.div || {};
+  var mode = c.mode || 'life';
+  var insAmt = Math.max(0, +ins.amt || 0), insAnn = Math.max(0, +ins.annual || 0);
+  var ccAnn = Math.max(0, +cc.annual || 0), dvAnn = Math.max(0, +dv.annual || 0);
+  var startAge = +c.startAge || 65;
+
+  // ① 과세비율 — 종신형 요건 충족 시 한도 없이 비과세, 그 외에는 일시납 1억 초과분만 과세
+  var taxRatio;
+  if (!c.insQualified) taxRatio = 1;
+  else if (mode === 'life' && startAge >= 55) taxRatio = 0;
+  else taxRatio = insAmt > LIMIT ? (insAmt - LIMIT) / insAmt : 0;
+
+  // ② 보험차익(이자 상당) 연 환산 = 수령액 − 원금 회수분
+  var principalPerYr;
+  if (mode === 'inherit') principalPerYr = 0;                                      // 원금은 상속 → 전액이 이자
+  else if (mode === 'term') principalPerYr = insAmt / Math.max(1, +c.termYears || 20);
+  else principalPerYr = insAmt / Math.max(1, _azLifeEAt(startAge, c.sex));         // 종신 = 기대지급기간 분할
+  var insGain = Math.max(0, insAnn - principalPerYr);
+  var insInc = insGain * taxRatio;
+
+  // ③ 금융소득 합계 → 2,000만 이하 분리과세(원천징수) / 초과 시 §62 비교과세 증분
+  var finIncome = insInc + ccAnn + dvAnn;
+  var otherBase = Math.max(0, +c.otherBase || 0);
+  var finTax;
+  if (finIncome <= TH) finTax = finIncome * R;
+  else finTax = Math.max(finIncome * R, calcFinCompTax(otherBase, finIncome) - calcFinCompTax(otherBase, 0));
+
+  // ④ 고배당 분리과세 특례 — 배당형만 대상. 커버드콜 ETF 분배금은 상장법인 배당이 아니라 제외한다.
+  var sep = null, sepSave = 0;
+  if (c.divSepOn && dvAnn > 0 && finIncome > TH) {
+    sep = _calcDivTaxCompare(otherBase, finIncome, dvAnn, tc);
+    sepSave = Math.max(0, sep.saveAmt);
+  }
+  var share = function (v) { return finIncome > 0 ? finTax * (v / finIncome) : 0; };
+  return { taxRatio: taxRatio, insGain: insGain, insInc: insInc, finIncome: finIncome,
+           insTax: share(insInc), ccTax: share(ccAnn), divTax: share(dvAnn),
+           finTax: finTax, sep: sep, sepSave: sepSave,
+           total: Math.max(0, finTax - sepSave), overThreshold: finIncome > TH, rate: R, threshold: TH };
+}
+// [[CORE:annuity:end]]
+</script>
+
+<script>
+/* ═══ 결론 엔진 — 화면 결론 카드 · 보고서 요약 공용 ═══ */
+// base-store 의 _riConcEval 을 1:1 이식. 재작성하지 않은 이유는 이 44행에
+// 문장으로 옮기기 어려운 오독 방지 계약 4개가 들어 있기 때문이다:
+//   ① blocker 단일 반환(미입력 시 다른 결론을 섞지 않음)
+//   ② bad 톤 2건 상한(적색 도배 방지)
+//   ③ good·info 최소 1건 보존(「고칠 것」과 「지킬 것」이 함께 보이게)
+//   ④ 룰별 try/catch 격리(룰 하나가 보고서 전체를 죽이지 않게)
+const RI_CONC_MAX = 3;   // 요약 섹션이 1페이지를 넘지 않는 상한
+const RI_TODO_MAX = 3;
+const _RI_CONC = {};     // tabId → { collect(), blockers[], rules[], suppress[] }
+function _riConcEval(tabId, opts){
+  opts = opts || {};
+  const T = _RI_CONC[tabId]; if (!T) return [];
+  let ctx; try { ctx = T.collect(); } catch(_) { return []; }
+  if (!ctx) return [];
+  const _s = (v)=>{ try { return (typeof v==='function') ? v(ctx) : String(v==null?'':v); } catch(_) { return ''; } };
+  // ① 진입 차단 — 미입력·미가입·수급불가는 이것 하나만 내고 본문도 안내로 대체한다
+  for (const bk of (T.blockers||[])){
+    let hit=false; try { hit=!!bk.when(ctx); } catch(_){}
+    if (hit) return [{ id:bk.id, tone:'na', t:_s(bk.t), b:_s(bk.b), __block:true }];
+  }
+  // ② 룰 평가 — 개별 throw 격리(룰 하나가 보고서 전체를 죽이지 않게)
+  let out=[];
+  for (const r of (T.rules||[])){
+    let hit=false; try { hit=!!r.when(ctx); } catch(_){ continue; }
+    if (hit) out.push({ id:r.id, tone:r.tone, t:_s(r.t), b:_s(r.b), must:!!r.must });
+  }
+  // ③ 역효과 억제 — 상황에 맞지 않는 조언을 선언적으로 차단
+  for (const s of (T.suppress||[])){
+    let hit=false; try { hit=!!s.when(ctx); } catch(_){}
+    if (hit) out = out.filter(o => (s.dropIds||[]).indexOf(o.id) < 0);
+  }
+  // ④ 정렬 + 분포 상한 + 컷
+  //    준비가 부족한 고객이라도 적색 결론만 도배되지 않게 bad 를 2건으로 제한하고,
+  //    양호·참고 항목을 최소 1건 남겨 「고칠 것과 지킬 것」이 함께 보이게 한다.
+  const ord = {bad:0, warn:1, na:2, info:3, good:4};
+  const musts = out.filter(o=>o.must);
+  const rest  = out.filter(o=>!o.must).sort((a,b)=>(ord[a.tone]==null?9:ord[a.tone])-(ord[b.tone]==null?9:ord[b.tone]));
+  const max = opts.max || RI_CONC_MAX;
+  const picked=[]; let bad=0;
+  for (const o of musts) picked.push(o);
+  for (const o of rest){
+    if (picked.length >= max) break;
+    if (o.tone==='bad' && bad>=2) continue;
+    if (o.tone==='bad') bad++;
+    picked.push(o);
+  }
+  if (picked.length < max || !picked.some(o=>o.tone==='good'||o.tone==='info')){
+    const keep = rest.filter(o=>(o.tone==='good'||o.tone==='info') && picked.indexOf(o)<0)[0];
+    if (keep){ if (picked.length>=max) picked.pop(); picked.push(keep); }
+  }
+  return picked.slice(0, max);
+}
+// 문장은 수치에 해석을 붙이되 단정하지 않는다(「추정」 규약). 특정 상품의 매매를 권유하는
+// 표현은 쓰지 않는다 — 보험사·상품명 미노출 원칙과 면책 문구를 함께 지키기 위함이다.
+// ⚠️ _azKb 는 「만원」 단위 입력을 받는다. 이 앱의 Calc.formatKrwMixed 는 「원」 단위라
+//    이름을 섞으면 1만 배 오차가 난다 — base-store 의 _riKb 에서 개명한 이유.
+const _azKb = v => { v = Math.round(+v||0); return v>=10000 ? (v/10000).toFixed(1).replace(/\.0$/,'')+'억원' : v.toLocaleString()+'만원'; };
+const _azPct = v => (Math.round((+v||0)*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
+
+// ── 연금화 설계 결론 룰 ──
+_RI_CONC['tab-annuity'] = {
+  collect(){
+    const S = window._azState, ch = S && S.chain;
+    if (!ch || !S.touched || !(ch.principal > 0)) return { empty:true };
+    return { ch, P:ch.principal, mode:ch.ctx.mode, p:ch.ctx.p, startAge:ch.ctx.startAge,
+             ins:ch.alloc.ins, cc:ch.alloc.cc, div:ch.alloc.div,
+             insSurrender:ch.src.ins.ratio, insQualified:ch.ctx.insQualified,
+             reRatio:ch.src.re.ratio, fin:ch.tax.finIncome,
+             clamped:!!ch.life.clamped, netAnnual:ch.net.annual, netMo:ch.net.annual/12,
+             cost:ch.src.cost, gross:ch.src.gross,
+             minDrop:(ch.scenMin && ch.scenMin.dropPct) || 0, minRate:(ch.scenMin && ch.scenMin.rate) || 0 };
+  },
+  blockers: [
+    { id:'no-src', when:c=>c.empty,
+      t:'연금화할 자산을 아직 선택하지 않았습니다.',
+      b:'위 1단계에서 현금·저축성보험·주식·투자부동산 중 현금화할 비율을 정하시면 수령 방식별 예상 금액이 산출됩니다.' }
+  ],
+  rules: [
+    { id:'ins-surrender', tone:'bad', when:c=>c.insSurrender>0 && c.insQualified,
+      t:'비과세 요건을 갖춘 저축성보험을 해지해 과세 상품으로 옮기는 구조입니다.',
+      b:'해지환급 손실과 15.4% 과세가 동시에 발생해 세후 수령액이 오히려 줄 수 있습니다. 해지 전 보험사에서 실제 환급금을 조회해 손익을 확인하십시오.' },
+    { id:'no-guarantee', tone:'bad', when:c=>c.mode==='life' && (c.cc>0||c.div>0),
+      t:'커버드콜·배당형에는 평생 지급을 보증하는 주체가 없습니다.',
+      b:c=>'분배금은 시장 상황에 따라 줄어들 수 있고 원금도 함께 변동합니다. 끊기지 않는 지급이 목적이라면 최소 생활비만큼은 보험사 종신형('+_azKb(c.ins)+' 배분 중)으로 확보해야 합니다.' },
+    { id:'exempt-ok', tone:'good', must:true, when:c=>c.mode==='life' && c.ins>0 && c.startAge>=55 && c.insQualified,
+      t:'종신형 비과세 요건을 충족하는 것으로 보아 연금소득세·건강보험료를 반영하지 않았습니다.',
+      b:'55세 이후 개시하는 종신형 연금보험은 일시납 1억원 한도와 무관하게 비과세로 봅니다(현행 기준, 추정). 다만 실제 요건 충족 여부는 이 앱이 판정하지 않으니 가입한 보험사에서 확인하십시오.' },
+    { id:'fin-comp', tone:'warn', when:c=>c.fin>2000,
+      t:c=>'금융소득이 연 '+_azKb(c.fin)+'으로 2,000만원을 넘어 종합과세 대상이 될 것으로 추정됩니다.',
+      b:'다른 소득과 합산되어 누진세율이 적용되고, 지역가입자 건강보험료 소득에도 산입됩니다. 보험 종신형 비중을 늘리거나 개시 시점을 분산하면 완화됩니다.' },
+    { id:'re-heavy', tone:'warn', when:c=>c.reRatio>0.7,
+      t:'투자부동산의 70% 이상을 한 해에 처분하는 구조입니다.',
+      b:'양도차익이 한 해에 몰리면 누진 구간이 올라가 세부담이 커집니다. 2개 연도로 나누어 처분하는 방안을 함께 검토하십시오.' },
+    { id:'cost-heavy', tone:'warn', when:c=>c.gross>0 && (c.cost/c.gross)>0.12,
+      t:c=>'현금화 과정에서 '+_azKb(c.cost)+'('+_azPct(c.cost/c.gross*100)+')이 세금·손실로 빠져나갈 것으로 추정됩니다.',
+      b:'연금으로 바꾸기 전에 이미 원금이 줄어듭니다. 비용이 낮은 자산(현금성)부터 쓰고 부동산·보험 해지는 마지막에 두는 순서가 유리합니다.' },
+    // 임계 10% — 은퇴 생활비가 10% 깎이면 고지 가치가 있다. 보험 비중이 낮으면 자연히 발화하지 않는다.
+    { id:'rate-risk', tone:'warn', when:c=>c.ins>0 && c.minDrop>=10,
+      t:c=>'금리가 최저보증이율까지 내려가면 수령액이 '+Math.round(c.minDrop)+'% 줄어들 수 있습니다.',
+      b:c=>'공시이율은 매월 바뀌고 최저보증이율('+(c.minRate*100).toFixed(2).replace(/\.?0+$/,'')+'%)이 바닥입니다. '
+        + (c.mode==='inherit'
+            ? '특히 상속형은 이자만 받는 구조라 금리에 그대로 노출됩니다 — 원금을 지키려는 선택이 금리 위험에는 가장 취약합니다. 종신형·확정형과 나누어 담는 편이 안전합니다.'
+            : '가입하려는 상품의 최저보증이율이 몇 %이고 언제부터 낮아지는지(대개 가입 후 5년·10년 경과) 반드시 확인하십시오.') },
+    { id:'clamped', tone:'info', when:c=>c.clamped,
+      t:'선택하신 개시 나이·보증기간 조합은 실제로 판매되지 않을 수 있습니다.',
+      b:'보증기간 지급총액이 원금과 이자를 넘어서기 때문입니다. 같은 기간의 확정연금 상한을 적용해 표시했습니다.' },
+    { id:'cycle', tone:'info', when:c=>c.p<12,
+      t:c=>'지급 주기를 연 '+c.p+'회로 선택해 월 수령 대비 연간 총액이 조금 늘어납니다.',
+      b:'지급 시점이 뒤로 밀리는 만큼 그 사이 이자가 더 붙기 때문입니다. 다만 그동안의 생활비는 다른 재원으로 메워야 합니다.' },
+    // 무료판에는 예시표 오버라이드 입력이 없어 종신형은 항상 근사표 기준이다 — 항상 발화한다.
+    { id:'approx', tone:'na', when:c=>c.mode==='life' && c.ins>0,
+      t:'종신형 금액은 앱 내장 근사표로 산출한 추정치입니다.',
+      b:'국내 주요 생보사 4곳의 공시 예시 평균에 수준을 맞춘 근사이며 특정 보험사의 공시표가 아닙니다. 실제 수령액은 상품·가입 시점·공시이율에 따라 달라지므로 보험사 예시표로 확인하십시오.' }
+  ],
+  suppress: [
+    { when:c=>c.mode!=='life', dropIds:['approx','clamped'] }
+  ]
+};
+</script>
 
 <script>
 /* ============================================================
@@ -1311,7 +2249,7 @@ class NextLifeAdvisorApp {
     const dim = document.getElementById('nlSidebarDim');
     if (aside) aside.classList.remove('nl-open');
     if (dim) dim.classList.remove('nl-open');
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 10; i++) {
       const sec = document.getElementById('step' + i);
       if (sec) sec.style.display = (i === n) ? 'block' : 'none';
       const nav = document.getElementById('nav-btn-' + i);
@@ -1321,6 +2259,11 @@ class NextLifeAdvisorApp {
       }
     }
     this.calcAll();
+    // 2단계(연금화 설계) 진입 시 체인 재계산 — calcAll 이 __nlHiBase 를 갱신한 「뒤」여야 한다.
+    // ⚠️ 역방향(calcAll → updateAnnuity) 배선 금지. 순환의 씨앗이 된다.
+    //    1단계 자산을 바꿔도 2단계가 실시간으로 따라오지 않는 것은 의도된 설계다 —
+    //    step2 가 보일 때 step1 입력은 화면에 없고, 진입할 때마다 여기서 다시 계산한다.
+    if (n === 2) { try { if (typeof window._azEnter === 'function') window._azEnter(); } catch (e) {} }
     const main = document.querySelector('main');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -1420,7 +2363,7 @@ class NextLifeAdvisorApp {
     const defaults = {
       'v_name': '', 'v_birth': '', 'v_age': 58, 'v_pensionType': 'NPS',
       'v_res_home': 90, 'v_res_inv': 0, 'v_res_bld': 0, 'v_res_land': 0,
-      'v_fin_cash': 30, 'v_fin_stock': 0, 'v_fin_pension': 20, 'v_fin_ins': 10,
+      'v_fin_cash': 30, 'v_fin_stock': 0, 'v_fin_pension': 20, 'v_fin_dc': 7, 'v_fin_savins': 3,
       'v_debt_mort': 0, 'v_debt_cred': 0,
       'v_retAge': 60, 'v_npsAge': 65, 'v_privAge': 60,
       'v_targetInc': 500, 'v_npsAmt': 180, 'v_privAmt': 50,
@@ -1432,7 +2375,17 @@ class NextLifeAdvisorApp {
       'v_goalInfl': 2.5, 'v_goalPostRet': 4.5, 'v_goalInvRet': 6.0,
       'v_privEndAge': 80,
       'v_lifeExp': 90, 'v_careCost': 0, 'v_careAge': 75, 'v_lumpSum': 0,
-      'v_rpType': '', 'v_rpBal': '', 'v_rpReturn': '', 'v_rpSalary': '', 'v_rpYears': ''
+      'v_rpType': '', 'v_rpBal': '', 'v_rpReturn': '', 'v_rpSalary': '', 'v_rpYears': '',
+      // ── 2단계 연금화 설계 ── (마크업의 value= 와 반드시 일치시킬 것)
+      'v_propTax': 0,
+      'az-src-cash-pct': 0, 'az-src-ins-pct': 0, 'az-src-stock-pct': 0, 'az-src-re-pct': 0,
+      'az-alloc-ins': 100, 'az-alloc-cc': 0, 'az-alloc-div': 0,
+      'az-start-age': 65, 'az-term-yrs': 20, 'az-rate': 2.1, 'az-min-guar': 1.0,
+      'az-cc-dist': 10, 'az-div-yield': 5, 'az-other-base': 0, 'az-reserve': 0,
+      'az-ins-refund': 92, 'az-ins-paid': 0, 'az-ov-share': 0, 'az-ov-gain': 30,
+      'az-re-gain': 50, 'az-re-hold': 15,
+      'az-sex': 'm', 'az-mode': 'life', 'az-cycle': '12', 'az-guar': '10',
+      'az-ins-qualified': '1', 'az-divsep-on': '0', 'az-apply-priv': '1'
     };
     Object.keys(defaults).forEach(id => {
       const el = document.getElementById(id);
@@ -1443,6 +2396,12 @@ class NextLifeAdvisorApp {
     this._setTxt('o_legalAgeNum', '65');
     this._setTxt('o_legalAgeDesc', '생년월일을 입력하면 연금 수령 시작 나이가 자동으로 계산됩니다.');
     this.calcAll();
+    try {
+      if (typeof window._azRestoreSegUI === 'function') window._azRestoreSegUI();
+      if (typeof window._azSyncTouchedFromValues === 'function') window._azSyncTouchedFromValues();
+      if (typeof window._azPreset === 'function') window._azPreset('reset');   // 프리셋 칩 강조 해제
+      if (typeof window.updateAnnuity === 'function') window.updateAnnuity();
+    } catch (e) {}
     this.showStep(1);
     alert('새 상담 데이터가 초기화되었습니다.');
   }
@@ -1453,7 +2412,10 @@ class NextLifeAdvisorApp {
     const data = {};
     document.querySelectorAll('input, select').forEach(el => {
       if (!el.id) return;
-      data[el.id] = (el.type === 'checkbox' && el.id.indexOf('v_') === 0) ? (el.checked ? '1' : '0') : el.value;
+      if (el.id.indexOf('nlq-') === 0) return;   // 간편진단 UI 설정은 고객 데이터가 아니다
+      // 체크박스는 접두와 무관하게 checked 를 저장한다. v_ 한정이던 예전 조건은
+      // az- 체크박스의 value("on")를 저장해 복원 시 체크 상태가 되살아나지 않았다.
+      data[el.id] = (el.type === 'checkbox') ? (el.checked ? '1' : '0') : el.value;
     });
     let db = localStorage.getItem('next_life_advisor_db_v1') ? JSON.parse(localStorage.getItem('next_life_advisor_db_v1')) : {};
     db[name] = { timestamp: new Date().toLocaleString('ko-KR'), payload: data };
@@ -1499,17 +2461,36 @@ class NextLifeAdvisorApp {
     let db = JSON.parse(localStorage.getItem('next_life_advisor_db_v1'));
     const data = db[name].payload;
     Object.keys(data).forEach(id => {
+      if (id.indexOf('nlq-') === 0) return;   // 앱 설정이라 고객 데이터로 덮어쓰지 않는다(saveData 와 대칭)
       const el = document.getElementById(id);
       if (!el) return;
-      if (el.type === 'checkbox' && id.indexOf('v_') === 0) el.checked = (data[id] === '1'); else el.value = data[id];
+      if (el.type === 'checkbox') el.checked = (data[id] === '1'); else el.value = data[id];
     });
     // 토글 도입 전 저장분에는 키가 없음 → 기본값(적용 ON)으로 복원
     ['v_useExtra', 'v_useSolA', 'v_useSolB'].forEach(id => {
       if (!(id in data)) { const el = document.getElementById(id); if (el) el.checked = true; }
     });
+    // 구 통합 필드 v_fin_ins(퇴직연금DC+저축성보험) → v_fin_dc + v_fin_savins 마이그레이션.
+    // 전액을 DC 로 귀속시킨다. 반대로 하면 로드 즉시 「비과세 보험 해지 시 과세·환급 손실」
+    // 경고가 고객이 신고한 적 없는 자산을 근거로 발화한다. 총 금융자산은 어느 쪽이든 보존되므로,
+    // 허위 경고를 내지 않는 쪽을 택한다 — 실제 보험이 있으면 고객이 직접 입력하게 된다.
+    if (!('v_fin_dc' in data) && ('v_fin_ins' in data)) {
+      const _legacy = parseFloat(data['v_fin_ins']) || 0;
+      const _dc = document.getElementById('v_fin_dc');
+      const _si = document.getElementById('v_fin_savins');
+      if (_dc) _dc.value = _legacy;
+      if (_si) _si.value = 0;
+    }
     this.npsAgeSetByUser = true;
     this._updatePensionLabels();
     this.calcAll();
+    // 순서 중요: calcAll 이 __nlHiBase 를 갱신한 뒤에 연금화 체인이 그것을 읽는다.
+    // 세그 버튼은 input 이 아니라 hidden 값만 복원되므로 .on 클래스를 따로 맞춰 준다.
+    try {
+      if (typeof window._azRestoreSegUI === 'function') window._azRestoreSegUI();
+      if (typeof window._azSyncTouchedFromValues === 'function') window._azSyncTouchedFromValues();
+      if (typeof window.updateAnnuity === 'function') window.updateAnnuity();
+    } catch (e) {}
     this.closeLoadModal();
   }
   delCust(i) {
@@ -1540,6 +2521,77 @@ class NextLifeAdvisorApp {
   }
   _addQuick(title, body, impact) { this._quickItems.push(this._actionItem(title, body, impact, 'quick')); }
   _addLong(title, body, impact) { this._longItems.push(this._actionItem(title, body, impact, 'long')); }
+
+  // ── 2단계 연금화 설계 → 보고서 ────────────────────────────────────────
+  // 고객이 연금화를 설계했을 때만 쓴다. 설계하지 않았는데 빈 표를 인쇄하면 오독이다.
+  _azChainForReport() {
+    const S = window._azState;
+    return (S && S.touched && S.chain && S.chain.principal > 0) ? S.chain : null;
+  }
+  // 결론 룰의 산출물을 실행 체크리스트에 태운다 — 화면·보고서·체크리스트가
+  // _riConcEval 이라는 하나의 출처를 공유하게 만들어 문장이 갈라지지 않게 한다.
+  _azConcItems() {
+    let list = [];
+    try { if (typeof _riConcEval === 'function') list = _riConcEval('tab-annuity') || []; } catch (e) {}
+    return (list[0] && list[0].__block) ? [] : list;
+  }
+  _buildAzReportSection(ch) {
+    const F = window._azFmt, man = F.man, man1 = F.man1;
+    const cl = F.cyc[ch.ctx.p] || '월';
+    const mode = F.mode[ch.ctx.mode] || '';
+    const TD = 'border:1px solid #e2e1da;padding:7px 9px';
+    const TH = 'border:1px solid #e2e1da;padding:7px 9px;background:#faf9f6;color:#475569;font-weight:700';
+    const tile = (lb, v, c) => `<div style="background:#faf9f6;border:1px solid #e2e1da;border-radius:10px;padding:12px">
+        <div style="font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase">${lb}</div>
+        <div style="font-size:14px;font-weight:900;color:${c || '#0b1f33'};margin-top:3px;line-height:1.25">${v}</div></div>`;
+    const KEY = { cash: '현금성', ins: '저축성보험', stock: '주식·ETF', re: '투자부동산' };
+    const srcRows = ['cash', 'ins', 'stock', 're'].map(k => {
+      const r = ch.src.rows[k];
+      if (!r || !(r.gross > 0)) return '';
+      return `<tr><td style="${TD}">${KEY[k]}</td><td style="${TD};text-align:right">${man(r.have)}</td>
+        <td style="${TD};text-align:right">${Math.round(r.ratio * 100)}%</td>
+        <td style="${TD};text-align:right">${man(r.gross)}</td>
+        <td style="${TD};text-align:right">${r.cost > 0 ? '−' + man(r.cost) : '—'}</td>
+        <td style="${TD};text-align:right;font-weight:800">${man(r.net)}</td></tr>`;
+    }).join('');
+    const wf = (lb, v, c) => `<tr><td style="${TD}">${lb}</td><td style="${TD};text-align:right;font-weight:800${c ? ';color:' + c : ''}">${v}</td></tr>`;
+    const conc = this._azConcItems().map(r =>
+      `<div class="pr-keep" style="padding:9px 0;border-bottom:1px solid #ece9e1">
+         <div style="font-size:12.5px;font-weight:800;color:#101828;line-height:1.45">${r.t}</div>
+         <div style="font-size:11.5px;color:#55606f;line-height:1.6;margin-top:3px">${r.b}</div></div>`).join('');
+    return `
+      <div class="pr-keep" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+        ${tile('투입 원금(추정)', man(ch.principal))}
+        ${tile('세전 ' + cl + ' 1회', man1(ch.gross.perPay))}
+        ${tile('세후 ' + cl + ' 1회', man1(ch.net.perPay), '#0f766e')}
+        ${tile('세후 연 수령액', man(ch.net.annual), '#0f766e')}
+      </div>
+      <div class="pr-keep" style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:10px">
+        수령 설계 — ${mode} · ${cl} 지급${ch.ctx.mode === 'life' ? ' · 보증 ' + ch.ctx.guar + '년' : ''}${ch.ctx.mode === 'term' ? ' · ' + ch.ctx.termYears + '년' : ''}
+        · 개시 ${ch.ctx.startAge}세 · 실효이율 ${(ch.ctx.i * 100).toFixed(2).replace(/\.?0+$/, '')}%
+        · 배분 보험 ${Math.round(ch.alloc.pct[0])}% / 커버드콜 ${Math.round(ch.alloc.pct[1])}% / 배당형 ${Math.round(ch.alloc.pct[2])}%
+      </div>
+      ${srcRows ? `<table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px"><thead><tr>
+        <th style="${TH};text-align:left">현금화 재원</th><th style="${TH};text-align:right">보유액</th><th style="${TH};text-align:right">비율</th>
+        <th style="${TH};text-align:right">현금화</th><th style="${TH};text-align:right">비용(추정)</th><th style="${TH};text-align:right">실투입</th>
+      </tr></thead><tbody>${srcRows}
+        <tr><td style="${TD};background:#faf9f6;font-weight:800">합계</td><td style="${TD}"></td><td style="${TD}"></td>
+        <td style="${TD};text-align:right;background:#faf9f6;font-weight:800">${man(ch.src.gross)}</td>
+        <td style="${TD};text-align:right;background:#faf9f6;font-weight:800">−${man(ch.src.cost)}</td>
+        <td style="${TD};text-align:right;background:#faf9f6;font-weight:900">${man(ch.src.net)}</td></tr>
+      </tbody></table>` : ''}
+      <table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px"><tbody>
+        ${wf('세전 연 합계', man(ch.gross.annual))}
+        ${wf('과세 대상 금융소득', ch.tax.finIncome > 0 ? man(ch.tax.finIncome) : '0원 (전액 비과세로 추정)', ch.tax.finIncome > 0 ? '' : '#0f766e')}
+        ${wf('− 소득세' + (ch.tax.overThreshold ? ' (종합과세)' : ' (분리과세 15.4%)'), ch.tax.total > 0 ? '−' + man(ch.tax.total) : '0원', ch.tax.total > 0 ? '#b3261e' : '#0f766e')}
+        ${wf('− 건강보험료 증가 (연)', ch.hi ? (ch.hiAnnual > 0 ? '−' + man(ch.hiAnnual) : '변동 없음') : '— (기준 소득 미계산)', ch.hi && ch.hiAnnual > 0 ? '#b3261e' : '')}
+        ${wf('세후 연 수령액 (추정)', man(ch.net.annual), '#0b1f33')}
+      </tbody></table>
+      ${ch.scenMin && ch.scenMin.dropPct > 0.5 ? `<div class="pr-keep" style="background:#f9eeee;border:1px solid #e8c9c9;border-radius:9px;padding:10px 13px;font-size:11.5px;color:#b3261e;line-height:1.6;margin-bottom:12px">
+        <b>금리가 최저보증이율(${(ch.scenMin.rate * 100).toFixed(2).replace(/\.?0+$/, '')}%)까지 내려가면</b> 세전 ${cl} 1회 ${man1(ch.gross.perPay)} → <b>${man1(ch.scenMin.perPay)}</b> (−${ch.scenMin.dropPct.toFixed(0)}%) 로 줄어들 수 있습니다.</div>` : ''}
+      ${conc ? `<div class="pr-keep" style="border:1px solid #e2e1da;border-radius:10px;padding:4px 14px;background:#fbfbfa">${conc}</div>` : ''}
+      <div class="pr-keep" style="font-size:9.5px;color:#94a3b8;margin-top:6px;line-height:1.6">※ 종신형 금액은 앱 내장 근사표(국내 주요 생보사 4곳 공시 예시 평균에 수준을 맞춘 근사)로 산출한 <b>추정치</b>이며 특정 상품의 공시표가 아닙니다. 실제 수령액은 보험사 예시표로 확인하셔야 합니다.</div>`;
+  }
   _renderActionPlan() {
     const qEl = document.getElementById('r_quickWins');
     if (qEl) qEl.innerHTML = this._quickItems.length ? this._quickItems.join('') : `<div style="padding:14px 2px;color:#94a3b8;font-size:12.5px">현재 즉시 실행이 필요한 항목은 없습니다.</div>`;
@@ -1660,7 +2712,7 @@ class NextLifeAdvisorApp {
   }
 
   // ══════════════ R2: 직장인 퇴직연금 점검 (step6 #rpCheck · 전 항목 선택 입력) ══════════════
-  // v_rpBal은 점검 전용 — step1 자산(v_fin_ins)과 별개로 자산 합산에 반영하지 않음(이중계상 방지).
+  // v_rpBal은 점검 전용 — step1 자산(v_fin_dc)과 별개로 자산 합산에 반영하지 않음(이중계상 방지).
   calcRetirePension(ctx) {
     const type = this._val('v_rpType') || '';
     const bal = this._num('v_rpBal');
@@ -1831,6 +2883,12 @@ class NextLifeAdvisorApp {
     const longHtml = gHtml('r_longTerm') || `<div style="padding:10px 2px;color:#94a3b8;font-size:12px">현재 장기 검토가 필요한 항목은 없습니다.</div>`;
     const donutSvg = gHtml('r_assetDonut9');
     const depletionText = g('r_depletionBadge');
+    // 연금화 설계는 고객이 실제로 설계했을 때만 편입한다. 그래서 절 번호를 고정할 수 없다 —
+    // 조건부 절이 빠지며 번호가 건너뛰면 「빠진 내용이 있다」로 읽힌다(번호가 곧 신뢰다).
+    const _azCh = this._azChainForReport();
+    const _RN = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
+    let _rn = 0;
+    const H = (title, color, suffix) => `<div class="pr-head" style="font-size:14px;font-weight:900;color:${color};border-left:5px solid ${color};padding-left:9px;margin:26px 0 ${suffix ? 4 : 11}px">${_RN[_rn++]}. ${title}${suffix || ''}</div>`;
     const depletionColor = (this._depletionAge && this._lifeExp && this._depletionAge <= this._lifeExp) ? '#8a2f2f' : '#0f766e';
     const html = `
     <div class="pr-wrap" style="max-width:760px;margin:0 auto;font-family:'Pretendard',sans-serif;color:#101828">
@@ -1861,26 +2919,28 @@ class NextLifeAdvisorApp {
 
       ${this._riskTriadPrintHtml()}
 
-      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:22px 0 11px">Ⅰ. 고객 자산·소득 현황 요약</div>
+      ${H('고객 자산·소득 현황 요약', '#0b1f33')}
       <table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">고객 성명</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_name')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700;width:22%">연금 공백 기간</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_bridge')}</td></tr>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">순자산</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_netAsset')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">완전 은퇴 후 월 부족액</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_gap')}</td></tr>
         <tr><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">부동산 비중</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_reRate')}</td><td style="border:1px solid #e2e1da;padding:8px 10px;background:#faf9f6;color:#475569;font-weight:700">연간 절세 합계</td><td style="border:1px solid #e2e1da;padding:8px 10px;font-weight:800">${g('r_isaTax')}</td></tr>
       </tbody></table>
 
-      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅱ. 종합 진단 의견</div>
+      ${H('종합 진단 의견', '#0b1f33')}
       <div style="margin-top:4px;background:#0b1f33;color:#dce3ec;border-radius:12px">
         ${headlineHtml ? `<div class="pr-keep" style="padding:16px 18px 10px;border-bottom:1px solid rgba(255,255,255,.14)">${headlineHtml}</div>` : ''}
         <div style="padding:14px 18px 16px">${detailHtml}</div>
       </div>
 
-      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0f766e;border-left:5px solid #0f766e;padding-left:9px;margin:26px 0 4px">Ⅲ. 즉시 실행 가능한 단기 과제 <span style="font-size:11px;font-weight:700;color:#8a7a4a">Quick Wins — 체크하며 실행하세요</span></div>
+      ${_azCh ? H('연금화 설계 — 자산을 평생 현금흐름으로', '#0b1f33') + this._buildAzReportSection(_azCh) : ''}
+
+      ${H('즉시 실행 가능한 단기 과제', '#0f766e', ' <span style="font-size:11px;font-weight:700;color:#8a7a4a">Quick Wins — 체크하며 실행하세요</span>')}
       <div style="border:1px solid #e7d9ad;border-radius:10px;padding:4px 14px;background:#fdfcf7">${quickHtml}</div>
 
-      <div class="pr-head" style="font-size:14px;font-weight:900;color:#8a6d1f;border-left:5px solid #8a6d1f;padding-left:9px;margin:26px 0 4px">Ⅳ. 장기 검토 과제 <span style="font-size:11px;font-weight:700;color:#6b7280">전문가와 함께 단계적으로</span></div>
+      ${H('장기 검토 과제', '#8a6d1f', ' <span style="font-size:11px;font-weight:700;color:#6b7280">전문가와 함께 단계적으로</span>')}
       <div style="border:1px solid #dfe1e6;border-radius:10px;padding:4px 14px;background:#fbfbfa">${longHtml}</div>
 
-      <div class="pr-head" style="font-size:14px;font-weight:900;color:#0b1f33;border-left:5px solid #0b1f33;padding-left:9px;margin:26px 0 11px">Ⅴ. 주요 가정 및 근거</div>
+      ${H('주요 가정 및 근거', '#0b1f33')}
       <table class="pr-keep" style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr>
         <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left;width:22%">항목</th>
         <th style="border:1px solid #e2e1da;padding:8px 10px;background:#0b1f33;color:#c9a24b;font-weight:800;text-align:left">적용 기준</th>
@@ -2033,11 +3093,14 @@ class NextLifeAdvisorApp {
     this._setTxt('r_name', name);
 
     const resHome = this._num('v_res_home'), resInv = this._num('v_res_inv'), resBld = this._num('v_res_bld'), resLand = this._num('v_res_land');
-    const finCash = this._num('v_fin_cash'), finStock = this._num('v_fin_stock'), finPension = this._num('v_fin_pension'), finIns = this._num('v_fin_ins');
+    const finCash = this._num('v_fin_cash'), finStock = this._num('v_fin_stock'), finPension = this._num('v_fin_pension');
+    // 퇴직연금(DC)과 저축성보험을 분리한다 — 2단계 연금화는 저축성보험만 현금화 대상으로 본다.
+    // DC 를 섞으면 이미 연금인 자산을 다시 연금화하는 이중 계상이 된다.
+    const finDc = this._num('v_fin_dc'), finSavIns = this._num('v_fin_savins');
     const debtMort = this._num('v_debt_mort'), debtCred = this._num('v_debt_cred');
 
     const totalRE = resHome + resInv + resBld + resLand;
-    const totalFin = finCash + finStock + finPension + finIns;
+    const totalFin = finCash + finStock + finPension + finDc + finSavIns;
     const totalDebt = debtMort + debtCred;
     const totalAsset = totalRE + totalFin;
     const netAssetTenThous = totalAsset - totalDebt;
@@ -2280,6 +3343,25 @@ class NextLifeAdvisorApp {
     this._setTxt('s4_annualNps', Math.round(annualNps).toLocaleString() + ' 만원');
     this._setTxt('s4_annualOther', Math.round(annualOther).toLocaleString() + ' 만원');
     this._setTxt('s4_annualTotal', Math.round(annualTotal).toLocaleString() + ' 만원');
+
+    // 건보 지역가입자 추정 기준선 — 2단계 연금화가 금융소득 증분을 얹어 Δ를 계산한다.
+    // ⚠️ calcAll 이 쓰고 updateAnnuity 가 읽기만 한다(단방향). 여기서 updateAnnuity 를 부르면 순환이 된다.
+    //    finIncome 0 인 것은 이 앱에 금융소득 입력이 없기 때문이다 — 연금화가 더할 금액이 곧 전부다.
+    //    propertyTax 는 선택 입력이라 미입력이면 재산 게이트를 「미평가」로 표기한다(_azHiDelta).
+    {
+      const _isGovHi = (_pensionType === 'GOV');
+      const _propTax = Math.max(0, this._num('v_propTax', 0));
+      window.__nlHiBase = {
+        taxableNpsOnly: _isGovHi ? 0 : Math.round(annualNps),
+        gpAnnual:       _isGovHi ? Math.round(annualNps) : 0,
+        finIncome:      0,
+        bizIncome:      0,
+        otherIncome:    Math.round(annualOther),
+        propertyTax:    _propTax,
+        npsAnnual:      Math.round(annualNps),
+        depRelation:    null
+      };
+    }
 
     const s4Alert = document.getElementById('s4_healthAlert');
     if (s4Alert) {
@@ -2796,6 +3878,16 @@ class NextLifeAdvisorApp {
       benchAvgWon: _bench.avg * 10000, benchRatio: _ratio
     };
 
+    // 2단계 연금화 설계의 경고성 결론을 장기 과제로 태운다 — 화면 결론 카드·보고서·체크리스트가
+    // _riConcEval 하나를 공유해야 같은 진단이 세 곳에서 다르게 읽히지 않는다.
+    try {
+      if (this._azChainForReport()) {
+        this._azConcItems()
+          .filter(r => r.tone === 'bad' || r.tone === 'warn')
+          .forEach(r => this._addLong(r.t, r.b, '연금화 설계'));
+      }
+    } catch (e) {}
+
     this._renderActionPlan();
   }
 
@@ -2818,6 +3910,7 @@ class NextLifeAdvisorApp {
   goTo7() { this.showStep(7); }
   goTo8() { this.showStep(8); }
   goTo9() { this.showStep(9); }
+  goTo10() { this.showStep(10); }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -3082,7 +4175,7 @@ function nlqApplyProfile(){
 }
 /* 자산·연금 기준선 0으로 — 확보율이 입력한 값만 반영하도록(store-app qmResetBaseline 대응) */
 function nlqResetBaseline(){
-  ['v_res_home','v_res_inv','v_res_bld','v_res_land','v_fin_cash','v_fin_stock','v_fin_pension','v_fin_ins','v_debt_mort','v_debt_cred','v_npsAmt','v_privAmt','v_extraSalary'].forEach(function(id){ _nlqSet(id,0); });
+  ['v_res_home','v_res_inv','v_res_bld','v_res_land','v_fin_cash','v_fin_stock','v_fin_pension','v_fin_dc','v_fin_savins','v_debt_mort','v_debt_cred','v_npsAmt','v_privAmt','v_extraSalary'].forEach(function(id){ _nlqSet(id,0); });
   try { app.calcAll(); } catch(e){}
 }
 function nlqApplyChips(){
@@ -3506,5 +4599,702 @@ function ceoShare(){
   app._captureShareCard(fname, 'button[onclick*="ceoShare"]');
 }
 </script>
+<script>
+/* ═══ 2단계 연금화 설계 — 엔진 ═══
+   base-store 의 동명 IIFE 이식. 무료판 조정은 각 지점에 주석으로 표시했다. */
+(function(){
+  'use strict';
+  var _g = function(id){ return document.getElementById(id); };
+  var num = function(id, d){ var e=_g(id); if(!e) return (d||0); var v=parseFloat(e.value); return isFinite(v)?v:(d||0); };
+  // ⚠️ app._chkOn 은 요소가 없으면 true 를 돌려준다. 여기서는 반대(false)여야 한다 —
+  //    az-ins-qualified 가 없는데 true 가 되면 보험차익세가 통째로 사라진다.
+  var chk = function(id){ var e=_g(id); return !!(e && e.checked); };
+  // seg 값은 hidden input 이 진실원이다. 저장·복원이 input 만 훑기 때문이고,
+  // 복원 시 버튼의 .on 클래스를 되돌릴 근거도 이 값이다(_azRestoreSegUI).
+  var seg = function(grpId, dflt){
+    var h = _g(grpId.replace(/-group$/,''));
+    if (h && h.value != null && h.value !== '') return h.value;
+    var b = document.querySelector('#'+grpId+' .seg-btn.on');
+    return (b && b.dataset && b.dataset.val!=null) ? b.dataset.val : dflt;
+  };
+  var setT = function(id,t){ var e=_g(id); if(e) e.textContent=t; };
+  var setH = function(id,h){ var e=_g(id); if(e) e.innerHTML=h; };
+  var esc  = function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); };
+
+  var CYC = { 12:'월', 4:'분기', 2:'반기', 1:'연' };
+  var MODE_LBL = { life:'종신형', term:'확정기간형', inherit:'상속형' };
+  var PROD_LBL = { ins:'일시납 연금(보험)', cc:'커버드콜 ETF', div:'배당형 자산' };
+  var C_BAD = '#b3261e', C_OK = '#0f766e', C_SUB = '#64748b';
+
+  function _azF(v){ v=Math.round(+v||0); if(!isFinite(v)) return '—';
+    return v>=10000 ? (v/10000).toFixed(2).replace(/\.?0+$/,'')+'억원' : v.toLocaleString()+'만원'; }
+  function _azF1(v){ v=+v||0; if(!isFinite(v)) return '—';
+    return (Math.round(v*10)/10).toLocaleString(undefined,{maximumFractionDigits:1})+'만원'; }
+  // 연도별 세법 설정이 없는 앱이라 yearCfg 는 null — 코어의 리터럴 폴백 경로를 탄다(기존 등가).
+  function _azTc(){
+    try { return { yearCfg:null, flat:(typeof TAX_AZ!=='undefined')?TAX_AZ:null }; }
+    catch(_) { return null; }
+  }
+
+  var _azState = { touched:false, chain:null, cfBase:null, applied:false };
+
+  // ── 입력 수집 ───────────────────────────────────────────────────────────
+  function _azCtx(){
+    var p = Math.max(1, Math.round(+seg('az-cycle-group','12')||12));
+    return {
+      mode: seg('az-mode-group','life'),
+      p: p,
+      sex: seg('az-sex-group','m')==='f' ? 'f' : 'm',
+      guar: Math.max(0, Math.round(+seg('az-guar-group','10')||0)),
+      startAge: Math.min(90, Math.max(45, Math.round(num('az-start-age',65)))),
+      termYears: Math.min(50, Math.max(1, Math.round(num('az-term-yrs',20)))),
+      i: Math.min(0.12, Math.max(0, num('az-rate',2.1)/100)),
+      ccY: Math.min(0.30, Math.max(0, num('az-cc-dist',10)/100)),
+      dvY: Math.min(0.20, Math.max(0, num('az-div-yield',5)/100)),
+      otherBase: Math.max(0, num('az-other-base',0)),
+      minGuar: Math.min(0.05, Math.max(0, num('az-min-guar',1.0)/100)),
+      insQualified: chk('az-ins-qualified'),
+      divSepOn: chk('az-divsep-on')
+    };
+  }
+
+  // 1단계 자산 입력(단위: 천만원)을 만원으로 환산해 읽는다.
+  var _M = function(id){ return Math.max(0, num(id,0)) * 1000; };
+
+  // 재원 4종 → _azSourceNet 입력 행.
+  // 거주주택(v_res_home)·연금저축/IRP(v_fin_pension)·퇴직연금 DC(v_fin_dc)는 여기 오지 않는다 —
+  // 거주주택은 주택연금 영역이고 나머지는 이미 연금 재원이라 이중 계상이 된다. I5b 가 감시한다.
+  function _azSrcRows(){
+    var pc = function(id){ return Math.min(100, Math.max(0, num(id,0)))/100; };
+    var tc = _azTc();
+
+    // 현금성 — 외화 구분 입력이 없어 현금화 비용 0.
+    var cashHave = _M('v_fin_cash'), rCash = pc('az-src-cash-pct');
+
+    var insHave = _M('v_fin_savins'), rIns = pc('az-src-ins-pct');
+    var insCo = _azInsCashOut(insHave*rIns, num('az-ins-refund',92), chk('az-ins-qualified'), num('az-ins-paid',0)*rIns, tc);
+
+    // 주식은 국내외 통합 항목이라 해외 비중을 따로 받아 양도세를 가른다(0이면 전액 국내).
+    var stHave = _M('v_fin_stock'), rSt = pc('az-src-stock-pct');
+    var ovShare = Math.min(100, Math.max(0, num('az-ov-share',0)))/100;
+    var sold = stHave * rSt, ov = sold*ovShare, kr = sold*(1-ovShare);
+    var krFee = kr * 0.0018;                                        // 증권거래세 0.18% (양도세는 대주주 외 없음)
+    var ovTax = _azOvTax(ov, num('az-ov-gain',30));
+
+    var reHave = _M('v_res_inv') + _M('v_res_bld') + _M('v_res_land'), rRe = pc('az-src-re-pct');
+    var reT = _azReTax(reHave*rRe, num('az-re-gain',50), num('az-re-hold',15));
+
+    return [
+      { key:'cash',  gross:cashHave, ratio:rCash, cost:0, why:'비용 없음' },
+      { key:'ins',   gross:insHave, ratio:rIns, cost:insCo.cost,
+        why: insHave*rIns>0 ? ('해지환급 손실 '+_azF(insHave*rIns-insCo.refund)+(insCo.tax>0?' + 보험차익세 '+_azF(insCo.tax):'')) : '—', co:insCo },
+      { key:'stock', gross:stHave, ratio:rSt, cost:krFee+ovTax,
+        why: (krFee+ovTax)>0 ? ('거래세 '+_azF(krFee)+(ovTax>0?' + 해외 양도세 '+_azF(ovTax):'')) : '비용 없음' },
+      { key:'re',    gross:reHave, ratio:rRe, cost:reT.tax,
+        why: reT.tax>0 ? ('양도세(장특 '+Math.round(reT.dedRate*100)+'% 적용 후)') : '차익 없음 또는 공제 내', re:reT }
+    ];
+  }
+
+  // 상품·수령방식별 회당 지급액. 커버드콜·배당형의 「종신」은 원금을 유지한 채 분배금만 받는 것 —
+  // 보증 주체가 없으므로 상속형과 같은 금액이며, 이것을 「연금」이라 부르지 않는다.
+  function _azProdPmt(prod, amt, ctx){
+    amt = Math.max(0, +amt||0);
+    if (amt <= 0) return 0;
+    if (prod === 'ins'){
+      if (ctx.mode === 'life')  return _azLifePmt(amt, ctx.startAge, ctx.sex, ctx.guar, ctx.i, ctx.p);
+      if (ctx.mode === 'term')  return _azTermPmt(amt, ctx.i, ctx.termYears, ctx.p);
+      return _azInheritPmt(amt, ctx.i, ctx.p);
+    }
+    var y = prod === 'cc' ? ctx.ccY : ctx.dvY;
+    if (ctx.mode === 'term') return _azTermPmt(amt, y, ctx.termYears, ctx.p);
+    return _azInheritPmt(amt, y, ctx.p);
+  }
+
+  // 지역 건보료 증분 — 새 산식 없이 _hiLocalPremium 을 before/after 두 번 호출한 차액.
+  // 기준선은 calcAll 이 채우는 window.__nlHiBase 다(단방향: calcAll 이 쓰고 여기서 읽기만).
+  // ⚠️ 재산보험료는 finIncome 과 무관해 before/after 양쪽에서 상쇄된다 —
+  //    따라서 「증가분」은 재산세 과세표준을 몰라도 정확하다. 영향을 받는 것은 재산 게이트뿐이다.
+  function _azHiDelta(finAdd){
+    var pt = window.__ptLastCalc || window.__nlHiBase;
+    if (!pt || typeof _hiLocalPremium !== 'function') return null;
+    var fl = (typeof TAX_AZ !== 'undefined') ? TAX_AZ : {};
+    var hc = { depIncLimit: fl.dependIncomeLimit || 2000, finExemptLim: fl.finIncomeExemptThreshold || 1000,
+               healthRate: fl.healthLocalPremiumRate || 0.0719, ltcRate: fl.ltcPremiumRate || 0.1314 };
+    var b = { taxableNpsOnly:+pt.taxableNpsOnly||0, gpAnnual:+pt.gpAnnual||0, finIncome:+pt.finIncome||0,
+              bizIncome:+pt.bizIncome||0, otherIncome:+pt.otherIncome||0, propertyTax:+pt.propertyTax||0,
+              npsAnnual:+pt.npsAnnual||0, depRelation:pt.depRelation };
+    var a = {}; for (var k in b) a[k] = b[k];
+    a.finIncome = b.finIncome + Math.max(0, +finAdd||0);
+    try {
+      var pb = _hiLocalPremium(b, hc), pa = _hiLocalPremium(a, hc);
+      var out = { before:pb.localFeeMonthly, after:pa.localFeeMonthly, delta:pa.localFeeMonthly-pb.localFeeMonthly, dep:null };
+      if (typeof _hiDepGates === 'function') {
+        // 이 앱에는 피부양자 「관계」 입력이 없어 관계 게이트는 평가하지 않는다.
+        // 재산 게이트도 과세표준 미입력 시 무조건 통과하므로, 소득 게이트(gate1)만 쓰고
+        // 재산 기준은 「미평가」로 명시한다 — 통과했다고 표시하면 낙관 편향이 된다.
+        var gb = _hiDepGates(b, hc), ga = _hiDepGates(a, hc);
+        out.dep = { before:gb.gate1Pass, after:ga.gate1Pass,
+                    lost: gb.gate1Pass && !ga.gate1Pass,
+                    propEvaluated: (+pt.propertyTax||0) > 0 };
+      }
+      return out;
+    } catch(_) { return null; }
+  }
+
+  // ── 체인 1회 계산 (전 카드가 이 반환값만 읽는다) ─────────────────────────
+  function _azChain(){
+    var ctx = _azCtx(), tc = _azTc();
+    var rows = _azSrcRows();
+    var src = _azSourceNet(rows);
+    var byKey = {}; for (var n=0; n<src.rows.length; n++) byKey[src.rows[n].key] = src.rows[n];
+    for (var m=0; m<rows.length; m++) if (byKey[rows[m].key]) { byKey[rows[m].key].why = rows[m].why; byKey[rows[m].key].re = rows[m].re; byKey[rows[m].key].co = rows[m].co; }
+
+    var reserve = Math.max(0, num('az-reserve',0));
+    var principal = Math.max(0, src.net - reserve);
+
+    var a1 = Math.max(0,num('az-alloc-ins',0)), a2 = Math.max(0,num('az-alloc-cc',0)), a3 = Math.max(0,num('az-alloc-div',0));
+    var s = a1+a2+a3, w = s>0 ? [a1/s, a2/s, a3/s] : [1,0,0];
+    var alloc = { ins:principal*w[0], cc:principal*w[1], div:principal*w[2], pct:[w[0]*100,w[1]*100,w[2]*100], rawSum:s };
+
+    // 종신형 지급률 — 무료판에는 상담사용 예시표 오버라이드가 없다. 내장 근사표가 유일한 근거이며
+    // approx 는 항상 true 다. 화면·보고서에 「근사」 배지와 전제를 반드시 병기한다.
+    var lm = _azLifeMonthly(alloc.ins, ctx.startAge, ctx.sex, ctx.guar, ctx.i);
+    var life = { approx:true, rate:lm.rate, clamped:lm.clamped, cap:lm.cap };
+    var insPmt = _azProdPmt('ins', alloc.ins, ctx);
+
+    var pmt = { ins:insPmt, cc:_azProdPmt('cc', alloc.cc, ctx), div:_azProdPmt('div', alloc.div, ctx) };
+    var grossPer = pmt.ins + pmt.cc + pmt.div;
+    var grossAnnual = grossPer * ctx.p;
+
+    // ── 최저보증이율 시나리오 (금리가 최저보증까지 내려갔을 때) ──────────────
+    //   보험 부분에만 적용한다. 커버드콜·배당형은 금리연동 상품이 아니라 별개의 시장 위험이다.
+    //   ⚠️ 「실효 이율」에는 사업비가 이미 반영돼 있는데 최저보증이율은 상품이 표방하는 총이율(gross)이다.
+    //   그대로 넣으면 시나리오만 사업비가 빠져 낙관 편향이 생긴다. 그래서 사용자의 실효이율과
+    //   실측 공시이율 평균의 비로 「선취 사업비 상당 원금 감액」을 역산해 시나리오에도 똑같이 태운다.
+    var MKc = (typeof AZ_MARKET_65M !== 'undefined') ? AZ_MARKET_65M : null;
+    var mgIns;
+    if (ctx.mode === 'life') {
+      mgIns = insPmt * ((MKc && MKc.minGuarRatioLife) || 0.808);
+    } else {
+      var haircut = 1;
+      if (MKc && MKc.disclosed && MKc.disclosed.avg > 0) {
+        var dCtx = {}; for (var dk in ctx) dCtx[dk] = ctx[dk];
+        dCtx.i = MKc.disclosed.avg / 100;
+        var gross1 = _azProdPmt('ins', 10000, dCtx), eff1 = _azProdPmt('ins', 10000, ctx);
+        if (gross1 > 0) haircut = Math.min(1, Math.max(0.5, eff1 / gross1));
+      }
+      var mgCtx = {}; for (var mk in ctx) mgCtx[mk] = ctx[mk];
+      mgCtx.i = ctx.minGuar;
+      mgIns = _azProdPmt('ins', alloc.ins * haircut, mgCtx);
+    }
+    var scenMin = { rate:ctx.minGuar, ins:mgIns, perPay:mgIns + pmt.cc + pmt.div,
+                    approxLife:(ctx.mode === 'life'),
+                    dropPct: grossPer > 0 ? (1 - (mgIns + pmt.cc + pmt.div)/grossPer)*100 : 0 };
+
+    var tax = _azProductTax(
+      { ins:{ amt:alloc.ins, annual:pmt.ins*ctx.p }, cc:{ amt:alloc.cc, annual:pmt.cc*ctx.p }, div:{ amt:alloc.div, annual:pmt.div*ctx.p } },
+      ctx, tc);
+    var hi = _azHiDelta(tax.finIncome);
+    var hiAnnual = hi ? Math.max(0, hi.delta)*12 : 0;
+    var netAnnual = Math.max(0, grossAnnual - tax.total - hiAnnual);
+
+    var warn = [];
+    if (ctx.mode==='life' && (alloc.cc>0 || alloc.div>0)) warn.push('no-life-guarantee');
+    if (src.rows[1] && src.rows[1].ratio>0 && ctx.insQualified) warn.push('ins-surrender-loss');
+    if (tax.overThreshold) warn.push('fin-comp-tax');
+    if (life.clamped) warn.push('guar-clamped');
+    if (hi && hi.dep && hi.dep.lost) warn.push('dep-lost');
+
+    return { ctx:ctx, src:{ rows:byKey, gross:src.gross, cost:src.cost, net:src.net,
+                            cash:byKey.cash, ins:byKey.ins, stock:byKey.stock, re:byKey.re },
+             reserve:reserve, principal:principal, alloc:alloc, life:life, pmt:pmt, scenMin:scenMin,
+             gross:{ perPay:grossPer, annual:grossAnnual },
+             tax:tax, hi:hi, hiAnnual:hiAnnual,
+             net:{ perPay: ctx.p>0 ? netAnnual/ctx.p : 0, annual:netAnnual },
+             warn:warn };
+  }
+
+  // ── 불변식 자동검사 (console.error 만 — 화면·PDF 는 절대 파괴하지 않는다) ──
+  function _azAssertChain(ch){
+    if (!ch) return;
+    var EPS = 1, bad = function(id,msg){ try{ console.error('[az-chain] '+id+' — '+msg); }catch(_){} };
+    var S = ch.src;
+    if (Math.abs((S.gross - S.cost) - S.net) > 1e-6) bad('I1','재원 보존 위반: '+S.gross+' − '+S.cost+' ≠ '+S.net);
+    ['cash','ins','stock','re'].forEach(function(k){
+      var r = S.rows[k]; if (!r) return;
+      if (r.cost < -1e-9 || r.cost > r.gross + 1e-9) bad('I2','비용 범위 위반('+k+'): '+r.cost+' / 매각 '+r.gross);
+    });
+    var aSum = ch.alloc.ins + ch.alloc.cc + ch.alloc.div;
+    if (Math.abs(aSum - ch.principal) > EPS) bad('I3','배분합 '+aSum.toFixed(2)+' ≠ 원금 '+ch.principal.toFixed(2));
+    if (ch.alloc.rawSum > 0 && Math.abs(ch.alloc.pct[0]+ch.alloc.pct[1]+ch.alloc.pct[2] - 100) > 0.01) bad('I4','배분율 합 ≠ 100');
+    // I5 — 부동산 재원 = 투자용 3종 (거주주택 혼입 감지)
+    var expectRe = _M('v_res_inv') + _M('v_res_bld') + _M('v_res_land');
+    if (S.rows.re && Math.abs(S.rows.re.have - expectRe) > 1e-6)
+      bad('I5','부동산 재원 불일치 — 거주주택 혼입 의심: '+S.rows.re.have+' ≠ '+expectRe);
+    // I5b — 화이트리스트 ∪ 블랙리스트 = 신고 자산 전체.
+    //   1단계에 자산 입력칸이 새로 생겼는데 재원 분류를 잊으면 여기서 발화한다.
+    //   자동 테스트가 0개인 이 프로젝트에서 가장 값싼 그물이다.
+    var white = (S.rows.cash?S.rows.cash.have:0) + (S.rows.ins?S.rows.ins.have:0)
+              + (S.rows.stock?S.rows.stock.have:0) + (S.rows.re?S.rows.re.have:0);
+    var black = _M('v_res_home') + _M('v_fin_pension') + _M('v_fin_dc');
+    var actual = _M('v_res_home')+_M('v_res_inv')+_M('v_res_bld')+_M('v_res_land')
+               + _M('v_fin_cash')+_M('v_fin_stock')+_M('v_fin_pension')+_M('v_fin_dc')+_M('v_fin_savins');
+    if (Math.abs((white+black) - actual) > 1e-6)
+      bad('I5b','재원 화이트리스트 누락/중복: 분류합 '+(white+black)+' ≠ 신고 '+actual);
+    var c = ch.ctx;
+    // I6·I7 — 주기 단조 + 배율 항등 (현재 원금·설정 기준으로 매 계산마다 검증)
+    var prev = Infinity, base12 = null;
+    [1,2,4,12].forEach(function(p){
+      var alt = {}; for (var k in c) alt[k] = c[k]; alt.p = p;
+      var tot = (_azProdPmt('ins',ch.alloc.ins,alt) + _azProdPmt('cc',ch.alloc.cc,alt) + _azProdPmt('div',ch.alloc.div,alt)) * p;
+      if (tot > prev + 1e-6) bad('I6','주기 단조 위반 p='+p);
+      prev = tot;
+      if (p === 12) base12 = tot;
+    });
+    if (base12 != null && base12 > 0) {
+      [1,2,4].forEach(function(p){
+        var alt = {}; for (var k in c) alt[k] = c[k]; alt.p = p;
+        var tot = (_azProdPmt('ins',ch.alloc.ins,alt) + _azProdPmt('cc',ch.alloc.cc,alt) + _azProdPmt('div',ch.alloc.div,alt)) * p;
+        // 상품별 이율이 달라 합계의 배율은 단일 cycleF 가 아니다 — 상·하한으로만 검사
+        var lo = Math.min(_azCycleF(c.i,p), _azCycleF(c.ccY,p), _azCycleF(c.dvY,p)) - 1e-9;
+        var hiF = Math.max(_azCycleF(c.i,p), _azCycleF(c.ccY,p), _azCycleF(c.dvY,p)) + 1e-9;
+        var r = tot/base12;
+        if (r < lo || r > hiF) bad('I7','배율 이탈 p='+p+': '+r.toFixed(9)+' ∉ ['+lo.toFixed(9)+','+hiF.toFixed(9)+']');
+      });
+    }
+    if (c.mode === 'inherit' && ch.alloc.ins > 0) {
+      var expect = _azInheritPmt(ch.alloc.ins, c.i, c.p);
+      if (Math.abs(ch.pmt.ins - expect) > 1e-6) bad('I9','상속형 원금 잠식: '+ch.pmt.ins+' ≠ '+expect);
+    }
+    if (c.mode === 'term' && ch.alloc.ins > 0 && c.i > 0) {
+      var ip = Math.pow(1+c.i, 1/c.p) - 1, pv = 0, N = c.termYears*c.p;
+      for (var t=1; t<=N; t++) pv += ch.pmt.ins * Math.pow(1+ip, -t);
+      if (Math.abs(pv - ch.alloc.ins) > Math.max(1e-6, ch.alloc.ins*1e-9)) bad('I10','확정기간 소진 불일치: PV '+pv.toFixed(4)+' ≠ '+ch.alloc.ins.toFixed(4));
+    }
+    if (ch.net.perPay > ch.gross.perPay + 1e-9 || ch.tax.total < -1e-9) bad('I11','세후 > 세전 또는 음수 세액');
+    if (ch.alloc.ins > 10000 && c.mode !== 'life' && c.insQualified && !(ch.tax.insTax > 0) && ch.pmt.ins > 0)
+      bad('I12','일시납 1억 초과인데 보험 과세 0 — 한도 분기 미작동');
+    if (c.mode === 'life' && (ch.alloc.cc > 0 || ch.alloc.div > 0) && ch.warn.indexOf('no-life-guarantee') < 0)
+      bad('I13','보증 없는 상품에 종신형 표기 — 경고 누락');
+    // I14 — 읽기 전용 계약: 「반영」 버튼을 누르지 않았는데 다른 단계의 값이 바뀌었는가
+    var snap = _azState.cfBase;
+    if (snap && !_azState.applied) {
+      var cur = _azReadNl();
+      ['priv','privAge','privEnd'].forEach(function(k){
+        if (Math.abs(cur[k] - snap[k]) > 1e-9) bad('I14','반영 전인데 '+k+' 가 변경됨: '+snap[k]+' → '+cur[k]);
+      });
+    }
+  }
+
+  // 이 단계가 쓰기 대상으로 삼는 타 단계 필드 — 읽기 전용 기준선(I14)의 관측 대상이기도 하다.
+  function _azReadNl(){
+    return { priv:num('v_privAmt',0), privAge:num('v_privAge',60), privEnd:num('v_privEndAge',80) };
+  }
+
+  // ── 렌더 ────────────────────────────────────────────────────────────────
+  function _azRenderSrc(ch){
+    var S = ch.src, KEYS = ['cash','ins','stock','re'];
+    KEYS.forEach(function(k){
+      var r = S.rows[k]; if (!r) return;
+      setT('az-src-'+k+'-pct-v', Math.round(r.ratio*100)+'%');
+      setT('az-src-'+k+'-have', '보유 '+_azF(r.have));
+      setT('az-src-'+k+'-net', r.gross>0 ? _azF(r.net) : '—');
+      setT('az-src-'+k+'-cost', r.cost>0 ? '− 비용 '+_azF(r.cost) : '');
+    });
+    setT('az-principal-v', ch.principal>0 ? _azF(ch.principal) : '—');
+    var sub = _g('az-principal-sub');
+    if (sub) {
+      sub.innerHTML = ch.principal>0
+        ? ('현금화 '+_azF(S.gross)+' − 세금·수수료 '+_azF(S.cost)+(ch.reserve>0?' − 유보 '+_azF(ch.reserve):'')+' = <b>'+_azF(ch.principal)+'</b>(추정)'
+           + ' <span style="color:'+C_SUB+'">· 거주주택·연금저축·IRP·퇴직연금(DC)은 이중계상 방지를 위해 제외</span>')
+        : '거주주택 · 연금저축 · IRP · 퇴직연금(DC)은 <b>대상에서 제외</b>합니다 — 거주주택은 주택연금(4단계), 나머지는 이미 연금 재원이라 여기서 또 세면 이중 계상이 됩니다.';
+    }
+    var rows = [];
+    KEYS.forEach(function(k){
+      var r = S.rows[k]; if (!r || r.gross<=0) return;
+      rows.push('<tr><td>'+esc({cash:'현금성',ins:'저축성보험',stock:'주식·ETF',re:'투자부동산'}[k])+'</td>'
+        + '<td>'+_azF(r.have)+'</td><td>'+Math.round(r.ratio*100)+'%</td><td>'+_azF(r.gross)+'</td>'
+        + '<td>'+(r.cost>0?'−'+_azF(r.cost):'—')+'</td><td><b>'+_azF(r.net)+'</b></td>'
+        + '<td style="text-align:left;font-size:10.5px;color:'+C_SUB+'">'+esc(r.why||'')+'</td></tr>');
+    });
+    setH('az-src-detail', rows.length
+      ? '<div class="az-tblwrap"><table class="az-tbl"><tr><th>재원</th><th>보유액</th><th>비율</th><th>현금화</th><th>비용(추정)</th><th>실투입</th><th>비용 내역</th></tr>'
+        + rows.join('') + '<tr class="az-tbl-total"><td>합계</td><td>—</td><td>—</td><td>'+_azF(S.gross)+'</td><td>−'+_azF(S.cost)+'</td><td>'+_azF(S.net)+'</td><td></td></tr></table></div>'
+      : '<div class="hint">현금화 비율을 0보다 크게 설정하면 비용 내역이 표시됩니다.</div>');
+  }
+
+  function _azRenderPlan(ch){
+    var c = ch.ctx;
+    var gw = _g('az-guar-wrap'), tw = _g('az-term-wrap');
+    if (gw) gw.style.display = c.mode==='life' ? '' : 'none';
+    if (tw) tw.style.display = c.mode==='term' ? '' : 'none';
+    setT('az-alloc-ins-v', Math.round(ch.alloc.pct[0])+'%');
+    setT('az-alloc-cc-v',  Math.round(ch.alloc.pct[1])+'%');
+    setT('az-alloc-div-v', Math.round(ch.alloc.pct[2])+'%');
+    setT('az-alloc-ins-amt', ch.principal>0 ? _azF(ch.alloc.ins) : '—');
+    setT('az-alloc-cc-amt',  ch.principal>0 ? _azF(ch.alloc.cc)  : '—');
+    setT('az-alloc-div-amt', ch.principal>0 ? _azF(ch.alloc.div) : '—');
+    var aw = _g('az-alloc-warn');
+    if (aw) aw.style.display = (ch.alloc.rawSum>0 && Math.abs(ch.alloc.rawSum-100)>0.01) ? '' : 'none';
+    // 실효이율 안내는 수령 방식마다 다르다 — 실측 역산이 확정 10년 1.79 / 20년 2.06 / 상속 2.39% 로 갈린다.
+    // 기본값 2.1% 는 확정형 기준이라 상속형에서는 과소 산출되므로 그 사실을 그 자리에서 알린다.
+    var rh = _g('az-rate-hint'), MKr = (typeof AZ_MARKET_65M !== 'undefined') ? AZ_MARKET_65M.impliedRate : null;
+    if (rh && MKr) {
+      var want = c.mode==='inherit' ? MKr.inherit : (c.mode==='term' && c.termYears<=14 ? MKr.term10 : MKr.term20);
+      var off = Math.abs(c.i*100 - want) >= 0.25;
+      rh.innerHTML = (c.mode==='life'
+          ? '종신형은 지급률표로 계산되므로 이 값은 <b>지급 주기 환산에만</b> 쓰입니다.'
+          : '실측 역산 <b>' + want.toFixed(2) + '%</b>(' + (c.mode==='inherit' ? '상속형' : '확정 '+c.termYears+'년') + ' 기준)'
+            + (off ? ' — 현재 ' + (c.i*100).toFixed(2).replace(/\.?0+$/,'') + '% 는 <b style="color:'+C_BAD+'">차이가 큽니다</b>' : ' · 현재 값 적정'))
+        + ' <span style="color:'+C_SUB+'">사업비 차감 후 값이라 공시이율보다 낮습니다.</span>';
+    }
+    var dc = _g('az-divsep-card');
+    if (dc) dc.style.display = (ch.alloc.div>0 && ch.ctx.divSepOn) ? '' : 'none';
+  }
+
+  function _azRenderHero(ch){
+    var box = _g('az-hero-result'); if (!box) return;
+    if (!(ch.principal>0)) { box.innerHTML = '<span>아래에서 현금화할 자산을 고르면 계산됩니다</span>'; return; }
+    var cl = CYC[ch.ctx.p] || '월';
+    box.innerHTML = '<span>투입 '+_azF(ch.principal)+'</span>'
+      + '<span>'+esc(MODE_LBL[ch.ctx.mode]||'')+' · '+esc(cl)+' 수령</span>'
+      + '<span>세전 '+_azF1(ch.gross.perPay)+'/'+esc(cl)+' (추정)</span>'
+      + '<span><b>세후 '+_azF1(ch.net.perPay)+'/'+esc(cl)+' (추정)</b></span>';
+  }
+
+  function _azRenderMatrix(ch){
+    var el = _g('az-matrix'); if (!el) return;
+    var c = ch.ctx, P = ch.principal, cl = CYC[c.p]||'월';
+    if (!(P>0)) { el.innerHTML = '<tr><td style="text-align:center;color:'+C_SUB+';padding:18px">현금화할 자산을 먼저 선택해 주세요.</td></tr>'; setH('az-matrix-note',''); return; }
+    var MODES = ['life','term','inherit'], PRODS = ['ins','cc','div'];
+    var dom = ch.alloc.cc>ch.alloc.ins && ch.alloc.cc>=ch.alloc.div ? 'cc'
+            : ch.alloc.div>ch.alloc.ins && ch.alloc.div>ch.alloc.cc ? 'div' : 'ins';
+    var h = '<tr><th>전액 투입 시 1회 수령액(추정)</th>'+MODES.map(function(m){
+      return '<th'+(m===c.mode?' style="background:#e7e5dd"':'')+'>'+esc(MODE_LBL[m])+'</th>'; }).join('')+'</tr>';
+    PRODS.forEach(function(pr){
+      h += '<tr><td>'+esc(PROD_LBL[pr])+'</td>';
+      MODES.forEach(function(m){
+        var alt = {}; for (var k in c) alt[k]=c[k]; alt.mode=m;
+        var v = _azProdPmt(pr, P, alt);
+        var noG = (pr!=='ins' && m==='life');
+        var badge = pr==='ins' ? '<span class="az-badge az-b-good">보증</span>'
+                  : noG ? '<span class="az-badge az-b-bad">보증 없음</span>'
+                  : m==='term' ? '<span class="az-badge az-b-warn">원금 소진 가능</span>'
+                  : '<span class="az-badge az-b-warn">원금 변동</span>';
+        var sub = pr==='ins'
+          ? (m==='life' ? '평생 지급 보증' : m==='term' ? c.termYears+'년 후 종료' : '원금은 상속')
+          : (noG ? '분배금만 · 지급 보증 없음' : m==='term' ? c.termYears+'년에 걸쳐 원금까지 인출' : '분배금만 · 원금 변동');
+        h += '<td'+((pr===dom&&m===c.mode)?' class="az-mx-on"':'')+'>'
+          + '<div class="az-mx-amt'+(noG?' az-nog':'')+'">'+_azF1(v)+'</div>'
+          + '<div class="az-mx-sub">'+badge+'<br>연 '+_azF(v*c.p)+'<br>'+esc(sub)+'</div></td>';
+      });
+      h += '</tr>';
+    });
+    el.innerHTML = h;
+    setH('az-matrix-note', '※ 표의 금액은 <b>투입 원금 '+_azF(P)+' 전액</b>을 각 조합에 넣었을 때의 <b>'+esc(cl)+' 1회 세전 수령액 추정치</b>입니다(사과 대 사과 비교를 위해 배분과 무관하게 전액 기준). '
+      + '커버드콜·배당형의 「종신형」 칸은 <b>원금을 건드리지 않고 분배금만 받는 금액</b>이며 <b>지급을 보증하는 주체가 없습니다</b> — 시장이 나빠지면 분배금이 줄고 원금도 변동합니다. '
+      + '확정기간형 칸은 분배율이 그대로 유지된다는 가정에서 원금까지 인출하는 금액입니다. '
+      + '<b>커버드콜의 분배율은 총수익률이 아닙니다</b> — 분배율이 총수익률보다 높으면 원금(NAV)이 서서히 줄어듭니다.');
+  }
+
+  function _azRenderDetail(ch){
+    var el = _g('az-detail'); if (!el) return;
+    var c = ch.ctx, cl = CYC[c.p]||'월';
+    if (!(ch.principal>0)) { el.innerHTML = '<div class="hint">현금화할 자산을 먼저 선택해 주세요.</div>'; return; }
+    var row = function(l,v,o){ o=o||{};
+      return '<div class="az-wf-row'+(o.sum?' az-wf-sum':'')+'"><span>'+l+'</span><b'+(o.c?' style="color:'+o.c+'"':'')+'>'+v+'</b></div>'; };
+    var h = '';
+    h += row('세전 '+esc(cl)+' 1회 수령액', _azF1(ch.gross.perPay));
+    if (ch.alloc.ins>0) h += row('· 일시납 연금(보험) '+Math.round(ch.alloc.pct[0])+'%', _azF1(ch.pmt.ins));
+    if (ch.alloc.cc>0)  h += row('· 커버드콜 ETF '+Math.round(ch.alloc.pct[1])+'%', _azF1(ch.pmt.cc));
+    if (ch.alloc.div>0) h += row('· 배당형 자산 '+Math.round(ch.alloc.pct[2])+'%', _azF1(ch.pmt.div));
+    h += row('세전 연 합계', _azF(ch.gross.annual));
+    h += row('과세 대상 금융소득', ch.tax.finIncome>0 ? _azF(ch.tax.finIncome) : '0원 (전액 비과세로 추정)',
+             { c: ch.tax.finIncome>0 ? '' : C_OK });
+    h += row('− 소득세'+(ch.tax.overThreshold?' (종합과세)':' (분리과세 15.4%)'), ch.tax.total>0 ? '−'+_azF(ch.tax.total) : '0원', { c: ch.tax.total>0?C_BAD:C_OK });
+    if (ch.tax.sepSave>0) h += row('  · 고배당 분리과세 선택 절감', '+'+_azF(ch.tax.sepSave), { c:C_OK });
+    h += row('− 건강보험료 증가 (연)', ch.hi ? (ch.hiAnnual>0 ? '−'+_azF(ch.hiAnnual) : '변동 없음') : '— (기준 소득 미계산)',
+             { c: ch.hi && ch.hiAnnual>0 ? C_BAD : '' });
+    h += row('세후 연 수령액 (추정)', _azF(ch.net.annual), { sum:true });
+    h += row('세후 '+esc(cl)+' 1회 (추정)', _azF1(ch.net.perPay), { sum:true });
+    if (ch.scenMin && ch.scenMin.perPay > 0 && ch.scenMin.dropPct > 0.5) {
+      h += '<div class="az-warn" style="margin-top:12px"><b>⚠️ 금리가 최저보증이율('
+        + (ch.scenMin.rate*100).toFixed(2).replace(/\.?0+$/,'') + '%)까지 내려가면</b><br>'
+        + '세전 ' + esc(cl) + ' 1회 <b>' + _azF1(ch.gross.perPay) + ' → ' + _azF1(ch.scenMin.perPay) + '</b>'
+        + ' (−' + ch.scenMin.dropPct.toFixed(0) + '%) 로 줄어들 수 있습니다. '
+        + (ch.alloc.cc>0||ch.alloc.div>0 ? '커버드콜·배당형은 금리연동 상품이 아니라 이 시나리오에서 제외했습니다(별개의 시장 위험). ' : '')
+        + (ch.scenMin.approxLife ? '종신형은 지급률표가 공시이율 기준이라 실측 비율로 환산했습니다.' : '')
+        + '</div>';
+    }
+    var notes = [];
+    if (!ch.hi) notes.push('건강보험료는 앞 단계 계산이 끝나야 증분을 표시할 수 있습니다. 추정하지 않고 비워 둡니다.');
+    else {
+      if (ch.hi.dep && ch.hi.dep.lost) notes.push('⚠️ 이 금융소득이 더해지면 <b>건강보험 피부양자 소득 기준을 넘어설 것으로 추정됩니다</b> — 지역가입자 보험료가 새로 발생할 수 있습니다.');
+      if (ch.hi.dep && !ch.hi.dep.propEvaluated) notes.push('피부양자 <b>재산 기준</b>(과세표준 5.4억·9억)은 <b>평가하지 않았습니다</b> — 재산세 과세표준을 입력하지 않으셨습니다. 소득 기준을 통과해도 재산 기준으로 자격이 상실될 수 있습니다(추정, 현행 기준).');
+    }
+    if (c.mode==='life' && ch.alloc.ins>0 && c.insQualified && c.startAge>=55) notes.push('✅ 보험 종신형은 <b>연금소득세·건강보험료가 발생하지 않는 것으로 보아</b> 반영하지 않았습니다(55세 이후 개시·비과세 요건 충족 기준, 현행 기준·추정). 요건 충족 여부는 이 앱이 판정하지 않으니 보험사에서 확인하십시오.');
+    if (ch.alloc.ins>10000 && c.mode!=='life') notes.push('일시납 비과세 한도는 <b>1억원</b>입니다 — 초과분('+_azF(ch.alloc.ins-10000)+')의 보험차익은 과세 대상으로 봅니다.');
+    el.innerHTML = h + (notes.length ? '<div class="az-note">'+notes.map(function(t){return '· '+t;}).join('<br>')+'</div>' : '');
+  }
+
+  function _azRenderCycle(ch){
+    var el = _g('az-cycle-tbl'); if (!el) return;
+    var c = ch.ctx;
+    if (!(ch.principal>0)) { el.innerHTML = '<tr><td style="text-align:center;color:'+C_SUB+';padding:16px">현금화할 자산을 먼저 선택해 주세요.</td></tr>'; return; }
+    var h = '<tr><th>지급 주기</th><th>1회 세전</th><th>연 지급횟수</th><th>연 세전 총액</th><th>월 환산</th><th>매월 대비</th></tr>';
+    var base = null;
+    [12,4,2,1].forEach(function(p){
+      var alt = {}; for (var k in c) alt[k]=c[k]; alt.p = p;
+      var per = _azProdPmt('ins',ch.alloc.ins,alt) + _azProdPmt('cc',ch.alloc.cc,alt) + _azProdPmt('div',ch.alloc.div,alt);
+      var tot = per*p;
+      if (base===null) base = tot;
+      h += '<tr'+(p===c.p?' class="az-tbl-pick"':'')+'><td>'+esc(CYC[p])+(p===c.p?' <span class="az-badge az-b-good">선택</span>':'')+'</td>'
+        + '<td>'+_azF1(per)+'</td><td>'+p+'회</td><td>'+_azF(tot)+'</td><td>'+_azF1(tot/12)+'</td>'
+        + '<td>'+(base>0 ? (tot>base? '+':'')+((tot/base-1)*100).toFixed(2)+'%' : '—')+'</td></tr>';
+    });
+    el.innerHTML = h;
+  }
+
+  function _azRenderDivsep(ch){
+    var el = _g('az-divsep'); if (!el) return;
+    var sep = ch.tax.sep;
+    if (!sep) { el.innerHTML = '<div class="hint">배당형 자산에 배분하고 금융소득이 2,000만원을 넘을 때 비교가 표시됩니다. 현재는 분리과세를 선택할 실익이 없는 것으로 추정됩니다.</div>'; return; }
+    el.innerHTML = '<div class="az-tblwrap"><table class="az-tbl">'
+      + '<tr><th>구분</th><th>산출세액(연·추정)</th><th>판정</th></tr>'
+      + '<tr><td>A. 전량 종합과세</td><td>'+_azF(sep.compTax)+'</td><td>'+(sep.better==='comp'?'<span class="az-badge az-b-good">유리</span>':'')+'</td></tr>'
+      + '<tr><td>B. 고배당 분리과세 선택</td><td>'+_azF(sep.sepTax)+'</td><td>'+(sep.better==='sep'?'<span class="az-badge az-b-good">유리</span>':'')+'</td></tr>'
+      + '<tr class="az-tbl-total"><td>차이</td><td>'+_azF(Math.abs(sep.saveAmt))+'</td><td>'+(sep.saveAmt>0?'분리 선택이 유리':'종합과세가 유리')+'</td></tr>'
+      + '</table></div>'
+      + '<div class="az-note">※ 조특법 <b>2026~2028년 한시</b> 특례이며 연장 여부는 미정입니다. 대상은 <b>고배당 상장법인 배당</b>이라 커버드콜 ETF 분배금은 포함되지 않습니다. '
+      + '<b>건강보험료 소득 산입은 분리과세를 선택해도 줄지 않습니다</b> — 이 비교는 소득세만 다룹니다.</div>';
+  }
+
+  function _azRenderBasis(ch){
+    var c = ch.ctx;
+    setH('az-basis-summary',
+      '<span class="az-badge az-b-approx">근사</span> 종신형 금액은 <b>앱 내장 근사표</b>로 산출한 추정치입니다 — 국내 주요 생보사 <b>4곳의 즉시연금 공시 예시 평균</b>(2026.7 · 1억·65세 남·20년보증)에 <b>수준을 맞춘 근사</b>이며 특정 상품의 공시표가 아닙니다. 실제 지급액은 보험사·상품·가입시점에 따라 다르므로 반드시 상품 예시표로 대조하십시오.'
+      + '<br>확정기간형·상속형은 <b>근사가 아니라 정확식</b>입니다 — 적용 이율 '+(c.i*100).toFixed(2).replace(/\.?0+$/,'')+'% 기준의 연금 현가 공식으로 계산합니다.');
+    var A = (typeof AZ_AGE_ANCHORS!=='undefined') ? AZ_AGE_ANCHORS : [55,60,65,70,75,80,85];
+    var t1 = '<div class="az-tblwrap"><table class="az-tbl"><tr><th>개시 나이</th>'+A.map(function(a){return '<th>'+a+'</th>';}).join('')+'</tr>'
+      + '<tr><td>남성 (무보증)</td>'+A.map(function(a){return '<td>'+AZ_LIFE_RATE.m[a]+'</td>';}).join('')+'</tr>'
+      + '<tr><td>여성 (무보증)</td>'+A.map(function(a){return '<td>'+AZ_LIFE_RATE.f[a]+'</td>';}).join('')+'</tr>'
+      + '<tr><td>10년 보증 배수</td>'+A.map(function(a){return '<td>'+AZ_GUAR_ADJ[10][a].toFixed(3)+'</td>';}).join('')+'</tr>'
+      + '<tr><td>20년 보증 배수</td>'+A.map(function(a){return '<td>'+AZ_GUAR_ADJ[20][a].toFixed(3)+'</td>';}).join('')+'</tr>'
+      + '</table></div>';
+    // ② 실측 벤치마크 — 이 표의 캘리브레이션 근거이자 「최저보증이율 하락」 리스크의 실측 증거.
+    //    ⚠️ 근거 자료가 사내교육용이라 회사명·개별 상품 수치는 인쇄하지 않고 4개사 평균만 쓴다.
+    var MK = (typeof AZ_MARKET_65M !== 'undefined') ? AZ_MARKET_65M : null;
+    var t3 = '', t3note = '';
+    if (MK) {
+      t3 = '<div class="az-tblwrap" style="margin-top:9px"><table class="az-tbl">'
+        + '<tr><th>실측 — 일시납 1억 · 65세 남 (만원/월)</th><th>최저보증이율 가정</th><th>현공시이율 가정</th><th>격차</th></tr>'
+        + MK.rows.map(function(r){
+            return '<tr'+(r.k==='life20'?' class="az-tbl-total"':'')+'><td>'+esc(r.label)+(r.k==='life20'?' <span class="az-badge az-b-good">캘리브레이션 기준</span>':'')+'</td>'
+              + '<td>'+r.min.toFixed(2)+'</td><td>'+r.cur.toFixed(2)+'</td>'
+              + '<td>'+((r.cur/r.min-1)*100).toFixed(0)+'%</td></tr>';
+          }).join('')
+        + '</table></div>';
+      var im = MK.impliedRate;
+      t3note = '<div style="margin-top:7px;line-height:1.7">본 표의 65세 남 20년보증 = <b>'
+        + _azLifeMonthly(10000,65,'m',20,0.025).pmt.toFixed(2) + '만원</b> 으로 실측 평균 <b>'
+        + MK.rows.filter(function(r){return r.k==='life20';})[0].cur.toFixed(2) + '만원</b> 과 0.1% 이내입니다.'
+        + '<br><b style="color:'+C_BAD+'">⚠️ 두 열의 격차가 이 상품의 가장 큰 리스크입니다.</b> 공시이율은 매월 바뀌고, 금리가 내려가 <b>최저보증이율까지 떨어지면</b> 위 왼쪽 열이 실제 수령액이 됩니다. '
+        + '특히 <b>상속형은 이자만 받는 구조라 금리에 그대로 노출</b>되어 월 ' + MK.rows.filter(function(r){return r.k==='inherit';})[0].cur.toFixed(1)
+        + '만원 → ' + MK.rows.filter(function(r){return r.k==='inherit';})[0].min.toFixed(1) + '만원까지 줄어들 수 있습니다.'
+        + '<br>실측 지급액을 아래 정확식으로 역산한 <b>실효이율</b>: 확정 10년 <b>' + im.term10.toFixed(2) + '%</b> · 확정 20년 <b>'
+        + im.term20.toFixed(2) + '%</b> · 상속 종신 <b>' + im.inherit.toFixed(2) + '%</b>. '
+        + '사업비가 이미 차감된 값이라 <b>상품 공시이율보다 낮습니다</b> — 위 「실효 이율」 입력에는 공시이율이 아니라 이 밴드를 쓰십시오.'
+        + (MK.disclosed ? '<br><br><b>생명보험협회 공시 「저축성 상품비교」 실측</b>(일시납 5,000만원 · 즉시·저축성 8종): '
+            + '현재공시이율 <b>' + MK.disclosed.min.toFixed(2) + '~' + MK.disclosed.max.toFixed(2) + '%</b>(평균 ' + MK.disclosed.avg.toFixed(2) + '%) · '
+            + '사업비율 <b>' + MK.feeRate.min.toFixed(2) + '~' + MK.feeRate.max.toFixed(2) + '%</b> · '
+            + '최저보증이율 <b>' + MK.minGuar.min.toFixed(2) + '~' + MK.minGuar.max.toFixed(2) + '%</b>(경과기간별 차등). '
+            + '공시이율과 위 실효이율의 차 0.2~0.8%p 가 곧 사업비 드래그이며, <b>지급 기간이 짧을수록 커집니다</b>(선취 사업비가 짧게 분산되므로).' : '')
+        + '<br><b>최저보증 시나리오 계산 방법</b>: 확정형·상속형은 최저보증이율로 정확식 재계산하되, 「실효 이율」에 이미 반영된 사업비를 '
+        + '시나리오에도 동일하게 태웁니다(실효이율 ÷ 실측 공시이율 평균으로 원금 감액분 역산). 종신형은 지급률표가 공시이율 기준 고정표라 '
+        + '실측 비율 ' + MK.minGuarRatioLife.toFixed(3) + ' 을 곱합니다. 이렇게 계산한 값은 실측 최저보증 지급액과 종신 0.0% · 확정20년 −0.3% · 확정10년 +1.2% 로 일치합니다.</div>';
+    }
+    // 섹션 번호는 실제로 인쇄되는 표에만 매긴다 — 조건부 표가 빠지면서 번호가 건너뛰면
+    // 「빠진 근거가 있다」로 읽힌다(번호가 곧 신뢰다).
+    var no = 0, HD = function(t){ no++; return '<div style="font-weight:800;color:#475569;margin:'+(no===1?'0 0 6px':'12px 0 6px')+'">'
+      + ['①','②','③','④','⑤'][no-1] + ' ' + t + '</div>'; };
+    setH('az-basis-body',
+      HD('종신형 월 지급액 근사표 (1억당 만원/월)') + t1
+      + '<div style="margin-top:7px;line-height:1.65">생성식 <code>rate = 10,000 × 0.867 ÷ (12 × ä)</code> — ä 는 예정이율 2.5%, 연금수령자 잔여기대여명(통계청 완전생명표 + 연금선택효과 +3.5년) 기준 연금 현가. 계수 0.867 은 사업비·안전할증을 <b>아래 실측 평균에 맞춰 역산</b>한 값입니다.</div>'
+      + (t3 ? HD('실측 대조 — 생보사 즉시연금 공시 예시 (4개사 평균, ' + esc(MK.asOf) + ')') + t3 + t3note : '')
+      + HD('계산 규약')
+      + '<div style="line-height:1.7">· 확정기간형 <code>PMT = P × i_p ÷ (1 − (1+i)^(−n))</code>, 상속형 <code>PMT = P × i_p</code> (i_p = (1+i)^(1/p) − 1)<br>'
+      + '· 지급 주기 환산은 <code>i^(p)/i^(12)</code> 배율 — 확정기간형·상속형에서는 <b>근사가 아니라 항등식</b>이고, 종신형에는 같은 배율을 적용한 근사입니다.<br>'
+      + '· 부동산 양도세는 장기보유특별공제 후 <b>22% 단일세율 근사</b>이며 누진세율·다주택 중과·1세대1주택 비과세는 반영하지 않았습니다.<br>'
+      + '· 보험 비과세 요건(10년 유지·55세 이후 개시·계약자=피보험자=수익자 등)은 <b>앱이 판정하지 않고 고객이 직접 체크</b>하는 항목입니다 — 실제 충족 여부는 가입한 보험사에서 확인하셔야 합니다.<br>'
+      + '· 커버드콜 ETF 분배금은 고배당 상장법인 배당 분리과세 특례 대상이 아니라고 보았습니다(세법 해석이 갈릴 수 있습니다).</div>');
+  }
+
+  function _azRenderConc(ch){
+    var el = _g('az-conc'); if (!el) return;
+    var list = [];
+    try { if (typeof _riConcEval === 'function') list = _riConcEval('tab-annuity') || []; } catch(_) {}
+    if (!list.length) { el.innerHTML = '<div class="hint">현금화할 자산을 선택하면 결론이 표시됩니다.</div>'; return; }
+    var TONE = { bad:['#f9eeee','#e8c9c9',C_BAD,'⚠️'], warn:['#f6f4ec','#e7d4a1','#7a6323','⚡'],
+                 good:['#eaf3f1','#cfe3df',C_OK,'✅'], info:['#f2f6fb','#d3e0ee','#2c5a86','ℹ️'],
+                 na:['#faf9f6','#e2e1da','#55606f','·'] };
+    el.innerHTML = list.map(function(r){
+      var t = TONE[r.tone] || TONE.na;
+      return '<div style="background:'+t[0]+';border:1px solid '+t[1]+';border-radius:9px;padding:10px 13px;margin-bottom:7px">'
+        + '<div style="font-size:12.5px;font-weight:800;color:'+t[2]+';line-height:1.5">'+t[3]+' '+esc(r.t)+'</div>'
+        + (r.b ? '<div style="font-size:11.5px;font-weight:600;color:#55606f;line-height:1.65;margin-top:4px">'+esc(r.b)+'</div>' : '')
+        + '</div>';
+    }).join('');
+  }
+
+  function _azRenderApply(ch){
+    var mo12 = ch.ctx.p===12 ? ch.pmt.ins : ch.pmt.ins*ch.ctx.p/12;
+    setT('az-apply-priv-v', mo12>0 ? '(월 '+_azF1(mo12)+')' : '');
+  }
+
+  // ── 오케스트레이터 ──────────────────────────────────────────────────────
+  function updateAnnuity(){
+    if (!_g('step2')) return;
+    if (!_azState.cfBase) _azState.cfBase = _azReadNl();
+    var ch = null;
+    try { ch = _azChain(); _azState.chain = ch; }
+    catch(e){ try{ console.error('[annuity] chain', e && e.message); }catch(_){} return; }
+    try { _azRenderSrc(ch); }     catch(e){ try{ console.error('[annuity] src', e.message); }catch(_){} }
+    try { _azRenderPlan(ch); }    catch(e){ try{ console.error('[annuity] plan', e.message); }catch(_){} }
+    try { _azRenderHero(ch); }    catch(e){ try{ console.error('[annuity] hero', e.message); }catch(_){} }
+    try { _azRenderMatrix(ch); }  catch(e){ try{ console.error('[annuity] matrix', e.message); }catch(_){} }
+    try { _azRenderDetail(ch); }  catch(e){ try{ console.error('[annuity] detail', e.message); }catch(_){} }
+    try { _azRenderCycle(ch); }   catch(e){ try{ console.error('[annuity] cycle', e.message); }catch(_){} }
+    try { _azRenderDivsep(ch); }  catch(e){ try{ console.error('[annuity] divsep', e.message); }catch(_){} }
+    try { _azRenderBasis(ch); }   catch(e){ try{ console.error('[annuity] basis', e.message); }catch(_){} }
+    try { _azRenderConc(ch); }    catch(e){ try{ console.error('[annuity] conc', e.message); }catch(_){} }
+    try { _azRenderApply(ch); }   catch(e){ try{ console.error('[annuity] apply', e.message); }catch(_){} }
+    try { _azAssertChain(ch); }   catch(_){}
+  }
+
+  // 단계 진입 시 읽기 전용 기준선을 다시 잡는다. 이렇게 해야 I14 가 「이 단계에서 작업하는 동안
+  // 반영 버튼 없이 타 단계 값이 바뀌었는가」만 정확히 잡는다 — 다른 단계에서의 정당한 편집은 오탐이 아니다.
+  function _azEnter(){
+    _azState.cfBase = _azReadNl();
+    _azState.applied = false;
+    updateAnnuity();
+  }
+
+  // ── 입력 핸들러 ─────────────────────────────────────────────────────────
+  function _azTouch(){ _azState.touched = true; }
+  function _azSeg(grpId, btn){
+    var g = _g(grpId); if (!g) return;
+    g.querySelectorAll('.seg-btn').forEach(function(b){ b.classList.remove('on'); });
+    if (btn) btn.classList.add('on');
+    var h = _g(grpId.replace(/-group$/,''));
+    if (h && btn && btn.dataset) h.value = btn.dataset.val;
+    _azTouch(); updateAnnuity();
+  }
+  // 저장 파일 복원 후 버튼의 .on 클래스를 hidden 값에 맞춘다(hidden 이 진실원).
+  function _azRestoreSegUI(){
+    ['az-sex','az-mode','az-cycle','az-guar'].forEach(function(k){
+      var h = _g(k), g = _g(k+'-group'); if (!h || !g) return;
+      g.querySelectorAll('.seg-btn').forEach(function(b){
+        b.classList.toggle('on', !!(b.dataset && b.dataset.val === h.value));
+      });
+    });
+  }
+  var PRESETS = {
+    cons:  { cash:30, ins:0, stock:0,  re:0,  alloc:[100,0,0] },
+    bal:   { cash:50, ins:0, stock:30, re:0,  alloc:[70,0,30] },
+    aggr:  { cash:70, ins:0, stock:50, re:50, alloc:[50,30,20] },
+    reset: { cash:0,  ins:0, stock:0,  re:0,  alloc:[100,0,0] }
+  };
+  function _azPreset(k){
+    var P = PRESETS[k] || PRESETS.reset;
+    [['az-src-cash-pct',P.cash],['az-src-ins-pct',P.ins],['az-src-stock-pct',P.stock],['az-src-re-pct',P.re],
+     ['az-alloc-ins',P.alloc[0]],['az-alloc-cc',P.alloc[1]],['az-alloc-div',P.alloc[2]]].forEach(function(pair){
+      var e = _g(pair[0]); if (e) e.value = pair[1];
+    });
+    ['cons','bal','aggr','reset'].forEach(function(n){
+      var c = _g('az-preset-'+n); if (c) c.classList.toggle('has-val', n===k && k!=='reset');
+    });
+    _azState.touched = (k !== 'reset');
+    updateAnnuity();
+  }
+  // 저장 파일 복원 경로 — 슬라이더 값은 복원되지만 oninput 미발화라 touched 가 꺼진 채로 남는다.
+  // 비율이 하나라도 0이 아니면 「사용자가 설정한 것」으로 보고 touched 를 되살린다(보고서 편입 판정 근거).
+  function _azSyncTouchedFromValues(){
+    var any = ['az-src-cash-pct','az-src-ins-pct','az-src-stock-pct','az-src-re-pct']
+      .some(function(id){ return num(id,0) > 0; });
+    _azState.touched = any;
+    _azState.cfBase = null;      // 고객이 바뀌었으므로 읽기전용 기준선도 새로 잡는다
+    _azState.applied = false;
+  }
+
+  // toast 가 없는 앱이라 인라인 상태줄로 알린다. alert 은 모바일에서 흐름을 끊는다.
+  function _azMsg(text, tone){
+    var el = _g('az-apply-msg'); if (!el) return;
+    el.className = 'az-msg on ' + (tone==='ok' ? 'az-m-ok' : 'az-m-info');
+    el.innerHTML = text;
+  }
+
+  // ── 현금흐름 반영 (명시적 버튼에서만) ────────────────────────────────────
+  //   base-store 는 자산 차감·기타연금·금융소득 3건을 썼다. 이 앱에는 「은퇴 시 자산」과
+  //   「금융소득」 단일 필드가 없어 사적연금 1건만 반영한다. 자산 차감을 흉내내려면 1단계
+  //   입력칸 8개를 직접 깎아야 하는데, 비대면 무료판에서 고객이 자기 입력이 줄어든 것을 보면
+  //   「데이터가 망가졌다」로 읽는다 — 화면 표기로만 알린다.
+  function applyAnnuityToCashflow(){
+    var ch = _azState.chain;
+    if (!ch || !(ch.principal > 0)) { _azMsg('현금화할 자산을 먼저 선택해 주세요.','info'); return; }
+    var base = _azState.cfBase || _azReadNl();
+    var mo12 = ch.ctx.p===12 ? ch.pmt.ins : ch.pmt.ins*ch.ctx.p/12;   // 보험 연금분 월 세전
+    var done = [], notes = [];
+
+    if (chk('az-apply-priv') && mo12 > 0) {
+      var pv = _g('v_privAmt');
+      if (pv) { pv.value = Math.max(0, Math.round(base.priv + mo12)); done.push('개인연금 월 +'+_azF1(mo12)+'(세전)'); }
+      // ⚠️ v_privAmt 는 v_privAge ~ v_privEndAge 구간에서만 현금흐름에 실린다.
+      //    개시 나이가 어긋나면 금액이 엉뚱한 구간에 들어가 부족액이 왜곡된다.
+      var pa = _g('v_privAge');
+      if (pa && +pa.value !== ch.ctx.startAge) { pa.value = ch.ctx.startAge; notes.push('개인연금 개시 나이를 '+ch.ctx.startAge+'세로 맞췄습니다'); }
+      // 종신형인데 종료 나이가 기대수명보다 이르면 부족액이 과대 계산된다.
+      var pe = _g('v_privEndAge'), le = num('v_lifeExp',90);
+      if (ch.ctx.mode==='life' && pe && +pe.value < le) { pe.value = le; notes.push('종신형이라 개인연금 종료 나이를 '+le+'세로 맞췄습니다'); }
+    }
+
+    // 커버드콜·배당 분배금은 연금소득이 아니라 금융소득이라 v_privAmt 에 넣지 않는다 —
+    // 넣으면 연금소득세(3.3~5.5%)로 잘못 낮게 계산된다.
+    var finAnnual = (ch.pmt.cc + ch.pmt.div) * ch.ctx.p;
+    if (finAnnual > 0) notes.push('커버드콜·배당 연 '+_azF(finAnnual)+'은 연금이 아니라 금융소득이라 현금흐름에 자동 반영하지 않았습니다');
+    if (ch.principal > 0) notes.push('연금화에 쓴 원금 '+_azF(ch.principal)+'은 1단계 자산 입력에서 자동으로 빼지 않습니다 — 직접 조정하셔야 합니다');
+
+    _azState.applied = true;
+    try { if (window.app && app.calcAll) app.calcAll(); } catch(_){}
+    _azMsg((done.length ? '✅ 반영: '+done.join(' · ') : '반영할 항목을 선택해 주세요.')
+           + (notes.length ? '<br><span style="font-weight:600">ℹ️ '+notes.join('<br>ℹ️ ')+'</span>' : ''),
+           done.length ? 'ok' : 'info');
+  }
+  function revertAnnuityFromCashflow(){
+    var base = _azState.cfBase;
+    if (!base) { _azMsg('되돌릴 기준값이 없습니다.','info'); return; }
+    var pv = _g('v_privAmt');    if (pv) pv.value = Math.round(base.priv);
+    var pa = _g('v_privAge');    if (pa) pa.value = Math.round(base.privAge);
+    var pe = _g('v_privEndAge'); if (pe) pe.value = Math.round(base.privEnd);
+    _azState.applied = false;
+    try { if (window.app && app.calcAll) app.calcAll(); } catch(_){}
+    _azMsg('↩️ 반영 전 상태로 되돌렸습니다.','ok');
+  }
+
+  // ── 전역 노출 ──
+  window.updateAnnuity  = updateAnnuity;
+  window._azEnter       = _azEnter;
+  window._azTouch       = _azTouch;
+  window._azSeg         = _azSeg;
+  window._azPreset      = _azPreset;
+  window._azRestoreSegUI = _azRestoreSegUI;
+  window._azSyncTouchedFromValues = _azSyncTouchedFromValues;
+  window.applyAnnuityToCashflow   = applyAnnuityToCashflow;
+  window.revertAnnuityFromCashflow = revertAnnuityFromCashflow;
+  window._azState       = _azState;   // QA/검증용 (체인 산출 확인)
+  window._azChain       = _azChain;
+  window._azFmt         = { man:_azF, man1:_azF1, cyc:CYC, mode:MODE_LBL, prod:PROD_LBL };
+})();
+</script>
+
 </body>
 </html>

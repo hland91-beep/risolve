@@ -22,6 +22,18 @@ const LEGAL_CONSTANTS = {
 
   // ── 건강보험 ──────────────────────────────────────────
   HEALTH_DEPENDENT_INCOME_LIMIT: 2000, // 건강보험 피부양자 탈락 기준(연 소득, 만원)
+  HEALTH_FIN_INCOME_EXEMPT: 1000,     // 피부양자 판정 시 금융소득 합산 제외 기준(만원) — 초과하면 전액 합산
+  HEALTH_LOCAL_INCOME_RATE: 0.0719,   // 지역가입자 소득보험료율
+  LTC_PREMIUM_RATE: 0.1314,           // 장기요양보험료율(건강보험료 대비)
+  HEALTH_PROP_POINT_VALUE: 211.5,     // 지역가입자 재산보험료 점수당 금액(원/월)
+  HEALTH_PROP_BASE_DEDUCT: 10000,     // 지역가입자 재산 기본공제(만원, 1억원)
+
+  // ── 금융소득 과세 (연금화 설계) ────────────────────────
+  //   ⚠️ FIN_INCOME_COMPREHENSIVE_LIMIT 와 HEALTH_DEPENDENT_INCOME_LIMIT 는 값이 같지만
+  //      근거 법령이 다르다(소득세법 §14 vs 국민건강보험법 시행규칙). 한 상수로 합치면
+  //      한쪽이 개정될 때 다른 쪽이 조용히 따라 움직인다 — 반드시 별도 유지.
+  FIN_INCOME_COMPREHENSIVE_LIMIT: 2000, // 금융소득종합과세 기준금액(만원)
+  FIN_INCOME_WITHHOLDING_RATE: 0.154,   // 이자·배당 원천징수 14% + 지방소득세 1.4%
 
   // ── 세제 ─────────────────────────────────────────────
   PRIVATE_PENSION_SEPARATE_TAX_LIMIT: 1500, // 사적연금 분리과세 한도(연 수령액, 만원)
@@ -44,6 +56,8 @@ const LEGAL_CONSTANTS = {
     PRIVATE_PENSION_TAX: '소득세법 §20-3',
     HOUSING_PENSION: '한국주택금융공사 종신지급 근사',
     HEALTH_DEPENDENT: '국민건강보험법 시행규칙 (2026 기준)',
+    HEALTH_LOCAL: '국민건강보험법 시행령 별표4 (재산보험료 60등급)',
+    FIN_COMP_TAX: '소득세법 §14·§62 (금융소득종합과세·비교과세)',
     EXEC_SEVERANCE: '소득세법 §22 임원 퇴직소득 한도 (2012~2019 근속분 3배 · 2020 이후 근속분 2배)'
   },
 
